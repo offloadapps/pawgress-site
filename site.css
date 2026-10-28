@@ -1,0 +1,30 @@
+/* Shared styles for the Pawgress website (landing page and privacy policy). Colours match the app. */
+@font-face{font-family:'DynaPuff';src:url(fonts/DynaPuff.ttf) format('truetype');font-weight:400 700;font-display:swap}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(fonts/AtkinsonHyperlegible-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Atkinson Hyperlegible';src:url(fonts/AtkinsonHyperlegible-Bold.ttf) format('truetype');font-weight:700;font-display:swap}
+:root{
+  --bg:#FFF1F7;--dot:#FFD9EA;--surface:#FFFFFF;--ink:#4A1B3C;--muted:#7D4C6D;--line:#F5BCD6;
+  --pink:#FF6FAE;--pink-text:#C42672;--btn-bg:#C42672;--btn-ink:#FFFFFF;--btn-shadow:#8F1A52;--focus:#5B2CC9;
+  --f-display:'DynaPuff','Trebuchet MS',system-ui,sans-serif;--f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#240F1E;--dot:#321728;--surface:#38192F;--ink:#FFE6F1;--muted:#E3B2CE;--line:#6B3459;
+  --pink:#FF7DB6;--pink-text:#FF9CC9;--btn-bg:#FF8EC1;--btn-ink:#2A0F22;--btn-shadow:#C4568F;--focus:#B9A2FF;color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);background-image:radial-gradient(var(--dot) 1.6px,transparent 1.8px);background-size:22px 22px;
+  color:var(--ink);font:18px/1.6 var(--f-body)}
+a{color:var(--pink-text);text-underline-offset:3px}
+a:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:12px}
+.wrap{max-width:980px;margin:0 auto;padding:32px max(20px,env(safe-area-inset-right)) 48px max(20px,env(safe-area-inset-left))}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.1;color:var(--pink-text);text-wrap:balance;margin:0}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--pink-text)}
+.brand img{width:48px;height:48px;border-radius:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:16px;background:var(--btn-bg);color:var(--btn-ink);
+  font:700 1.05rem var(--f-body);text-decoration:none;box-shadow:0 4px 0 var(--btn-shadow)}
+.btn.ghost{background:var(--surface);color:var(--ink);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
+.pill{display:inline-block;padding:6px 14px;border-radius:999px;background:var(--surface);border:2px solid var(--line);font-weight:700;font-size:.95rem;color:var(--muted)}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:24px;padding:24px}
+footer{margin-top:48px;padding-top:20px;border-top:2px dashed var(--line);color:var(--muted);font-size:.95rem;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Pawgress: offload your to-do list in seconds</title>
+<meta name="description" content="Offload your to-do list in seconds. Simple, and seriously cute. A gentle task app where finishing tasks grows a pink pal.">
+<meta name="theme-color" content="#FFF1F7">
+<link rel="icon" type="image/png" href="app/icon-192.png">
+<link rel="apple-touch-icon" href="app/icon-180.png">
+<meta property="og:title" content="Pawgress">
+<meta property="og:description" content="Offload your to-do list in seconds. Simple, and seriously cute.">
+<meta property="og:image" content="img/feature-graphic.png">
+<link rel="stylesheet" href="site.css">
+<style>
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;margin-top:28px}
+.hero h1{font-size:clamp(2.4rem,6vw,3.8rem)}
+.hero .lede{font-size:1.25rem;margin:18px 0 26px;max-width:32ch}
+.cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.hero .phone{justify-self:center;width:min(300px,80vw);border-radius:28px;box-shadow:0 18px 40px rgba(74,27,60,.25);display:block}
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
+.feats img{width:100%;border-radius:18px;display:block;margin-bottom:14px}
+.feats h3{font-size:1.35rem;margin-bottom:6px}
+.feats p{margin:0;color:var(--muted)}
+.gentle{margin-top:48px;text-align:center}
+.gentle h2{font-size:clamp(1.7rem,4vw,2.3rem);margin-bottom:10px}
+.gentle p{margin:0 auto;max-width:56ch}
+.iphone{margin-top:28px}
+.iphone h3{font-size:1.2rem;margin-bottom:6px}
+.iphone p{margin:0}
+@media (max-width:720px){.hero{grid-template-columns:1fr;gap:28px}.hero .phone{grid-row:2}.feats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="brand" href="./"><img src="img/logo-160.webp" alt="">Pawgress</a>
+
+  <section class="hero">
+    <div>
+      <h1>Offload your to-do list in seconds.</h1>
+      <p class="lede">Simple, and seriously cute. Dump everything on your mind, Pawgress sorts it, and every task you finish helps your pal grow up.</p>
+      <div class="cta">
+        <span class="pill" id="play">Coming soon to Google Play</span>
+        <a class="btn ghost" href="app/">Try it in your browser</a>
+      </div>
+    </div>
+    <img class="phone" src="img/shot-home.jpg" alt="Tigrr the pink tiger pal, grown up and wearing a beanie and scarf, in a cosy decorated room.">
+  </section>
+
+  <section class="feats" aria-label="What Pawgress does">
+    <div><img src="img/shot-offload.jpg" alt="" loading="lazy"><h3>Offload it all</h3><p>Type it how you think: "bins every friday 6pm, remind me 30 mins before". Dates, repeats, reminders and sizes are worked out for you.</p></div>
+    <div><img src="img/shot-tasks.jpg" alt="" loading="lazy"><h3>Your day, sorted</h3><p>Today first, then what's coming up, with gentle reminders. Finished tasks earn hearts for your pal and energy for errands that earn coins.</p></div>
+    <div><img src="img/shot-pals.jpg" alt="" loading="lazy"><h3>Ten pals to raise</h3><p>Outfits, cosy rooms and holidays to collect. The pals were drawn by the developer's kids.</p></div>
+  </section>
+
+  <section class="gentle card">
+    <h2>Gentle by design</h2>
+    <p>No streaks. Nothing expires and nothing is ever late. No account, no ads, and everything stays on your phone.</p>
+  </section>
+
+  <section class="iphone">
+    <h3>On an iPhone?</h3>
+    <p>Open the <a href="app/">web version</a> in Safari, tap Share, then Add to Home Screen. It works offline and saves on your phone. Reminders need the Android app for now.</p>
+  </section>
+
+  <footer>
+    <span>Pawgress</span>
+    <nav><a href="privacy.html">Privacy policy</a><span>Contact: <a href="mailto:app.pawgress@gmail.com">app.pawgress@gmail.com</a></span></nav>
+  </footer>
+</div>
+</body>
+</html>
