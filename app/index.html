@@ -1703,8 +1703,8 @@ function setTaskForm(t){
 function palCard(P){
   const owned=S.pets.some(p=>p.sp===P.id);
   return `<div class="item"><div class="art">${petSVG(P.id,null,0)}</div>
-    <div class="row" style="justify-content:space-between"><b>${P.name}</b><span class="chip">${P.kind}</span></div>
-    <p class="fine">${P.blurb}</p>${evoStrip(P.id,2,`Grows from baby to child to grown up`)}<p class="fine">Grows from baby to child to grown up. Loves: ${JOB_BY[P.talent].name}.</p>
+    <b>${P.name}</b>
+    <p class="fine">${P.blurb}</p>${evoStrip(P.id,2,`Grows from baby to child to grown up`)}<p class="fine">Loves: ${JOB_BY[P.talent].name}.</p>
     ${owned?'<span class="chip ok">At home with you</span>':`<button class="btn sm" type="button" data-act="adopt" data-id="${P.id}">Adopt ${hearts(P.price)}</button>`}</div>`;
 }
 function renderShop(){
