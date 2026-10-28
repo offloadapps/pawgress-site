@@ -118,10 +118,10 @@ p{margin:0}
 .petwrap{position:absolute;left:50%;bottom:2%;height:90%;aspect-ratio:1;transform:translateX(-50%);z-index:2;animation:float 3.2s ease-in-out infinite}
 .petwrap svg{width:100%;height:100%;display:block}
 .petwrap.bump{animation:bump .5s}
-.bubble{position:absolute;top:7%;left:50%;transform:translateX(-50%);z-index:4;background:#fff;color:#4A1B3C;border-radius:14px;padding:6px 12px;font-weight:700;font-size:.92rem;
+.bubble{position:absolute;top:7%;left:50%;transform:translateX(-50%);z-index:4;background:#fff;color:#4A1B3C;border-radius:14px;padding:6px 12px;font-weight:700;font-size:min(.92rem,18px);
   max-width:84%;text-align:center;box-shadow:0 3px 0 rgba(74,27,60,.2)}
 .bubble:empty{display:none}
-.bubble.show{top:3%;font-size:.8rem;padding:3px 10px;max-width:94%;white-space:nowrap;border-radius:999px;background:rgba(255,255,255,.92)}
+.bubble.show{top:3%;font-size:min(.8rem,15px);overflow:hidden;text-overflow:ellipsis;padding:3px 10px;max-width:94%;white-space:nowrap;border-radius:999px;background:rgba(255,255,255,.92)}
 .awaymsg{position:absolute;inset:0;z-index:2;display:grid;place-items:center;text-align:center;padding:16px}
 .awaymsg span{background:#fff;color:#4A1B3C;border-radius:14px;padding:8px 14px;font-weight:700;box-shadow:0 3px 0 rgba(74,27,60,.2)}
 .dev-btns{display:flex;justify-content:center;align-items:center;gap:18px}
@@ -178,7 +178,8 @@ details.more summary{cursor:pointer;font-weight:700;min-height:46px;display:flex
 .seg input:focus-visible+span.opt{outline:3px solid var(--focus);outline-offset:2px}
 ul.tasks{list-style:none;padding:0;margin:0}
 li.task{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:2px dashed var(--line)}
-li.task.dim{opacity:.7}
+li.task.dim .ttl{color:var(--muted)}
+li.task.dim .check{opacity:.55}
 li.task.dim.open{opacity:1}
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .task .icon{flex:none;width:34px;height:34px}
@@ -210,6 +211,9 @@ textarea.input{font:inherit;resize:vertical;min-height:84px}
 .bk.lock{opacity:.75}
 .chip.rep{background:var(--surface);border:1px solid var(--line);font-weight:600;margin-left:2px}
 li.task:last-child{border-bottom:0}
+.btn.sm,.check{position:relative}
+.btn.sm::after,.check::after{content:"";position:absolute;inset:-5px -3px}
+.check::after{inset:-5px;border-radius:50%}
 .check{width:38px;height:38px;border-radius:50%;border:3px solid var(--btn-bg);background:var(--surface);display:grid;place-items:center;flex:none;color:var(--btn-ink)}
 .done .check{background:var(--btn-bg)}
 .task .txt{flex:1;min-width:0;overflow-wrap:anywhere}
@@ -219,7 +223,7 @@ li.task:last-child{border-bottom:0}
 /* shop */
 .subtabs{display:flex;gap:8px;flex-wrap:wrap}
 .subtabs .btn{box-shadow:none}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr));gap:12px}
 .item{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
 .art{aspect-ratio:1;background:var(--surface-2);border-radius:14px;display:grid;place-items:center;overflow:hidden}
 .art svg{width:86%;height:86%;display:block}
@@ -236,11 +240,11 @@ li.task:last-child{border-bottom:0}
 /* nav and toast */
 .nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;pointer-events:none;z-index:30;
   padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-.nav-in{pointer-events:auto;display:flex;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:5px;box-shadow:0 6px 0 rgba(196,38,114,.16)}
-.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;border-radius:999px;border:0;background:transparent;font-size:.78rem;font-weight:700;color:var(--muted);min-width:68px}
+.nav-in{pointer-events:auto;max-width:100%;display:flex;gap:4px;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:5px;box-shadow:0 6px 0 rgba(196,38,114,.16)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;border-radius:999px;border:0;background:transparent;font-size:min(.78rem,14px);font-weight:700;color:var(--muted);min-width:0;flex:1 1 0;padding-inline:clamp(8px,3.4vw,16px)}
 .tab[aria-selected="true"]{background:var(--btn-bg);color:var(--btn-ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--bg);
-  padding:10px 16px;border-radius:14px;max-width:min(92vw,440px);display:flex;gap:12px;align-items:center;font-weight:700}
+  padding:10px 16px;border-radius:14px;width:max-content;max-width:min(92vw,440px);display:flex;gap:12px;align-items:center;font-weight:700}
 .toast .btn{box-shadow:none}
 .toast{pointer-events:none}
 .toast .btn{pointer-events:auto}
@@ -251,7 +255,7 @@ li.task:last-child{border-bottom:0}
 .wdots{display:flex;gap:8px;justify-content:center}
 .wdot{display:block;width:34px;height:8px;border-radius:99px;background:var(--line)}
 .wdot.on{background:var(--btn-bg)}
-.wnav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;bottom:calc(-1*max(24px,env(safe-area-inset-bottom,0px)));padding:16px 0 calc(max(24px,env(safe-area-inset-bottom,0px)) + 4px);margin-top:4px;margin-bottom:calc(-1*max(24px,env(safe-area-inset-bottom,0px)));background:linear-gradient(to bottom,transparent,var(--bg) 24%)}
+.wnav{display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;bottom:calc(-1*max(24px,env(safe-area-inset-bottom,0px)));padding:16px 0 calc(max(24px,env(safe-area-inset-bottom,0px)) + 4px);margin-top:4px;margin-bottom:calc(-1*max(24px,env(safe-area-inset-bottom,0px)));background:linear-gradient(to bottom,transparent,var(--bg) 14px)}
 #w-list{max-height:none;overflow:visible}
 .wstep .welcome-logo{width:56px;height:56px;border-radius:14px;margin:0}
 .wstep h2:focus{outline:none}
@@ -398,7 +402,7 @@ body.qa-open .toast{bottom:calc(162px + env(safe-area-inset-bottom,0px))}
       <li><span class="pi" data-ic="bolt" data-size="22"></span><p><b>Hard to start?</b> Press Just start. Your pal sits with you for 5 minutes, and anything bigger than tiny pays a heart just for starting.</p></li>
       <li><span class="pi" data-ic="heart" data-size="22"></span><p><b>Not the day for it?</b> Tap Not today and the task comes back tomorrow.</p></li>
     </ul>
-    <p class="fine">You start with 10 hearts, 25 coins and 6 energy. Finished tasks earn hearts and energy. Your pals use energy to go on errands and bring back coins for outfits, treats and holidays.</p>
+    <p class="fine">Finished tasks earn hearts for your pal, and energy to send pals on errands for coins.</p>
     <p class="fine" id="w-notif" hidden>Android will ask to allow notifications next. They are only for reminders you choose, and you can switch any of them off in Settings.</p>
     <div class="wnav"><button id="start" class="btn big" type="button">Start</button><button class="btn ghost" type="button" data-w="back">Back</button></div>
     </section>
@@ -465,7 +469,7 @@ body.qa-open .toast{bottom:calc(162px + env(safe-area-inset-bottom,0px))}
     <div class="dump-back" data-qa="close"></div>
     <div class="dump-card" role="dialog" aria-modal="true" aria-labelledby="dump-h">
       <h2 id="dump-h">Offload</h2>
-      <p class="fine" style="margin:0">Type or paste everything on your mind, one task per line. Say it your way: "put bins out every Friday at 6pm, remind me 30 mins before, tiny". Repeats, dates, times, reminders and sizes are understood.</p>
+      <p class="fine" style="margin:0">Everything on your mind, one task per line, in your own words. Dates, times, repeats, reminders and sizes are worked out for you.</p>
       <textarea id="dump-text" class="input" rows="6" maxlength="4000" aria-label="Your tasks, one per line" placeholder="Book the dentist&#10;Bins every Fri at 6pm, remind me 30 mins before, tiny&#10;Reply to Sam&#10;Stretch every morning"></textarea>
       <ul id="dump-list" class="dump-list" aria-live="polite"></ul>
       <p class="fine" id="dump-note" style="margin:0" hidden>Only the first 50 lines are added.</p>
@@ -1366,7 +1370,15 @@ function syncWidgetPal(){
   const p=S.pets[S.active];if(!p||!NATIVE.setWidgetPal)return;
   const sig=p.sp+JSON.stringify(p.wear||{})+stageOf(p);if(sig===widgetPalSig)return;widgetPalSig=sig;
   const img=new Image();
-  img.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=288;c.getContext('2d').drawImage(img,0,0,288,288);NATIVE.setWidgetPal(c.toDataURL('image/png').split(',')[1])}catch(e){widgetPalSig=''}};
+  img.onload=()=>{try{
+    const S2=720,c=document.createElement('canvas');c.width=c.height=S2;const g=c.getContext('2d');g.drawImage(img,0,0,S2,S2);
+    // Trim the empty space around the pal so it fills the widget.
+    const px=g.getImageData(0,0,S2,S2).data;let x0=S2,y0=S2,x1=-1,y1=-1;
+    for(let y=0;y<S2;y++)for(let x=0;x<S2;x++)if(px[(y*S2+x)*4+3]>10){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+    let out=c;
+    if(x1>x0&&y1>y0){const m=12,w=x1-x0+1+2*m,h=y1-y0+1+2*m;out=document.createElement('canvas');out.width=w;out.height=h;out.getContext('2d').drawImage(c,x0-m,y0-m,w,h,0,0,w,h)}
+    NATIVE.setWidgetPal(out.toDataURL('image/png').split(',')[1]);
+  }catch(e){widgetPalSig=''}};
   img.onerror=()=>{widgetPalSig=''};
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(petSVG(p.sp,p.wear||{},stageOf(p)));
 }
@@ -1645,7 +1657,7 @@ function renderTasks(){
       <span class="chip">${hearts(t.done?t.earned:SIZE_BY[t.size].hearts)}</span>${acts}${steps}</li>`;
   };
   let main;
-  if(!due.length)main=`<p class="empty">${qs&&!soon.length?'Nothing matches that search.':soon.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
+  if(!due.length)main=`<p class="empty">${qs&&!soon.length?'Nothing matches that search.':!qs&&done.length?'All done for today. Well done!':soon.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
   else{
     const order=['morning','afternoon','evening','any'],grp=w=>due.filter(t=>(t.when||'any')===w);
     const used=order.filter(w=>grp(w).length);
@@ -1796,7 +1808,7 @@ function aboutCard(){const a=appInfo();return `<div class="card"><h2>About</h2>
     <p>Pawgress version ${a?`${esc(a.version)} <span class="fine">(build ${esc(String(a.code))})</span>`:APP_VERSION}</p>
     ${CONTACT_EMAIL?`<h3>Feedback</h3><p class="fine">Found a bug, got stuck, or have an idea? Every message is read, and it really helps.</p>
     <div class="row"><a class="btn sm" href="${feedbackHref()}">Send feedback</a></div>
-    <p class="fine">Or email <b style="user-select:all">${CONTACT_EMAIL}</b></p>`:''}
+    <p class="fine">Or email <b style="user-select:all;overflow-wrap:anywhere">${CONTACT_EMAIL}</b></p>`:''}
     ${PRIVACY_URL?`<p><a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a></p>`:''}
     <p class="fine">Fonts: DynaPuff, Atkinson Hyperlegible and Silkscreen, used under the SIL Open Font Licence.</p></div>`}
 function demoCard(){if(!DEMO)return '';return `<div class="card"><h2>Demo controls</h2>
