@@ -541,6 +541,8 @@ const TEST=(()=>{try{const N=window.PawgressNative;return !!(N&&N.isTestBuild&&N
 /* ---------- helpers ---------- */
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+// Lookup tables by id, with no inherited keys: a saved id like "constructor" or "__proto__" finds nothing.
+const byId=a=>Object.assign(Object.create(null),Object.fromEntries(a.map(x=>[x.id,x])));
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const ICONS={
@@ -639,7 +641,7 @@ const PETS=[
 const FORM_LABELS=['Baby','Child','Grown up'],NOW_FORM=['a baby','a child','all grown up'];
 const NAMES={cat:'Tigrr',panda:'Pandy',dog:'Soosy',hedge:'Marcy',cater:'Catipil',ant:'Jaceub',bird:'Careeun',camel:'Camle',alien:'Anyun',uni:'Glimmer'};
 PETS.forEach(p=>{p.forms=FORM_LABELS;p.name=NAMES[p.id]});
-const PET_BY=Object.fromEntries(PETS.map(p=>[p.id,p]));
+const PET_BY=byId(PETS);
 const SCALE=[.78,.88,.95];
 const spark=(x,y,s,c='#FFD76A')=>`<path d="M${x} ${y-s}L${x+s*.3} ${y-s*.3}L${x+s} ${y}L${x+s*.3} ${y+s*.3}L${x} ${y+s}L${x-s*.3} ${y+s*.3}L${x-s} ${y}L${x-s*.3} ${y-s*.3}Z" fill="${c}"/>`;
 const gem=(c,y)=>`<path d="M60 ${y+7} C52 ${y} 50 ${y-5} 54 ${y-8} C57 ${y-10} 60 ${y-8} 60 ${y-6} C60 ${y-8} 63 ${y-10} 66 ${y-8} C70 ${y-5} 68 ${y} 60 ${y+7}Z" fill="#FF4F9A" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><circle cx="56.5" cy="${y-4}" r="1.6" fill="#fff" opacity=".85"/>`;
@@ -717,7 +719,7 @@ const OUTFITS=[
   {id:'angelwings',name:'Angel Wings',cost:180,at:'back',wings:true,draw:v=>{const W=`<path d="M58 84 C46 68 22 62 14 72 C20 74 16 80 22 82 C17 86 23 91 29 91 C26 96 34 99 40 97 C46 96 54 92 58 88Z" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.4" stroke-linejoin="round"/><path d="M50 80 C42 76 32 74 24 76 M48 86 C40 85 32 85 26 86" stroke="#EADCE6" stroke-width="1.2" fill="none"/>`;
     return v==='side'?['',`<path d="M58 80 C48 58 26 50 20 60 C26 62 22 68 28 70 C24 74 30 78 36 78 C34 82 42 84 48 82 C52 81 56 81 58 80Z" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.4" stroke-linejoin="round"/>`]:[`<g transform="translate(60 82) scale(1.35) translate(-60 -82)">${W+M(W)}</g>`,'']}}
 ];
-const OUTFIT_BY=Object.fromEntries(OUTFITS.map(o=>[o.id,o]));
+const OUTFIT_BY=byId(OUTFITS);
 const OUTFIT_SETS=[{id:'beachday',name:'Beach day',items:['sunhat','starshades','swimring']},{id:'starwitch',name:'Starry witch',items:['witch','cape']},{id:'angel',name:'Angel',items:['halo','angelwings']}];
 const setOf=id=>OUTFIT_SETS.find(s=>s.items.includes(id));
 /* what a pal is wearing, one item per slot (older saves had a single outfit) */
@@ -1089,7 +1091,7 @@ const SCENES=[
   {id:'carnival',name:'Candy Carnival',svg:`<rect width="320" height="200" fill="#FFD3E8"/><rect y="152" width="320" height="48" fill="#FFB6D5"/><circle cx="238" cy="88" r="52" fill="none" stroke="#B9A2FF" stroke-width="5"/><path d="M238 36V140M186 88H290M201 51L275 125M275 51L201 125" stroke="#B9A2FF" stroke-width="3"/><g fill="#FF6FAE"><circle cx="238" cy="36" r="7"/><circle cx="290" cy="88" r="7"/><circle cx="238" cy="140" r="7"/><circle cx="186" cy="88" r="7"/></g><path d="M20 152 L72 80 L124 152Z" fill="#FF6FAE"/><path d="M72 80 L46 152 M72 80 L98 152" stroke="#fff" stroke-width="5"/><path d="M60 40 v34" stroke="#8A5A44" stroke-width="2"/><ellipse cx="60" cy="34" rx="12" ry="15" fill="#B9A2FF"/><ellipse cx="150" cy="44" rx="11" ry="14" fill="#FFC83D"/><path d="M150 58 v26" stroke="#8A5A44" stroke-width="2"/>`},
   {id:'stars',name:'Starry Campout',svg:`<rect width="320" height="200" fill="#3B2A6E"/><g fill="#fff"><circle cx="30" cy="30" r="2"/><circle cx="90" cy="60" r="1.6"/><circle cx="140" cy="24" r="2.2"/><circle cx="190" cy="52" r="1.6"/><circle cx="224" cy="22" r="2"/><circle cx="300" cy="70" r="1.8"/><circle cx="60" cy="96" r="1.6"/><circle cx="170" cy="92" r="1.4"/></g><circle cx="262" cy="44" r="20" fill="#FFF3B0"/><circle cx="270" cy="38" r="18" fill="#3B2A6E"/><path d="M0 160 Q80 128 160 160 T320 150 V200 H0Z" fill="#5A3F94"/><path d="M90 168 L140 104 L190 168Z" fill="#FF6FAE"/><path d="M140 104 L124 168 L156 168Z" fill="#C42672"/><path d="M236 168 L246 146 L256 168Z" fill="#FFB92E"/><path d="M241 168 L246 156 L251 168Z" fill="#FF7A5C"/>`}
 ];
-const SCENE_BY=Object.fromEntries(SCENES.map(s=>[s.id,s]));
+const SCENE_BY=byId(SCENES);
 
 /* ---------- game data ---------- */
 const DAILY_CAP=40,ENERGY_MAX=12,ENERGY_START=6,DAILY_ENERGY=8;
@@ -1099,13 +1101,13 @@ const SIZES=[
   {id:'medium',label:'Medium',hearts:4,energy:2,hint:'15 to 45 min'},
   {id:'big',label:'Big',hearts:8,energy:3,hint:'An hour or more'}
 ];
-const SIZE_BY=Object.fromEntries(SIZES.map(s=>[s.id,s]));
+const SIZE_BY=byId(SIZES);
 const JOBS=[
   {id:'berry',name:'Berry picking',sec:900,coins:10,energy:2,desc:'A basket of sweet berries for the market.'},
   {id:'mail',name:'Cloud mail route',sec:3600,coins:22,energy:4,desc:'Deliver letters across the sky.'},
   {id:'gem',name:'Crystal digging',sec:10800,coins:36,energy:6,desc:'Dig deep for pink crystals.'}
 ];
-const JOB_BY=Object.fromEntries(JOBS.map(j=>[j.id,j]));
+const JOB_BY=byId(JOBS);
 const TRIPS=[
   {id:'beach',name:'Beach Sunset',cost:75,sec:120},
   {id:'sakura',name:'Cherry Blossom Picnic',cost:100,sec:150},
@@ -1113,13 +1115,13 @@ const TRIPS=[
   {id:'carnival',name:'Candy Carnival',cost:160,sec:240},
   {id:'stars',name:'Starry Campout',cost:200,sec:300}
 ];
-const TRIP_BY=Object.fromEntries(TRIPS.map(t=>[t.id,t]));
+const TRIP_BY=byId(TRIPS);
 const TREATS=[
   {id:'milk',name:'Strawberry milk',cost:10,bond:1,desc:'A small sip of happiness.'},
   {id:'cake',name:'Cake slice',cost:28,bond:3,desc:'Pink icing with a tiny star on top.'},
   {id:'tea',name:'Tea party for two',cost:70,bond:8,desc:'Tiny cups, tiny sandwiches, big bonding.'}
 ];
-const TREAT_BY=Object.fromEntries(TREATS.map(t=>[t.id,t]));
+const TREAT_BY=byId(TREATS);
 const BOND_STEP=5, BOND_MAX=5;
 const SAMPLE_TASKS=[['Drink a glass of water','tiny',{days:[0,1,2,3,4,5,6]},'morning'],['Reply to one message','small'],['Put a load of laundry on','medium']];
 const TASK_LINES=['Yay, you did it!','I am so proud of you.','That counts. Nice work.','Tiny steps add up.','You are doing great.','Look at you go!'];
@@ -1186,7 +1188,7 @@ const DECOR=[
   {id:'fireflies',room:'stars',name:'Jar of fireflies',cost:70,vb:'262 160 32 38',svg:`<ellipse cx="277" cy="182" rx="15" ry="15" fill="#E6FF9A" opacity=".16"/><rect x="268" y="168" width="18" height="24" rx="5" fill="#DDF2FF" fill-opacity=".5" stroke="#B8DCF0" stroke-width="1.2"/><rect x="267" y="164" width="20" height="5" rx="2" fill="#C98B6B"/><g fill="#F2FF8A"><circle cx="273" cy="176" r="1.8"/><circle cx="280" cy="182" r="1.6"/><circle cx="275" cy="187" r="1.4"/><circle cx="282" cy="173" r="1.2"/></g>`},
   {id:'starjar',room:'stars',name:'Shooting star in a jar',gift:true,vb:'26 176 26 22',svg:`<rect x="30" y="180" width="16" height="15" rx="4" fill="#DDF2FF" fill-opacity=".45" stroke="#B8DCF0" stroke-width="1.1"/><rect x="29" y="177" width="18" height="4" rx="1.5" fill="#B9A2FF"/>${STAR(38,188,5,'#FFE27A',' stroke="#FFB92E" stroke-width=".8"')}<path d="M33 185 l-3 -3" stroke="#FFE27A" stroke-width="1" stroke-linecap="round"/>`}
 ];
-const DECOR_BY=Object.fromEntries(DECOR.map(d=>[d.id,d]));
+const DECOR_BY=byId(DECOR);
 const roomOf=d=>d.room||'room';
 const roomDecor=id=>DECOR.filter(d=>roomOf(d)===id);
 const roomDone=id=>roomDecor(id).every(d=>S.decor.includes(d.id));
@@ -1235,7 +1237,7 @@ function cleanState(o){
   const MIG={bun:'panda',slime:'dog',axo:'hedge',fox:'cater',lamb:'ant',bat:'bird',drake:'camel',owl:'alien'},seen=new Set();
   s.pets=(Array.isArray(o.pets)?o.pets:[]).map(p=>{
     if(!p||typeof p!=='object')return null;
-    const sp=PET_BY[p.sp]?p.sp:(MIG[p.sp]||'cat');if(seen.has(sp))return null;seen.add(sp);
+    const sp=PET_BY[p.sp]?p.sp:(Object.prototype.hasOwnProperty.call(MIG,p.sp)?MIG[p.sp]:'cat');if(seen.has(sp))return null;seen.add(sp);
     const q={sp,name:strOr(p.name,14).trim()||PET_BY[sp].name.split(' ')[0],wear:(()=>{const src=p.wear&&typeof p.wear==='object'?p.wear:(OUTFIT_BY[p.outfit]?{[OUTFIT_BY[p.outfit].at]:p.outfit}:{}),w={};for(const [sl] of SLOTS){const x=src[sl];if(OUTFIT_BY[x]&&OUTFIT_BY[x].at===sl)w[sl]=x}return w})(),bond:intOr(p.bond,0,0,1e6),loved:intOr(p.loved,0,0,1e6),job:null,trip:null};
     if(p.job&&typeof p.job==='object'&&JOB_BY[p.job.id])q.job={id:p.job.id,start:numOr(p.job.start,T,0,9e15),end:numOr(p.job.end,T,0,9e15),coins:intOr(p.job.coins,0,0,1e5)};
     if(p.trip&&typeof p.trip==='object'&&TRIP_BY[p.trip.id])q.trip={id:p.trip.id,start:numOr(p.trip.start,T,0,9e15),end:numOr(p.trip.end,T,0,9e15)};
