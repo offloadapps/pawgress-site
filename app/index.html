@@ -1200,7 +1200,7 @@ let heartsPending=0; // hearts still flying from the counter to the pal (see hea
 let S=load(), tab='home', shopTab='pals', toastTimer=null, bubbleTimer=null, lastSig='', resetArmed=false;
 
 function dayKey(){return new Date().toDateString()}
-const CFG_DEF={theme:'system',text:'normal',calm:false,chat:true,defSize:'small',ampm:'guess',snooze:1};
+const CFG_DEF={theme:'system',text:'normal',calm:false,chat:true,sound:true,voices:true,defSize:'small',ampm:'guess',snooze:1};
 const APP_VERSION='1.0',PRIVACY_URL='https://jdavisonjmd-ui.github.io/pawgress-site/privacy.html',CONTACT_EMAIL='app.pawgress@gmail.com';
 function cfg(){return Object.assign({},CFG_DEF,S.cfg||{})}
 function applySettings(){
@@ -1266,7 +1266,7 @@ function cleanState(o){
   if(o.focus&&typeof o.focus==='object'&&ids.has(o.focus.id))s.focus={id:o.focus.id,start:numOr(o.focus.start,T,0,9e15),end:numOr(o.focus.end,T,0,9e15),rung:!!o.focus.rung};
   if(o.last&&typeof o.last==='object'&&ids.has(o.last.id))s.last={id:o.last.id,earn:intOr(o.last.earn,0,0,100),en:intOr(o.last.en,0,0,ENERGY_MAX)};
   if(o.cfg&&typeof o.cfg==='object'){const c=o.cfg,C={},one=(k,ok)=>{if(ok.includes(c[k]))C[k]=c[k]};
-    one('theme',['system','light','dark']);one('text',['normal','large','xl']);one('calm',[true,false]);one('chat',[true,false]);one('defSize',Object.keys(SIZE_BY));one('ampm',['guess','am','pm']);one('snooze',[1,2,7]);
+    one('theme',['system','light','dark']);one('text',['normal','large','xl']);one('calm',[true,false]);one('chat',[true,false]);one('sound',[true,false]);one('voices',[true,false]);one('defSize',Object.keys(SIZE_BY));one('ampm',['guess','am','pm']);one('snooze',[1,2,7]);
     s.cfg=C}
   if(o.rem&&typeof o.rem==='object'){const r=o.rem,R={},tm=(src,dst,k)=>{if(HHMM.test(src[k]))dst[k]=src[k]};
     ['morning','evening'].forEach(k=>{if(r[k]&&typeof r[k]==='object'){R[k]={on:r[k].on!==false};tm(r[k],R[k],'t')}});
@@ -1498,6 +1498,61 @@ function say(text){
 }
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 
+/* ---------- sound ---------- */
+// Short sounds from app/sounds (made by tools/make_sounds.py), played with Web Audio so they can be pitched and timed.
+// Off with Settings > Sound, and quiet while an Android phone is on silent or vibrate. A sound that cannot load
+// (an old browser, or the page opened as a plain file) just stays quiet: sound is never needed to use the app.
+const SOUND_DATA=null; // the single-file demo build puts the sounds here, inlined
+const SOUNDS=['tick_tiny','tick_small','tick_medium','tick_big','step','undo','offload','heart','hearts_more','hearts_lots',
+  'pat','grow','visit_in','visit_out','send','coins_few','coins_many','postcard','buy','wear','surprise','room_done','start','done',
+  ...Object.keys(NAMES).map(sp=>'voice_'+sp)];
+const SND={ctx:null,out:null,buf:{},loading:null,checked:0,silent:false};
+function sndOn(){
+  if(!cfg().sound)return false;
+  const N=window.PawgressNative;
+  if(N&&N.isSilent){const now=Date.now();if(now-SND.checked>1500){SND.checked=now;try{SND.silent=!!N.isSilent()}catch(e){SND.silent=false}}if(SND.silent)return false}
+  return true;
+}
+function sndCtx(){
+  if(!SND.ctx){const A=window.AudioContext||window.webkitAudioContext;if(!A)return null;
+    try{SND.ctx=new A();SND.out=SND.ctx.createGain();SND.out.gain.value=.9;SND.out.connect(SND.ctx.destination)}catch(e){SND.ctx=null;return null}}
+  if(SND.ctx.state==='suspended'&&!document.hidden)SND.ctx.resume().catch(()=>{});
+  return SND.ctx;
+}
+function sndBytes(n){
+  if(SOUND_DATA){const s=atob(SOUND_DATA[n]),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return Promise.resolve(b.buffer)}
+  return fetch('sounds/'+n+'.mp3').then(r=>{if(!r.ok)throw new Error('no sound');return r.arrayBuffer()});
+}
+function sndLoad(){
+  if(SND.loading)return SND.loading;
+  const c=sndCtx();if(!c)return Promise.resolve();
+  SND.loading=Promise.all(SOUNDS.map(n=>sndBytes(n).then(b=>new Promise((ok,no)=>c.decodeAudioData(b,ok,no))).then(d=>{SND.buf[n]=d}).catch(()=>{})));
+  return SND.loading;
+}
+// sfx(name,{rate,at,vol}): rate pitches it (2 is an octave up), at is seconds from now.
+function sfx(name,o){
+  o=o||{};if(!sndOn())return;
+  const c=sndCtx();if(!c)return;
+  const b=SND.buf[name];
+  if(!b){const t0=Date.now();sndLoad().then(()=>{if(SND.buf[name]&&Date.now()-t0<500)sfx(name,o)});return}
+  try{const s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=o.rate||1;g.gain.value=o.vol==null?1:o.vol;
+    s.connect(g);g.connect(SND.out);s.start(c.currentTime+Math.max(0,o.at||0))}catch(e){}
+}
+// Each pal has its own little voice: higher as a baby, lower once grown up.
+function chirp(p,at){p=p||cur();if(!p||!cfg().voices)return;sfx('voice_'+p.sp,{rate:[1.26,1.1,.92][stageOf(p)]*(.98+Math.random()*.04),at:at||0})}
+// Giving hearts: up to 6 hearts play a rising pip as each one lands (1 heart is a single C6, 5 hearts A5 C6 D6 E6 G6).
+// 7 to 20 hearts play a shimmer, and more than 20 the big sweep and bloom. at: when the first heart lands.
+const HEART_STEPS=[.75,.84,1,1.125,1.25,1.5];
+function heartSound(n,gap,at){
+  if(n>20){sfx('hearts_lots',{at});return}
+  if(n>6){sfx('hearts_more',{at});return}
+  for(let i=0;i<n;i++)sfx('heart',{rate:n===1?1:HEART_STEPS[6-n+i],at:at+i*gap});
+}
+// Start loading once the page is up, and wake the audio on the first tap (phones only allow sound after a tap).
+setTimeout(()=>{if(cfg().sound)sndLoad()},1200);
+document.addEventListener('pointerdown',()=>{if(cfg().sound)sndCtx()},true);
+document.addEventListener('visibilitychange',()=>{if(SND.ctx){if(document.hidden)SND.ctx.suspend().catch(()=>{});else SND.ctx.resume().catch(()=>{})}});
+
 /* ---------- focus ---------- */
 function payPool(t,n){
   const pool=SIZE_BY[t.size].hearts-1;t.paid=t.paid||0;
@@ -1511,7 +1566,7 @@ function startFocus(id){
   let got=0;
   if(!t.startPaid){t.startPaid=1;got=payPool(t,1)}
   const now=Date.now();S.focus={id,start:now,end:now+dur(FOCUS_SEC),rung:false};
-  save();renderTop();renderTasks();renderFocus();
+  save();renderTop();renderTasks();renderFocus();sfx('start');
   toast(`${cur().name} is sitting with you for 5 minutes.${got?' +1 heart for starting.':''}`);
   say(pick(VOICE[cur().sp].cheer));
 }
@@ -1528,7 +1583,7 @@ function renderFocus(){
 function tickFocus(){
   const f=S.focus;if(!f)return;
   const left=f.end-Date.now();
-  if(left<=0&&!f.rung){f.rung=true;save();renderFocus();toast('Five minutes done. Starting was the hard part.');say('You started! That is the hard part.');return}
+  if(left<=0&&!f.rung){f.rung=true;save();renderFocus();sfx('done');toast('Five minutes done. Starting was the hard part.');say('You started! That is the hard part.');return}
   const el=$('#focus-left');if(el&&left>0)el.textContent=mmss(left*speed())+' left. '+cur().name+' is right here with you.';
 }
 const WHEN_RANK={morning:0,afternoon:1,evening:2,any:3};
@@ -1538,7 +1593,7 @@ function toggleStep(id,i){
   if(s.done&&!s.paid){s.paid=true;got=payPool(t,1)}
   save();renderTop();renderTasks();
   if(s.done){
-    const all=t.steps.every(x=>x.done);
+    const all=t.steps.every(x=>x.done);sfx('step');
     toast(all?'All steps done. Tick the task to finish it.':got?'+1 heart for that step.':'Step done.');
     if(!all)say(pick(VOICE[cur().sp].cheer));
   }
@@ -1806,6 +1861,10 @@ function tasksCard(){return `<div class="card"><h2>Tasks and Offload</h2>
     <label class="remrow"><span>Not today returns</span>${cfgSel('snooze',[[1,'Tomorrow'],[2,'In 2 days'],[7,'Next week']],'Not today returns')}</label></div>`}
 function palsCard(){return `<div class="card"><h2>Pals</h2>
     <label class="remrow"><span><input type="checkbox" data-cfg="chat"${cfg().chat?' checked':''}> Speech bubbles</span></label></div>`}
+function soundCard(){return `<div class="card"><h2>Sound</h2>
+    <label class="remrow"><span><input type="checkbox" data-cfg="sound"${cfg().sound?' checked':''}> Sounds</span></label>
+    <label class="remrow"><span><input type="checkbox" data-cfg="voices"${cfg().voices?' checked':''}${cfg().sound?'':' disabled'}> Pal voices</span></label>
+    ${NATIVE?'<p class="fine">Quiet when your phone is on silent.</p>':''}</div>`}
 function dataCard(){return `<div class="card"><h2>Your data</h2>
     <p class="fine">Everything stays on this phone. Keep a backup code somewhere safe.</p>
     <div class="row"><button class="btn ghost sm" type="button" data-act="bk-copy">Copy backup code</button><button class="btn ghost sm" type="button" data-act="bk-open">Restore from code</button><button class="btn ghost sm" type="button" data-act="copy-list">Copy my task list</button></div>
@@ -1829,7 +1888,7 @@ function demoCard(){if(!DEMO&&!TEST)return '';return `<div class="card"><h2>${TE
     <div class="row"><button class="btn ghost sm" type="button" data-act="demo-hearts">+50 hearts</button><button class="btn ghost sm" type="button" data-act="demo-coins">+200 coins</button><button class="btn ghost sm" type="button" data-act="demo-energy">Fill energy</button></div>
     <label class="row"><input id="fast" type="checkbox" ${S.fast?'checked':''}> <span>Fast timers (12 times quicker)</span></label></div>`}
 function renderGuide(){
-  $('#guide').innerHTML=appearanceCard()+remindersCard()+tasksCard()+palsCard()+dataCard()+`
+  $('#guide').innerHTML=appearanceCard()+remindersCard()+tasksCard()+palsCard()+soundCard()+dataCard()+`
   <h2 class="guidehd">Guide</h2>
   <details class="card addwrap"><summary><h2>How Pawgress works</h2></summary>
     <ol class="steps">
@@ -1880,7 +1939,7 @@ function addTask(){
     setTaskForm(null);save();renderTasks();toast('Saved.');return;
   }
   S.tasks.push({id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0});
-  setTaskForm(null);save();renderTasks();
+  setTaskForm(null);save();renderTasks();sfx('offload');
   toast(rep?'Added. It comes back '+repText({rep}).toLowerCase()+'.':'Added. It will pay '+SIZE_BY[size].hearts+' heart'+(SIZE_BY[size].hearts>1?'s':'')+'.');
 }
 
@@ -1897,9 +1956,11 @@ function complete(id){
   save();renderTop();renderTasks();renderShop();renderFocus();
   const base=t.earned>0?`+${t.earned} heart${t.earned>1?'s':''}${en?` and +${en} energy`:''} for ${cur().name}.${enFull?' Energy is full, so send a pal on an errand.':enDay?' That is all the energy for today, more comes tomorrow.':''}`:'Done. The heart meter is full today, so no hearts this time.';
   toast(base,true);
+  sfx('tick_'+t.size);
   say(pick(VOICE[cur().sp].cheer));
 }
 function undo(){
+  sfx('undo');
   if(undoFn){const f=undoFn;undoFn=null;f();$('#toast').hidden=true;return}
   const l=S.last;if(!l)return;
   const t=S.tasks.find(x=>x.id===l.id);
@@ -1917,15 +1978,15 @@ function adopt(id){
   S.hearts-=P.price;
   S.pets.push({sp:id,name:P.name.split(' ')[0],wear:{},bond:0,loved:0,job:null,trip:null});
   S.active=S.pets.length-1;save();renderAll();
-  toast(`${P.name} moved in!`);
+  sfx('buy');chirp(cur(),.45);toast(`${P.name} moved in!`);
 }
 function buyOutfit(id){
   const o=OUTFIT_BY[id];
   if(S.coins<o.cost){toast(`You need ${o.cost-S.coins} more coins.`);return}
-  S.coins-=o.cost;S.wardrobe.push(id);cur().wear=Object.assign({},wearOf(cur()),{[o.at]:id});save();renderAll();
+  S.coins-=o.cost;S.wardrobe.push(id);cur().wear=Object.assign({},wearOf(cur()),{[o.at]:id});save();renderAll();sfx('buy');sfx('wear',{at:.3});
   toast(`${cur().name} is wearing the ${o.name}.`);
 }
-function wear(id){const p=cur(),o=OUTFIT_BY[id];if(!o)return;const w=Object.assign({},wearOf(p));if(w[o.at]===id)delete w[o.at];else w[o.at]=id;p.wear=w;save();renderDevice();renderTools();renderShop()}
+function wear(id){const p=cur(),o=OUTFIT_BY[id];if(!o)return;const w=Object.assign({},wearOf(p));if(w[o.at]===id){delete w[o.at];sfx('wear',{rate:.84,vol:.7})}else{w[o.at]=id;sfx('wear')}p.wear=w;save();renderDevice();renderTools();renderShop()}
 
 function startJob(id){
   const p=cur(),j=JOB_BY[id];
@@ -1934,7 +1995,7 @@ function startJob(id){
   if(S.energy<j.energy){toast(`Needs ${j.energy} energy. Finish a task to earn more.`);return}
   S.energy-=j.energy;
   p.job={id,start:now,end:now+dur(jobSec(p,j)),coins:jobCoins(p,j)};
-  save();lastSig='';renderAll();toast(`${p.name} set off for ${j.name.toLowerCase()}.`);
+  save();lastSig='';renderAll();sfx('send');toast(`${p.name} set off for ${j.name.toLowerCase()}.`);
 }
 function startTrip(id){
   const p=cur(),t=TRIP_BY[id];
@@ -1942,7 +2003,7 @@ function startTrip(id){
   if(S.coins<t.cost){toast(`You need ${t.cost-S.coins} more coins.`);return}
   S.coins-=t.cost;const now=Date.now();
   p.trip={id,start:now,end:now+dur(t.sec)};
-  save();lastSig='';renderAll();toast(`${p.name} is off to ${t.name}.`);
+  save();lastSig='';renderAll();sfx('send');toast(`${p.name} is off to ${t.name}.`);
 }
 function rollGift(c){
   if(Math.random()>.4)return '';
@@ -1955,8 +2016,8 @@ function buyDecor(id){
   const d=DECOR_BY[id];if(!d||d.gift||S.decor.includes(id))return;
   if(S.coins<d.cost){toast(`You need ${d.cost-S.coins} more coins.`);return}
   if(!S.scenes.includes(roomOf(d))){toast(`Unlock the ${SCENE_BY[roomOf(d)].name} with a holiday first.`);return}
-  S.coins-=d.cost;S.decor.push(id);S.scene=roomOf(d);save();renderAll();
-  if(roomDone(roomOf(d))){toast(`${SCENE_BY[roomOf(d)].name} complete! It sparkles now.`,false,6000);say('I love it here!')}else toast(`${d.name} added to the ${SCENE_BY[roomOf(d)].name}.`);
+  S.coins-=d.cost;S.decor.push(id);S.scene=roomOf(d);save();renderAll();sfx('buy');
+  if(roomDone(roomOf(d))){sfx('room_done',{at:.35});toast(`${SCENE_BY[roomOf(d)].name} complete! It sparkles now.`,false,6000);say('I love it here!')}else toast(`${d.name} added to the ${SCENE_BY[roomOf(d)].name}.`);
 }
 function collect(i,kind){
   const p=S.pets[i];if(!p)return;
@@ -1965,6 +2026,7 @@ function collect(i,kind){
     p.skill=p.skill||{};const before=skillLvl(p.skill[jid]||0);p.skill[jid]=(p.skill[jid]||0)+1;const after=skillLvl(p.skill[jid]);
     const gift=rollGift(c);
     save();lastSig='';renderAll();
+    sfx(c<30?'coins_few':'coins_many');if(gift)sfx('surprise',{at:.55});if(S.pets[S.active]===p)chirp(p,gift?1.2:.5);
     let m=`${p.name} brought back ${c} coins.`;
     if(after>before)m+=` ${p.name} reached level ${after} at ${JOB_BY[jid].name.toLowerCase()} and is ${after*10}% faster.`;
     if(gift){m+=` Surprise: ${gift}`;say('I found something for you!')}
@@ -1972,7 +2034,7 @@ function collect(i,kind){
   }else if(kind==='trip'&&p.trip&&isReady(p.trip)){
     const t=TRIP_BY[p.trip.id],isNew=!S.scenes.includes(t.id);
     if(isNew)S.scenes.push(t.id);
-    p.bond+=2;p.trip=null;save();lastSig='';renderAll();
+    p.bond+=2;p.trip=null;save();lastSig='';renderAll();sfx('postcard');if(S.pets[S.active]===p)chirp(p,.8);
     toast(isNew?`Postcard from ${t.name}. New backdrop unlocked.`:`${p.name} loved ${t.name}. Bond went up.`);
   }
 }
@@ -1980,7 +2042,7 @@ function treat(id){
   const t=TREAT_BY[id],p=cur();
   if(bondLevel(p)>=BOND_MAX){toast(`${p.name} is already at the highest bond level.`);return}
   if(S.coins<t.cost){toast(`You need ${t.cost-S.coins} more coins.`);return}
-  const before=bondLevel(p);S.coins-=t.cost;p.bond+=t.bond;save();renderAll();
+  const before=bondLevel(p);S.coins-=t.cost;p.bond+=t.bond;save();renderAll();sfx('buy');chirp(p,.4);
   toast(bondLevel(p)>before?`${p.name} reached bond level ${bondLevel(p)}.`:`${p.name} loved the ${t.name.toLowerCase()}.`);
   say('Yum!');
 }
@@ -2104,7 +2166,7 @@ function beginShow(job){
   const ring=()=>fxRing(fx.cx,fx.cy,fx.pr*1.7,'#FFFFFF',.9,3);
   fx={P:[],acc:{g:0,c:0,w:0},t:0,ev:0,last:performance.now(),w:300,h:225,cx:150,cy:130,pr:60,phase:'charge',msg:'Something is happening...',job,
     EV:[
-      [0,()=>{const s=$('#device .screen'),w=$('#petwrap'),b=$('#bubble');if(s)s.classList.add('night');if(w)w.classList.add('charging');if(b){b.classList.add('show');b.textContent=fx.msg}}],
+      [0,()=>{sfx('grow');const s=$('#device .screen'),w=$('#petwrap'),b=$('#bubble');if(s)s.classList.add('night');if(w)w.classList.add('charging');if(b){b.classList.add('show');b.textContent=fx.msg}}],
       [450,ring],[900,ring],[1300,ring],
       [1700,()=>{
         fx.phase='burst';fxHold=null;fx.msg=`${job.name} is now ${NOW_FORM[job.st]}!`;
@@ -2115,7 +2177,7 @@ function beginShow(job){
         toast(`${job.name} is now ${NOW_FORM[job.st]}!`);
       }],
       [1850,()=>fxRocket(.2,.3)],[2200,()=>fxRocket(.8,.26)],[2550,()=>fxRocket(.5,.2)],[2900,()=>fxRocket(.3,.42)],[3250,()=>fxRocket(.72,.4)],
-      [4900,()=>{fx=null;fxHold=null;renderDevice();say('I feel so different!');if(visit!=null)setTimeout(sendBack,2200)}]
+      [4900,()=>{fx=null;fxHold=null;renderDevice();say('I feel so different!');chirp(S.pets[job.i]);if(visit!=null)setTimeout(sendBack,2200)}]
     ]};
   requestAnimationFrame(fxFrame);
 }
@@ -2129,10 +2191,11 @@ function heartFlight(n,done){
   const fin=()=>{done&&done()};
   // Lands on the pal, or on the screen's 'away' message while the pal is out on an errand or holiday.
   const target=()=>$('#petwrap')||$('#device .awaymsg')||$('#device .screen');
-  if(calmMotion()||!n||!target()){fin();return}
+  if(calmMotion()||!n||!target()){if(n)heartSound(n,.07,0);fin();return}
   heartsPending+=n;renderTop();
   const gap=Math.max(28,Math.min(110,1400/n)),dur=760;
   const go=()=>{
+    heartSound(n,gap/1000,dur/1000);
     for(let i=0;i<n;i++)setTimeout(()=>{
       heartsPending=Math.max(0,heartsPending-1);$('#n-hearts').textContent=S.hearts+heartsPending;
       const src=$('#n-hearts'),dst=target();if(!src||!dst)return;
@@ -2158,6 +2221,7 @@ function sendBack(){
   if(i===S.active&&!fx)say(p.trip&&!isReady(p.trip)?'Back to my holiday!':'Back to work!');
   setTimeout(()=>{
     const w=bouncy($('#petwrap')),done=()=>{visit=null;renderDevice()};
+    if(i===S.active)sfx('visit_out');
     if(i===S.active&&w&&!calmMotion()){const a=w.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.12)',opacity:1,offset:.3},{transform:'translateY(-30%) scale(.1)',opacity:0}],{duration:450,easing:'ease-in',fill:'forwards'});a.onfinish=done}
     else done();
   },1400);
@@ -2175,14 +2239,14 @@ function giveHearts(n){
     // A pal out on an errand or holiday pops home for the show, then heads back out.
     if(away)visit=S.active;
     renderAll();
-    if(away){const w=bouncy($('#petwrap'));if(w)w.animate([{transform:'scale(.2)',opacity:0},{transform:'scale(1.1)',opacity:1},{transform:'scale(1)'}],{duration:420,easing:'ease-out'});say('I came back to see you!')}
-    const job={name:p.name,form:formName(p),st:stageOf(p)};
+    if(away){const w=bouncy($('#petwrap'));if(w)w.animate([{transform:'scale(.2)',opacity:0},{transform:'scale(1.1)',opacity:1},{transform:'scale(1)'}],{duration:420,easing:'ease-out'});sfx('visit_in');chirp(p,.3);say('I came back to see you!')}
+    const job={name:p.name,form:formName(p),st:stageOf(p),i:S.active};
     heartFlight(n,()=>setTimeout(()=>beginShow(job),250));
   }else{
     renderAll();toTop();
     heartFlight(n,()=>{
-      if(grew){toast(`${p.name} is now ${NOW_FORM[stageOf(p)]}!`);setTimeout(()=>say('I feel so different!'),500)}
-      else{say('Thank you!');toast(`${p.name} loved that.`)}
+      if(grew){toast(`${p.name} is now ${NOW_FORM[stageOf(p)]}!`);setTimeout(()=>{say('I feel so different!');chirp(p)},500)}
+      else{say('Thank you!');chirp(p,.15);toast(`${p.name} loved that.`)}
     });
   }
 }
@@ -2245,7 +2309,7 @@ document.addEventListener('click',e=>{
     case'pick':S.active=+b.dataset.i;save();renderDevice();renderTools();renderJobs();renderShop();break;
     case'prev':move(-1);break;
     case'next':move(1);break;
-    case'pat':say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
+    case'pat':sfx('pat');chirp(cur(),.12);say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
     case'give':giveHearts(+b.dataset.n);break;
     case'rename':{const v=$('#rename').value.trim();cur().name=(v||PET_BY[cur().sp].name.split(' ')[0]).slice(0,14);save();renderDevice();renderTools();renderJobs();renderShop();toast('Name saved.');break}
     case'demo-hearts':if(!DEMO&&!TEST)break;S.hearts+=50;save();renderTop();renderShop();toast('+50 hearts');break;
@@ -2260,7 +2324,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{if(e.target.id==='task-q'){taskQ=e.target.value;renderTasks()}});
 document.addEventListener('change',e=>{
   const t=e.target;
-  if(t.dataset.cfg){setCfg(t.dataset.cfg,t.checked);return}
+  if(t.dataset.cfg){setCfg(t.dataset.cfg,t.checked);if(t.dataset.cfg==='sound'){const v=$('#guide [data-cfg="voices"]');if(v)v.disabled=!t.checked;if(t.checked)sfx('pat')}if(t.dataset.cfg==='voices'&&t.checked)chirp();return}
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
   if(t.id==='sel-scene'){S.scene=t.value;save();renderDevice()}
   else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
@@ -2340,7 +2404,7 @@ function showWelcome(){
     S.pets=[{sp,name,wear:{head:'bow'},bond:0,loved:0,job:null,trip:null}];
     addWelcomeTasks();
     S.askedNotif=true;save();showApp();
-    toast(`Say hi to ${name}!`);
+    toast(`Say hi to ${name}!`);chirp(S.pets[0],.5);
     if(NATIVE)setTimeout(()=>{try{NATIVE.requestPermission()}catch(e){}},1200);
   };
   window.scrollTo(0,0);
@@ -2482,7 +2546,7 @@ const qaKey=p=>qaNorm(p.text)+'|'+(p.remind||'')+'|'+(p.remind?'':(p.when||''));
 const qaNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
 function qaAdd(raw){
   const t=String(raw).trim();if(!t)return false;
-  const ps=qaExpand(t).map(qaParse);ps.forEach(p=>S.tasks.push(qaMake(p)));save();renderTasks();
+  const ps=qaExpand(t).map(qaParse);ps.forEach(p=>S.tasks.push(qaMake(p)));save();renderTasks();sfx('offload');
   const p=ps[0],n=ps.length>1?ps.map(x=>x.remind||(x.when&&WHENS[x.when]||'').toLowerCase()).join(' and '):qaNote(p);toast('Added "'+p.text+'"'+(n?' ('+n+').':'.'));
   return true;
 }
@@ -2521,7 +2585,7 @@ function qaDump(){
   add.forEach(x=>S.tasks.push(qaMake(x.p)));
   save();$('#dump-text').value='';qaClose();
   if(tab!=='tasks')setTab('tasks');
-  renderTasks();toast('Added '+add.length+' task'+(add.length>1?'s':'')+'.'+(skipped?' Skipped '+skipped+' already on your list.':''));
+  renderTasks();sfx('offload');toast('Added '+add.length+' task'+(add.length>1?'s':'')+'.'+(skipped?' Skipped '+skipped+' already on your list.':''));
 }
 
 window.__share=function(t){
