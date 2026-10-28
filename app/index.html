@@ -169,6 +169,13 @@ details.addwrap[open]>summary::after{content:'\2212'}
 details.addwrap>form{margin-top:12px}
 details.more{border:2px solid var(--line);border-radius:14px;padding:0 12px;background:var(--surface)}
 details.more[open]{padding-bottom:14px}
+details.custom{min-width:0}
+details.custom summary{white-space:normal;flex-wrap:wrap;column-gap:6px;row-gap:0;padding-right:30px;padding-block:8px;position:relative;list-style:none}
+details.custom summary::-webkit-details-marker{display:none}
+details.custom summary::after{content:'+';position:absolute;right:2px;top:50%;transform:translateY(-50%);font-weight:900;font-size:1.5rem;line-height:1;color:var(--btn-bg)}
+details.custom[open] summary::after{content:'\2212'}
+details.custom summary .fine{font-weight:400}
+details.custom .two{margin-top:4px}
 details.more summary{cursor:pointer;font-weight:700;min-height:46px;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .seg legend{font-weight:700;margin-bottom:6px;padding:0}
 .seg label{display:block}
@@ -1572,12 +1579,16 @@ function renderTools(){
       <p class="fine">Each bond level adds 6% to ${esc(p.name)}'s errand coins. ${esc(PET_BY[p.sp].blurb)}</p>
     </div>
     ${growthHTML(p)}
+    <details class="more custom" id="customise"${customOpen?' open':''}><summary>Customise ${esc(p.name)} <span class="fine">${S.wardrobe.length?'name, backdrop, outfits':'name and backdrop'}</span></summary>
     <div class="two">
       <div><label class="lbl" for="rename">Name</label><div class="row" style="flex-wrap:nowrap"><input id="rename" class="input" maxlength="14" value="${esc(p.name)}" autocomplete="off"><button class="btn ghost sm" type="button" data-act="rename">Save</button></div></div>
       <div><label class="lbl" for="sel-scene">Backdrop</label><select id="sel-scene" class="field">${S.scenes.map(id=>`<option value="${id}"${id===S.scene?' selected':''}>${SCENE_BY[id].name}</option>`).join('')}</select></div>
       ${SLOTS.filter(([sl])=>S.wardrobe.some(id=>OUTFIT_BY[id]&&OUTFIT_BY[id].at===sl)).map(([sl,lab])=>`<div><label class="lbl" for="wear-${sl}">${lab}</label><select id="wear-${sl}" class="field" data-wearslot="${sl}"><option value="">Nothing</option>${S.wardrobe.filter(id=>OUTFIT_BY[id]&&OUTFIT_BY[id].at===sl).map(id=>`<option value="${id}"${wearOf(p)[sl]===id?' selected':''}>${OUTFIT_BY[id].name}</option>`).join('')}</select></div>`).join('')}
-    </div>`;
+    </div></details>`;
 }
+// The Customise section stays open across re-renders once someone opens it.
+let customOpen=false;
+document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='customise')customOpen=e.target.open},true);
 
 function growthHTML(p){
   const P=PET_BY[p.sp],st=stageOf(p),l=p.loved||0,strip=evoStrip(p.sp,st);
