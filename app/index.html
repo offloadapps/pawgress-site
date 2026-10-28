@@ -712,6 +712,8 @@ function wearOf(p){
   if(p.wear)return p.wear;
   return p.sp?{}:p;
 }
+// Keeps <g> tags paired when a piece of a pal's drawing is cut out (see poke below): drops stray closing tags and closes open ones.
+const balG=s=>{let d=0;const o=s.replace(/<g\b[^>]*>|<\/g>/g,m=>{if(m[1]==='/'){if(!d)return'';d--;return m}d++;return m});return o+'</g>'.repeat(d)};
 /* How outfits fit each pal at each stage. All numbers are in the pal's own drawing coordinates,
    taken from the shapes in KIND, so things sit on the real head, eyes and neck.
    s:    head size relative to Tigrr's head (head items scale by it)
@@ -750,7 +752,7 @@ function outfitSVG(id,wear,stage,hd,k){
     const hat=`<g transform="translate(${hx} ${ht}) scale(${s}) translate(-60 ${-ht})">${O.draw(ht,N(ey),'',N(f.hb))}</g>`;
     over+=hat;
     // ears, antennae and horns poke through holes in a hat that covers the head
-    if(O.dome&&f.poke&&k){const mid='pk'+(++OLN);over+=`<mask id="${mid}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240">${hat}</mask><filter id="${mid}s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.4" stdDeviation=".7" flood-color="#4A1B3C" flood-opacity=".4"/></filter><g mask="url(#${mid})"><g filter="url(#${mid}s)">${f.poke(k)}</g></g>`}
+    if(O.dome&&f.poke&&k){const mid='pk'+(++OLN);over+=`<mask id="${mid}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240">${hat}</mask><filter id="${mid}s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.4" stdDeviation=".7" flood-color="#4A1B3C" flood-opacity=".4"/></filter><g mask="url(#${mid})"><g filter="url(#${mid}s)">${balG(f.poke(k))}</g></g>`}
   }
   // a whole set worn together gets a little sparkle
   const vals=Object.values(w);
@@ -1183,7 +1185,7 @@ let S=load(), tab='home', shopTab='pals', toastTimer=null, bubbleTimer=null, las
 
 function dayKey(){return new Date().toDateString()}
 const CFG_DEF={theme:'system',text:'normal',calm:false,chat:true,defSize:'small',ampm:'guess',snooze:1};
-const APP_VERSION='1.0',PRIVACY_URL='',CONTACT_EMAIL='';
+const APP_VERSION='1.0',PRIVACY_URL='https://jdavisonjmd-ui.github.io/pawgress-site/privacy.html',CONTACT_EMAIL='app.pawgress@gmail.com';
 function cfg(){return Object.assign({},CFG_DEF,S.cfg||{})}
 function applySettings(){
   const c=cfg(),r=document.documentElement;
@@ -1333,7 +1335,41 @@ function buildPlan(){
   return plan.sort((a,b)=>a.at-b.at).slice(0,PLAN_MAX);
 }
 let planSig='',syncT=null;
-function queueSync(){if(!NATIVE)return;clearTimeout(syncT);syncT=setTimeout(()=>{syncReminders();backupNative()},700)}
+function queueSync(){if(!NATIVE)return;clearTimeout(syncT);syncT=setTimeout(()=>{syncReminders();backupNative();syncWidget()},700)}
+// Home-screen widget (Android). Sends a week of task lists, so the widget is still right after midnight
+// even if the app is not opened, and a picture of the active pal whenever its look changes.
+let widgetSig='',widgetPalSig='';
+function widgetData(){
+  const pet=S.pets[S.active];
+  if(!S.started||!pet)return{started:false};
+  const t0=new Date(),days={},label=t=>t.text+(t.remind?' · '+fmtTime(t.remind):'');
+  const doneToday=S.tasks.filter(t=>t.done&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).length;
+  for(let k=0;k<7;k++){
+    const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+k),diso=isoDay(d);
+    const list=S.tasks.filter(t=>{
+      if(t.hideUntil&&diso<t.hideUntil)return false;
+      if(t.due&&diso<t.due)return false;
+      if(t.rep)return t.rep.days.includes(d.getDay())&&!(k===0&&t.done);
+      return !t.done;
+    }).sort(taskCmp);
+    days[diso]={n:list.length,items:list.slice(0,3).map(label),done:k===0?doneToday:0};
+  }
+  return{started:true,name:pet.name,form:FORM_LABELS[stageOf(pet)],days};
+}
+function syncWidget(){
+  if(!NATIVE||!NATIVE.setWidget)return;
+  const j=JSON.stringify(widgetData());
+  if(j!==widgetSig){widgetSig=j;try{NATIVE.setWidget(j)}catch(e){}}
+  syncWidgetPal();
+}
+function syncWidgetPal(){
+  const p=S.pets[S.active];if(!p||!NATIVE.setWidgetPal)return;
+  const sig=p.sp+JSON.stringify(p.wear||{})+stageOf(p);if(sig===widgetPalSig)return;widgetPalSig=sig;
+  const img=new Image();
+  img.onload=()=>{try{const c=document.createElement('canvas');c.width=c.height=288;c.getContext('2d').drawImage(img,0,0,288,288);NATIVE.setWidgetPal(c.toDataURL('image/png').split(',')[1])}catch(e){widgetPalSig=''}};
+  img.onerror=()=>{widgetPalSig=''};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(petSVG(p.sp,p.wear||{},stageOf(p)));
+}
 function backupNative(){try{if(NATIVE&&NATIVE.saveState)NATIVE.saveState(JSON.stringify(S))}catch(e){}}
 function syncReminders(){
   if(!NATIVE)return;
@@ -1360,10 +1396,10 @@ window.__back=()=>{
   if(tab!=='home'){setTab('home');return true}
   return false;
 };
-setTimeout(()=>{planSig='';syncReminders()},1500);
+setTimeout(()=>{planSig='';syncReminders();syncWidget()},1500);
 window.addEventListener('pawgress-notify-changed',()=>{planSig='';syncReminders();if(!$('#app').hidden)renderGuide()});
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){try{save()}catch(e){}clearTimeout(syncT);try{syncReminders()}catch(e){}backupNative()}
+  if(document.visibilityState==='hidden'){try{save()}catch(e){}clearTimeout(syncT);try{syncReminders()}catch(e){}backupNative();try{syncWidget()}catch(e){}}
   else if(S.started&&!$('#app').hidden){planSig='';rollDay();renderAll();queueSync()}
 });
 function damagedSave(){try{return localStorage.getItem(KEY+'.damaged')}catch(e){return null}}
@@ -1750,10 +1786,18 @@ function dataCard(){return `<div class="card"><h2>Your data</h2>
     <div id="bk-box" class="stack" hidden><textarea id="bk-text" class="input" rows="4" aria-label="Backup code or list" placeholder="Paste your backup code here"></textarea><div class="row"><button class="btn sm" type="button" data-act="bk-restore">Restore</button><button class="btn ghost sm" type="button" data-act="bk-cancel">Cancel</button></div><p class="fine" id="bk-msg" role="status" style="margin:0"></p></div>
     ${damagedSave()?`<p class="fine">An older save on this device could not be read. It has been kept, not deleted. Copy it if you are asking for help getting it back.</p><div><button class="btn ghost sm" type="button" data-act="copy-damaged">Copy unreadable save</button></div>`:''}
     <div><button id="reset" class="btn ghost sm" type="button" data-act="reset">Start over</button></div></div>`}
-function aboutCard(){return `<div class="card"><h2>About</h2>
-    <p>Pawgress version ${APP_VERSION}</p>
+// Version details for feedback emails: from Android when there, else the web version number.
+function appInfo(){try{if(NATIVE&&NATIVE.appInfo)return JSON.parse(NATIVE.appInfo())}catch(e){}return null}
+function feedbackHref(){
+  const a=appInfo(),ver=a?`Pawgress ${a.version} (build ${a.code}) on Android ${a.android}`:`Pawgress ${APP_VERSION} (web version)`;
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Pawgress feedback')}&body=${encodeURIComponent(`\n\n\n---\n${ver}`)}`;
+}
+function aboutCard(){const a=appInfo();return `<div class="card"><h2>About</h2>
+    <p>Pawgress version ${a?`${esc(a.version)} <span class="fine">(build ${esc(String(a.code))})</span>`:APP_VERSION}</p>
+    ${CONTACT_EMAIL?`<h3>Feedback</h3><p class="fine">Found a bug, got stuck, or have an idea? Every message is read, and it really helps.</p>
+    <div class="row"><a class="btn sm" href="${feedbackHref()}">Send feedback</a></div>
+    <p class="fine">Or email <b style="user-select:all">${CONTACT_EMAIL}</b></p>`:''}
     ${PRIVACY_URL?`<p><a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a></p>`:''}
-    ${CONTACT_EMAIL?`<p class="fine">Questions or feedback: <b>${CONTACT_EMAIL}</b></p>`:''}
     <p class="fine">Fonts: DynaPuff, Atkinson Hyperlegible and Silkscreen, used under the SIL Open Font Licence.</p></div>`}
 function demoCard(){if(!DEMO)return '';return `<div class="card"><h2>Demo controls</h2>
     <p class="fine">For trying the app out. Progress is saved in this browser only.</p>
