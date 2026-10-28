@@ -535,6 +535,9 @@ body.qa-open .toast{bottom:calc(162px + env(safe-area-inset-bottom,0px))}
 <script>
 // Pawgress app logic. tools/build.py sets DEMO to true for the demo page (fast timers, free hearts, example tasks).
 const DEMO=false;
+// Test builds of the Android app (the debug APK from GitHub) get the same test controls as the demo.
+// The Play Store build is a release build, so it never shows them.
+const TEST=(()=>{try{const N=window.PawgressNative;return !!(N&&N.isTestBuild&&N.isTestBuild())}catch(e){return false}})();
 /* ---------- helpers ---------- */
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -1456,7 +1459,7 @@ const repText=t=>{if(!t.rep)return '';const d=t.rep.days.slice().sort();const k=
 const repDays=v=>v==='daily'?[0,1,2,3,4,5,6]:v==='weekdays'?[1,2,3,4,5]:v==='weekends'?[0,6]:null;
 
 const cur=()=>S.pets[S.active];
-const speed=()=>DEMO&&S.fast?12:1;
+const speed=()=>(DEMO||TEST)&&S.fast?12:1;
 const dur=sec=>sec*1000/speed();
 const bondLevel=p=>Math.min(BOND_MAX,Math.floor(p.bond/BOND_STEP));
 const EVO=[0,15,45], STAGE_BONUS=[1,1.15,1.3];
@@ -1551,7 +1554,7 @@ function collectStrip(){
 function renderDevice(){
   const p=cur();if(!p)return;
   const P=PET_BY[p.sp],sc=SCENE_BY[S.scene]||SCENES[0];
-  const state=p.job&&!isReady(p.job)?'out on an errand':p.trip&&!isReady(p.trip)?'on holiday':'';
+  const state=visit===S.pets.indexOf(p)?'':p.job&&!isReady(p.job)?'out on an errand':p.trip&&!isReady(p.trip)?'on holiday':'';
   const label=`${p.name}, ${FORM_LABELS[shownStage(p)].toLowerCase()}${Object.values(wearOf(p)).length?', wearing '+Object.values(wearOf(p)).map(x=>OUTFIT_BY[x].name).join(', '):''}${state?', '+state:''}`;
   $('#device').innerHTML=`<div class="device">
     <div class="dev-top"><span>${esc(p.name).toUpperCase()}</span><span>${FORM_LABELS[shownStage(p)].toUpperCase()} · BOND ${bondLevel(p)}</span></div>
@@ -1821,11 +1824,10 @@ function aboutCard(){const a=appInfo();return `<div class="card"><h2>About</h2>
     <p class="fine">Or email <b style="user-select:all;overflow-wrap:anywhere">${CONTACT_EMAIL}</b></p>`:''}
     ${PRIVACY_URL?`<p><a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a></p>`:''}
     <p class="fine">Fonts: DynaPuff, Atkinson Hyperlegible and Silkscreen, used under the SIL Open Font Licence.</p></div>`}
-function demoCard(){if(!DEMO)return '';return `<div class="card"><h2>Demo controls</h2>
-    <p class="fine">For trying the app out. Progress is saved in this browser only.</p>
-    <div class="row"><button class="btn ghost sm" type="button" data-act="demo-hearts">Give 20 hearts</button><button class="btn ghost sm" type="button" data-act="demo-coins">Give 50 coins</button><button class="btn ghost sm" type="button" data-act="demo-energy">Give 6 energy</button></div>
-    <label class="row"><input id="fast" type="checkbox" ${S.fast?'checked':''}> <span>Fast timers for the demo (about 12 times quicker, applies to new errands and holidays)</span></label>
-    <div><button id="reset" class="btn ghost sm" type="button" data-act="reset">Start over</button></div></div>`}
+function demoCard(){if(!DEMO&&!TEST)return '';return `<div class="card"><h2>${TEST?'Test controls':'Demo controls'}</h2>
+    <p class="fine">${TEST?'Test builds only. Not in the Play Store version.':'Progress is saved in this browser only.'}</p>
+    <div class="row"><button class="btn ghost sm" type="button" data-act="demo-hearts">+50 hearts</button><button class="btn ghost sm" type="button" data-act="demo-coins">+200 coins</button><button class="btn ghost sm" type="button" data-act="demo-energy">Fill energy</button></div>
+    <label class="row"><input id="fast" type="checkbox" ${S.fast?'checked':''}> <span>Fast timers (12 times quicker)</span></label></div>`}
 function renderGuide(){
   $('#guide').innerHTML=appearanceCard()+remindersCard()+tasksCard()+palsCard()+dataCard()+`
   <h2 class="guidehd">Guide</h2>
@@ -1983,7 +1985,7 @@ function treat(id){
   say('Yum!');
 }
 /* ---------- growth show ---------- */
-let fx=null,fxHold=null;
+let fx=null,fxHold=null,visit=null; // visit: index of an away pal popped home for its growing-up show
 const TAU=Math.PI*2;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const GLIT=['#FFFFFF','#FFD76A','#FF9CC9','#D9C8FF','#9FF0F0'];
@@ -2113,7 +2115,7 @@ function beginShow(job){
         toast(`${job.name} is now ${NOW_FORM[job.st]}!`);
       }],
       [1850,()=>fxRocket(.2,.3)],[2200,()=>fxRocket(.8,.26)],[2550,()=>fxRocket(.5,.2)],[2900,()=>fxRocket(.3,.42)],[3250,()=>fxRocket(.72,.4)],
-      [4900,()=>{fx=null;fxHold=null;renderDevice();say('I feel so different!')}]
+      [4900,()=>{fx=null;fxHold=null;renderDevice();say('I feel so different!');if(visit!=null)setTimeout(sendBack,2200)}]
     ]};
   requestAnimationFrame(fxFrame);
 }
@@ -2147,6 +2149,16 @@ function heartFlight(n,done){
   // Scroll up to the pal first, then send the hearts.
   if(window.scrollY>40){toTop();setTimeout(go,420)}else go();
 }
+// After its show, a visiting pal says goodbye and pops back out to its errand or holiday.
+function sendBack(){
+  const i=visit;if(i==null)return;const p=S.pets[i];
+  if(i===S.active&&!fx)say(p.trip&&!isReady(p.trip)?'Back to my holiday!':'Back to work!');
+  setTimeout(()=>{
+    const w=$('#petwrap'),done=()=>{visit=null;renderDevice()};
+    if(i===S.active&&w&&w.animate&&!calmMotion()){const a=w.animate([{transform:'scale(1)',opacity:1},{transform:'scale(1.12)',opacity:1,offset:.3},{transform:'translateY(-30%) scale(.1)',opacity:0}],{duration:450,easing:'ease-in',fill:'forwards'});a.onfinish=done}
+    else done();
+  },1400);
+}
 function giveHearts(n){
   const p=cur(),before=stageOf(p);
   if(before>=2||fx||fxHold)return;
@@ -2155,9 +2167,12 @@ function giveHearts(n){
   S.hearts-=n;p.loved=(p.loved||0)+n;save();
   const grew=stageOf(p)>before;
   const away=(p.job&&!isReady(p.job))||(p.trip&&!isReady(p.trip));
-  if(grew&&!calmMotion()&&!away){
+  if(grew&&!calmMotion()){
     fxHold={i:S.active,stage:before};
+    // A pal out on an errand or holiday pops home for the show, then heads back out.
+    if(away)visit=S.active;
     renderAll();
+    if(away){const w=$('#petwrap');if(w&&w.animate)w.animate([{transform:'scale(.2)',opacity:0},{transform:'scale(1.1)',opacity:1},{transform:'scale(1)'}],{duration:420,easing:'ease-out'});say('I came back to see you!')}
     const job={name:p.name,form:formName(p),st:stageOf(p)};
     heartFlight(n,()=>setTimeout(()=>beginShow(job),250));
   }else{
@@ -2230,9 +2245,9 @@ document.addEventListener('click',e=>{
     case'pat':say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
     case'give':giveHearts(+b.dataset.n);break;
     case'rename':{const v=$('#rename').value.trim();cur().name=(v||PET_BY[cur().sp].name.split(' ')[0]).slice(0,14);save();renderDevice();renderTools();renderJobs();renderShop();toast('Name saved.');break}
-    case'demo-hearts':if(!DEMO)break;S.hearts+=20;save();renderTop();renderShop();toast('+20 hearts');break;
-    case'demo-energy':if(!DEMO)break;S.energy=Math.min(ENERGY_MAX,S.energy+6);save();renderTop();renderJobs();toast('+6 energy');break;
-    case'demo-coins':if(!DEMO)break;S.coins+=50;save();renderTop();renderShop();toast('+50 coins');break;
+    case'demo-hearts':if(!DEMO&&!TEST)break;S.hearts+=50;save();renderTop();renderShop();toast('+50 hearts');break;
+    case'demo-energy':if(!DEMO&&!TEST)break;S.energy=ENERGY_MAX;save();renderTop();renderJobs();toast('Energy full');break;
+    case'demo-coins':if(!DEMO&&!TEST)break;S.coins+=200;save();renderTop();renderShop();toast('+200 coins');break;
     case'reset':
       if(!resetArmed){resetArmed=true;b.textContent='Tap again to erase everything';setTimeout(()=>{resetArmed=false;b.textContent='Start over'},4000)}
       else{resetArmed=false;const keep=S.cfg;S=fresh();if(keep)S.cfg=keep;save();showWelcome()}
@@ -2246,7 +2261,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
   if(t.id==='sel-scene'){S.scene=t.value;save();renderDevice()}
   else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
-  else if(t.id==='fast'&&DEMO){S.fast=t.checked;save();renderJobs();renderShop()}
+  else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
   else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='brief')renderGuide()}
   else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||'09:00';save();syncReminders()}
   else if(t.dataset.remb){remCfg().brief[t.dataset.remb]=t.value||(t.dataset.remb==='am'?'07:30':'20:30');save();syncReminders()}
