@@ -1337,13 +1337,24 @@ function remCfg(){
 const REM_OPTS=[[0,'At that time'],[10,'10 min before'],[30,'30 min before'],[60,'1 hour before'],[120,'2 hours before'],[1440,'1 day before']];
 const atTime=(d,hhmm)=>{const[p,q]=String(hhmm||'09:00').split(':').map(Number);const x=new Date(d);x.setHours(p||0,q||0,0,0);return x.getTime()};
 const PLAN_DAYS=14,PLAN_MAX=400;
+// A pal home after the day's last reminder (evening prompt, tomorrow's briefing or the last overdue nudge) and before the
+// first morning one is shown silently. With no reminders on, that is 9pm to 8am.
+function palCh(at,r){
+  const m=t=>{const[h,mi]=String(t).split(':').map(Number);return h*60+(mi||0)},on=[];
+  if(r.morning.on)on.push(m(r.morning.t));if(r.evening.on)on.push(m(r.evening.t));
+  if(r.brief.on)on.push(m(r.brief.am),m(r.brief.pm));
+  if(r.nag){const st=r.nag/60;on.push((8+Math.floor((21-8)/st)*st)*60,8*60)}
+  const eve=on.filter(x=>x>=720),morn=on.filter(x=>x<720),last=eve.length?Math.max(...eve):21*60,first=morn.length?Math.min(...morn):8*60;
+  const d=new Date(at),x=d.getHours()*60+d.getMinutes();
+  return x>last||x<first?'pals_night':'pals';
+}
 // Stable id per notification (kind + day + task), so ids never collide and a rebuilt plan keeps the same ids.
 const planId=key=>{let x=5381;for(let i=0;i<key.length;i++)x=((x*33)^key.charCodeAt(i))>>>0;return 10000+(x%1000000000)};
 function buildPlan(){
   const now=Date.now(),r=remCfg(),plan=[],pet=S.pets[S.active];if(!pet)return plan;
   if(r.errands)S.pets.forEach((p,i)=>{
-    if(p.job&&p.job.end>now)plan.push({id:planId('job'+p.sp),at:p.job.end,ch:'pals',title:`${p.name} is back!`,body:`${p.name} finished ${JOB_BY[p.job.id].name.toLowerCase()} and has ${p.job.coins} coins for you.`});
-    if(p.trip&&p.trip.end>now)plan.push({id:planId('trip'+p.sp),at:p.trip.end,ch:'pals',title:`${p.name} is home from holiday!`,body:`A postcard from ${TRIP_BY[p.trip.id].name} is waiting for you.`});
+    if(p.job&&p.job.end>now)plan.push({id:planId('job'+p.sp),at:p.job.end,ch:palCh(p.job.end,r),title:`${p.name} is back!`,body:`${p.name} finished ${JOB_BY[p.job.id].name.toLowerCase()} and has ${p.job.coins} coins for you.`});
+    if(p.trip&&p.trip.end>now)plan.push({id:planId('trip'+p.sp),at:p.trip.end,ch:palCh(p.trip.end,r),title:`${p.name} is home from holiday!`,body:`A postcard from ${TRIP_BY[p.trip.id].name} is waiting for you.`});
   });
   if(r.focus&&S.focus&&!S.focus.rung&&S.focus.end>now)plan.push({id:planId('focus'),at:S.focus.end,ch:'pals',title:'Five minutes done',body:`You started, and ${pet.name} is proud of you. Keep going or mark it done.`});
   const t0=new Date(),once={},sizeOrder=t=>t;
