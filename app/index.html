@@ -708,8 +708,8 @@ const OUTFITS=[
   {id:'scarf',name:'Cozy Scarf',cost:45,at:'neck',draw:()=>`<path d="M34 86 C48 97 72 97 86 86 L89 97 C72 108 48 108 31 97Z" fill="#B9A2FF"/><path d="M76 99 L84 119 L95 114 L87 95Z" fill="#9B7BE8"/><path d="M84 119 l-1 4 M88 117.5 l0 4 M92 115.5 l1 4" stroke="#9B7BE8" stroke-width="2" stroke-linecap="round"/><path d="M42 93 L40 102 M54 97 L53 106 M66 97 L67 106" stroke="#fff" stroke-width="2.4" opacity=".7"/><ellipse cx="80" cy="97" rx="6" ry="5" fill="#A88BF0"/>`},
   {id:'swimring',name:'Swim Ring',cost:60,at:'neck',draw:()=>`<path d="M27 92 A33 12 0 0 0 93 92" stroke="#FF7DB6" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M27 92 A33 12 0 0 0 93 92" stroke="#FFFFFF" stroke-width="10" fill="none" stroke-dasharray="9 11" stroke-dashoffset="4"/><path d="M33 95 A28 9 0 0 0 52 102" stroke="#fff" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>`},
   /* ----- back: returns [behind the body, in front]; v = 'front' or 'side' view ----- */
-  {id:'backpack',name:'Tiny Backpack',cost:80,at:'back',draw:v=>v==='side'
-    ?['',`<path d="M51 68 Q49 88 53 102 M69 68 Q71 88 67 102" stroke="#E8508F" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="45" y="46" width="30" height="24" rx="8" fill="#FFB92E" stroke="#E69A00" stroke-width="1.4"/><rect x="50" y="56" width="20" height="10" rx="3" fill="#FFD76A" stroke="#E69A00" stroke-width="1"/><path d="M55 46 q5 -7 10 0" stroke="#E69A00" stroke-width="2" fill="none"/>`]
+  {id:'backpack',name:'Tiny Backpack',cost:80,at:'back',draw:(v,bl=102)=>v==='side'
+    ?['',`<path d="M51 68 Q48.5 ${(68+bl)/2} 52.5 ${bl} M69 68 Q71.5 ${(68+bl)/2} 67.5 ${bl}" stroke="#E8508F" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="45" y="46" width="30" height="24" rx="8" fill="#FFB92E" stroke="#E69A00" stroke-width="1.4"/><rect x="50" y="56" width="20" height="10" rx="3" fill="#FFD76A" stroke="#E69A00" stroke-width="1"/><path d="M55 46 q5 -7 10 0" stroke="#E69A00" stroke-width="2" fill="none"/>`]
     :[`<rect x="76" y="70" width="26" height="32" rx="8" fill="#FFB92E" stroke="#E69A00" stroke-width="1.4"/><rect x="82" y="86" width="16" height="11" rx="3" fill="#FFD76A" stroke="#E69A00" stroke-width="1"/>`,`<path d="M47 80 Q44 92 47 104 M73 80 Q76 92 73 104" stroke="#E8508F" stroke-width="3.2" fill="none" stroke-linecap="round"/>`]},
   {id:'cape',name:'Starry Cape',cost:130,at:'back',draw:v=>v==='side'
     ?['',`<path d="M34 64 Q62 58 94 64 Q99 80 96 98 Q88 94 81 100 Q74 94 66 100 Q58 94 50 100 Q42 94 35 99 Q31 82 34 64Z" fill="#5A3F94" stroke="#47307A" stroke-width="1.2" stroke-linejoin="round"/>${STAR(50,80,3,'#FFE27A')}${STAR(70,72,2.4,'#FFE27A')}${STAR(84,86,2.6,'#FFE27A')}${STAR(64,90,2,'#FFE27A')}<path d="M29 67 Q33 60 41 63" stroke="#47307A" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="64" r="3.6" fill="#FFC83D" stroke="#E69A00" stroke-width="1"/>`]
@@ -760,17 +760,26 @@ const balG=s=>{let d=0;const o=s.replace(/<g\b[^>]*>|<\/g>/g,m=>{if(m[1]==='/'){
 const FIT={
   cat:s=>({s:1,head:[60,[28,26,24][s]],eye:[60,[52,50,48][s]],hb:[42,40,38][s],fs:1,n:[60,[76,74,72][s],[.9,.95,1][s],0],b:[60,[80,78,76][s],[.85,.95,1.05][s],0,'front'],poke:k=>k.back}),
   panda:s=>({s:[1.03,.97,.97][s],head:[60,[24,22,20][s]],eye:[60,[57,53,51][s]],hb:[45,41,39][s],fs:1,n:[60,[76,76,74][s],[.9,1,1][s],0],b:[60,[78,76,74][s],[.9,1,1.05][s],0,'front'],poke:k=>k.back}),
-  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],noWings:s===2,poke:k=>k.mid}),
+  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],bk:[[54,56,60][s],[88,94,98][s],[83,82,80][s],96,[64,60,56][s]],noWings:s===2,poke:k=>k.mid}),
   hedge:s=>({noWings:true,s:[.95,1,1.05][s],head:[60,[34,27,19][s]],eye:[60,83],hb:[48,42,36][s],fs:[.75,.72,.72][s],n:[60,[95,96,97][s],[.8,.85,.9][s],0],b:[60,[84,82,80][s],[1.05,1.15,1.25][s],0,'front']}),
   cater:s=>s===2?{s:.36,head:[60,35],eye:[60,45.5],hb:40,fs:.36,n:[60,57,.4,0],b:null,poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M55 38'))}
-    :{s:[.45,.48][s],head:[[78,94.5][s],[72,71][s]],eye:[[79.5,96][s],85],hb:80,fs:[.36,.38][s],n:[[73,90][s],[93,95][s],[.34,.45][s],-12],b:[[56,62][s],[90,86][s],[.4,.52][s],0,'sideR'],poke:k=>k.back},
-  ant:s=>({s:[.55,.61,.68][s],head:[30,[55,53,51][s]],eye:[30,71],hb:[59,58,57][s],fs:[.8,.9,1][s],fv:'side',n:[[45.3,47.4,49.4][s],76,[.62,.66,.7][s],[15,13,12][s],'side'],b:[[56,58,61][s],75,[.5,.56,.62][s],0,'side'],noWings:s===2,poke:k=>k.back}),
+    :{s:[.45,.48][s],head:[[78,94.5][s],[72,71][s]],eye:[[79.5,96][s],85],hb:80,fs:[.36,.38][s],n:[[73,90][s],[93,95][s],[.34,.45][s],-12],b:[[56,62][s],[90,86][s],[.4,.52][s],0,'sideR'],bk:[[33,22][s],[58,74][s],[92,92][s],[103,103.5][s],[80,77][s]],poke:k=>k.back},
+  ant:s=>({s:[.55,.61,.68][s],head:[30,[55,53,51][s]],eye:[30,71],hb:[59,58,57][s],fs:[.8,.9,1][s],fv:'side',n:[[45.3,47.4,49.4][s],76,[.62,.66,.7][s],[15,13,12][s],'side'],b:[[56,58,61][s],75,[.5,.56,.62][s],0,'side'],bk:[[54.5,58,61][s],[87.5,98,109][s],[84,85,86][s],[88,89,90][s],[63,60,57][s]],noWings:s===2,poke:k=>k.back}),
   bird:s=>({s:[.66,.72,.78][s],head:[60,[30,20,11][s]],eye:[60,[50,40,31][s]],hb:[40,30,21][s],fs:.72,n:[60,[60,58,52][s],[.62,.68,.75][s],0],b:s===2?null:[60,[62,58][s],[.7,.8][s],0,'front'],poke:k=>k.back}),
-  camel:s=>({s:[.5,.52,.54][s],head:[27,31],eye:[28,41],hb:33,fs:.7,fv:'side',n:[35.8,61,[.7,.72,.74][s],70,'side'],b:s===2?null:[[72,74][s],[70,68][s],[.55,.6][s],0,'side'],poke:k=>k.mid}),
+  camel:s=>({s:[.5,.52,.54][s],head:[27,31],eye:[28,41],hb:33,fs:.7,fv:'side',n:[35.8,61,[.7,.72,.74][s],70,'side'],b:s===2?null:[[72,74][s],[70,68][s],[.55,.6][s],0,'side'],bk:[[47,48][s],[97.5,101][s],[81,80][s],96,[56,50][s]],poke:k=>k.mid}),
   alien:s=>({s:[1,1.07,1.16][s],head:[60,[47,44,41][s]],eye:[60,[68,64,70][s]],hb:[53,50,47][s],fs:[1.33,.88,1][s],fv:s===0?'mono':'',n:[60,[90,94,98][s],[.95,1.05,1.1][s],0],b:[60,[78,76,74][s],[1,1.1,1.2][s],0,'front'],poke:k=>k.back}),
   uni:s=>({s:1.05,head:[60,44],eye:[60,66],hb:57,fs:1,n:[60,[84,84,82][s],1,0],b:s===2?null:[60,[86,86][s],1,0,'front'],poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M40 46'))+(k.front||'')})
 };
 const fitOf=(id,stage,hd)=>FIT[id]?FIT[id](stage):{s:1,head:[hd?hd[0]:60,hd?hd[1]:30],eye:[hd?hd[0]:60,hd?hd[2]:54],hb:hd?hd[2]-11:43,fs:1,n:[60,86,1,0],b:[60,80,1,0,'front']};
+/* The Starry Cape on a side-on pal (fit bk = [cape start x, cape end x, hem y, underside y, top of back y]).
+   It is cut out of the pal's own outline (k.back + k.body, grown by 1.5 so it lies on top), between x0 and x1 and down to
+   a scalloped hem, so it follows the back exactly: Soosy's flat back, Jaceub's round body, Camle's humps. */
+function sideCape(bk,k){
+  const[x0,x1,hem,,top]=bk,n=Math.max(3,Math.round((x1-x0)/8)),w=(x1-x0)/n,m='cp'+(++OLN);
+  let edge='';for(let i=n;i>0;i--){const a=x0+i*w,b=a-w;edge+=` Q${(a+b)/2} ${hem+w*.55} ${b.toFixed(1)} ${hem}`}
+  const r=(x1-x0)/50,stars=[[.16,.55],[.38,.25],[.6,.6],[.82,.3],[.5,.85]].map(([fx,fy])=>STAR(x0+(x1-x0)*fx,top+(hem-top)*fy+2,(fy>.7?2:2.6)*Math.max(.8,r),'#FFE27A')).join('');
+  return `<mask id="${m}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240"><g stroke="#000" stroke-width="3" stroke-linejoin="round">${k.back||''}${k.body||''}</g></mask><g mask="url(#${m})"><path d="M${x0} -40 H${x1} V${hem}${edge} Z" fill="#5A3F94"/>${stars}<path d="M${x1} ${hem}${edge}" stroke="#3E2A70" stroke-width="1.8" fill="none"/></g>`;
+}
 /* returns [drawn behind the body, drawn in front] for everything the pal is wearing */
 function outfitSVG(id,wear,stage,hd,k){
   const w=wearOf(wear),f=fitOf(id,stage,hd);let under='',over='';
@@ -778,7 +787,9 @@ function outfitSVG(id,wear,stage,hd,k){
   for(const [slot] of SLOTS){
     const O=OUTFIT_BY[w[slot]];if(!O||O.at!==slot)continue;
     if(slot==='back'){
-      if(!f.b||(O.wings&&f.noWings))continue;const[bx,by,bs,br,v]=f.b,flip=v==='sideR',[u,o]=O.draw(flip?'side':v),T=`translate(${bx} ${by}) rotate(${br}) scale(${bs})${flip?' scale(-1 1)':''} translate(-60 -80)`;
+      if(!f.b||(O.wings&&f.noWings))continue;
+      if(O.id==='cape'&&f.bk&&k){over+=sideCape(f.bk,k);continue}
+      const[bx,by,bs,br,v]=f.b,flip=v==='sideR',[u,o]=O.draw(flip?'side':v,f.bk?80+(f.bk[3]-by)/bs:undefined),T=`translate(${bx} ${by}) rotate(${br}) scale(${bs})${flip?' scale(-1 1)':''} translate(-60 -80)`;
       if(u)under+=`<g transform="${T}">${u}</g>`;if(o)over+=`<g transform="${T}">${o}</g>`;continue}
     if(slot==='neck'){const[nx,ny,ns,nr,nv]=f.n,side=nv==='side'&&NECK_SIDE[O.id];over+=`<g transform="translate(${nx} ${ny}) rotate(${nr}) scale(${ns}) translate(-60 -86)">${side?side(nr):O.draw()}</g>`;continue}
     if(slot==='face'){over+=`<g transform="translate(${ex} ${ey}) scale(${f.fs||s}) translate(-60 ${-ey})">${O.draw(ht,ey,f.fv)}</g>`;continue}
