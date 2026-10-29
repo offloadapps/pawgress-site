@@ -149,7 +149,8 @@ p{margin:0}
 
 /* tasks */
 .tasks-grid{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
-@media (min-width:860px){.tasks-grid{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}}
+/* one card: on wide screens it is a centred column, not squeezed to one side */
+.tasks-grid{width:100%;max-width:760px;margin:0 auto}
 .seg{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .days{border:0;padding:0;margin:0}
@@ -231,7 +232,12 @@ li.task:last-child{border-bottom:0}
 .subtabs{display:flex;gap:8px;flex-wrap:wrap}
 .subtabs .btn{box-shadow:none}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr));gap:12px}
-.item{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px;display:grid;gap:8px;align-content:start;min-width:0}
+.item{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px;display:grid;gap:8px;align-content:start;min-width:0;grid-template-columns:minmax(0,1fr)}
+/* the form strip shrinks with the card instead of pushing it wider */
+/* shop buttons: the price tag drops under the words when the card is narrow */
+.item .btn{flex-wrap:wrap;row-gap:4px;padding-left:10px;padding-right:10px}
+.item .evo{gap:3px}.item .evo .mini{flex:1 1 0;min-width:0;width:auto;height:auto;aspect-ratio:1;max-width:36px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))}}
 .art{aspect-ratio:1;background:var(--surface-2);border-radius:14px;display:grid;place-items:center;overflow:hidden}
 .art svg{width:86%;height:86%;display:block}
 .art.wide{aspect-ratio:16/10}
@@ -328,6 +334,8 @@ li.task:last-child{border-bottom:0}
 .setgrp{margin:0;font-size:.92rem;font-weight:700}
 .btn[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-ink)}
 .guidehd{margin:18px 2px 0}
+/* wide screens: settings and guide each flow into two columns */
+@media (min-width:900px){#guide{display:block;columns:2;column-gap:18px}#guide>*{break-inside:avoid;margin:0 0 18px}#guide>.guidehd{column-span:all;margin:6px 2px 18px}}
 
 
 /* quick add bar and offload (web) */
@@ -340,7 +348,7 @@ li.task:last-child{border-bottom:0}
 .qa .btn{flex:none;padding:10px 12px}
 .qa .btn.qa-d{padding:10px 11px}
 .qa-x{flex:none;width:40px;height:40px;border-radius:12px;border:2px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:1.4rem;line-height:1;cursor:pointer}
-.qa-fab{position:fixed;z-index:29;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(92px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:row;gap:12px;align-items:center}
+.qa-fab{position:fixed;z-index:29;right:max(16px,env(safe-area-inset-right,0px),calc((100vw - 980px)/2));bottom:calc(92px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:row;gap:12px;align-items:center}
 .fab.paw{width:56px;height:56px;overflow:hidden;background:#21111b;border-color:var(--btn-shadow);box-shadow:0 4px 0 var(--btn-shadow)}
 .fab.paw img{width:100%;height:100%;display:block;object-fit:cover}
 .qa-fab[hidden]{display:none}
