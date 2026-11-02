@@ -557,6 +557,9 @@ div.stk{cursor:default}
 .buy-arrow{position:absolute;left:43%;top:50%;width:54px;height:34px;color:var(--muted)}
 .buy-try{position:relative;width:min(300px,100%);border-radius:22px;background:var(--surface-2);display:grid;place-items:center;padding:4px 0}
 .buy-try>svg{width:min(220px,100%,28vh);width:min(220px,100%,28dvh);height:auto;aspect-ratio:1;display:block}
+.buy-try.apart{grid-template-columns:1fr auto;justify-items:center;padding:4px 18px 4px 4px}
+.buy-try.apart>svg{width:min(190px,100%,24vh);width:min(190px,100%,24dvh)}
+.buy-try.apart .buy-stk{position:static;width:84px;height:84px;transform:rotate(-6deg)}
 .buy-room{display:grid;place-items:center}
 .buy-room svg{width:70%;height:90%;overflow:visible}
 .buy-t{display:grid;gap:2px}
@@ -984,7 +987,7 @@ const balG=s=>{let d=0;const o=s.replace(/<g\b[^>]*>|<\/g>/g,m=>{if(m[1]==='/'){
 const FIT={
   cat:s=>({s:1,head:[60,[28,26,24][s]],eye:[60,[52,50,48][s]],hb:[42,40,38][s],fs:1,n:[60,[76,74,72][s],[.9,.95,1][s],0],b:[60,[80,78,76][s],[.85,.95,1.05][s],0,'front'],poke:k=>k.back}),
   panda:s=>({s:[1.03,.97,.97][s],head:[60,[24,22,20][s]],eye:[60,[57,53,51][s]],hb:[45,41,39][s],fs:1,n:[60,[76,76,74][s],[.9,1,1][s],0],b:[60,[78,76,74][s],[.9,1,1.05][s],0,'front'],poke:k=>k.back}),
-  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],bk:[[54,56,60][s],[88,94,98][s],[83,82,80][s],96,[64,60,56][s]],noWings:s===2,poke:k=>k.mid}),
+  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],bk:[[54,56,60][s],[88,94,98][s],[83,82,80][s],96,[64,60,56][s]],poke:k=>k.mid}),
   hedge:s=>({noWings:true,s:[.95,1,1.05][s],head:[60,[34,27,19][s]],eye:[60,83],hb:[48,42,36][s],fs:[.75,.72,.72][s],n:[60,[95,96,97][s],[.8,.85,.9][s],0],b:[60,[84,82,80][s],[1.05,1.15,1.25][s],0,'front']}),
   cater:s=>s===2?{s:.36,head:[60,35],eye:[60,45.5],hb:40,fs:.36,n:[60,57,.4,0],b:null,poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M55 38'))}
     :{s:[.45,.48][s],head:[[78,94.5][s],[72,71][s]],eye:[[79.5,96][s],85],hb:80,fs:[.36,.38][s],n:[[66.5,82][s],[90.5,90.8][s],[.68,.8][s],-20,'side'],b:[[56,62][s],[90,86][s],[.4,.52][s],0,'sideR'],bk:[[33,22][s],[58,74][s],[92,92][s],[103,103.5][s],[80,77][s]],poke:k=>k.back},
@@ -1464,6 +1467,16 @@ function stickerSVG(id){
 }
 const decorSticker=d=>{const [,,w,h]=d.vb.split(' ').map(Number),s=Math.max(w,h),fid='ds'+(++OLN);
   return `<svg viewBox="${d.vb}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" overflow="visible"><defs>${STICKER(fid,(s*.025).toFixed(2),(s*.014).toFixed(2),.2)}</defs><g filter="url(#${fid})">${d.svg}</g></svg>`};
+/* Why a back sticker can't show on this pal in this form, in plain words ('' when it shows). */
+function backWhy(o,sp,st,name){
+  if(o.at!=='back')return '';const f=fitOf(sp,st);
+  if(!f.b)return `${st===2?'Grown-up ':''}${name}'s back is already full, so back stickers stay tucked away. They show on ${st===2?'younger forms and on ':''}other pals.`;
+  if(o.wings&&f.noWings){
+    if([0,1,2].every(s=>fitOf(sp,s).noWings))return `Wing stickers don't fit ${name}, so they stay tucked away. They show on other pals.`;
+    return `${st===2?'Grown-up ':''}${name} already has wings, so wing stickers stay tucked away. They show on younger forms and on other pals.`;
+  }
+  return '';
+}
 /* does a back sticker show on every pal at every age? */
 const fitsAll=o=>o.at!=='back'||PETS.every(P=>[0,1,2].every(st=>{const f=fitOf(P.id,st);return f.b&&!(o.wings&&f.noWings)}));
 const decorThumb=d=>`<svg viewBox="${d.vb}" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><rect x="-500" y="-500" width="2000" height="2000" fill="#FFE3EF"/>${d.svg}</svg>`;
@@ -2154,7 +2167,8 @@ function stickHTML(){
     <div class="stick-main">
     <div class="stick-stage" role="img" aria-label="${esc(p.name)}${on.length?' with '+esc(on.join(', '))+' stuck on':''}">${petSVG(p.sp,pw,st)}${tr?`<span class="stick-tag">Trying ${esc(tr.name)}</span>`:''}</div>
     <div class="spots" role="group" aria-label="Sticker spots">${SLOTS.map(([sl,lab])=>{const o=OUTFIT_BY[pw[sl]];
-      return `<button class="spot${o?'':' empty'}${tr&&tr.at===sl?' trying':''}" type="button" data-zoom="filter" data-i="${sl}" aria-pressed="${f===sl}" aria-label="${lab}: ${o?esc(o.name):'empty'}. Show ${SPOT_WORD[sl]} stickers"><span class="spot-art">${o?stickerSVG(o.id):ic('plus',18)}</span><span class="spot-t"><small>${lab}</small><b>${o?esc(o.name):'Empty'}</b>${o&&hidden(o)?'<small class="spot-note">Hidden in this form</small>':''}</span></button>`}).join('')}</div>
+      return `<button class="spot${o?'':' empty'}${tr&&tr.at===sl?' trying':''}" type="button" data-zoom="filter" data-i="${sl}" aria-pressed="${f===sl}" aria-label="${lab}: ${o?esc(o.name):'empty'}. Show ${SPOT_WORD[sl]} stickers"><span class="spot-art">${o?stickerSVG(o.id):ic('plus',18)}</span><span class="spot-t"><small>${lab}</small><b>${o?esc(o.name):'Empty'}</b>${o&&hidden(o)?'<small class="spot-note">Tucked away</small>':''}</span></button>`}).join('')}</div>
+    ${(()=>{const o=OUTFIT_BY[pw.back];return o&&hidden(o)?`<p class="fine m0">${esc(backWhy(o,p.sp,st,p.name))}</p>`:''})()}
     </div>
     <div class="album">
       <div class="row spread base"><h3>Your stickers</h3><button class="linkbtn" type="button" data-zoom="getmore">Get more</button></div>
@@ -2180,9 +2194,10 @@ function buyHTML(){
       <div class="buy-acts"><button class="btn big" type="button" data-act="buydecor" data-id="${d.id}">Buy for the ${room.name}</button><button class="txtbtn" type="button" data-zoom="close">Not now</button></div>`}`;
   }
   const o=OUTFIT_BY[zoom.id],lab=SLOTS.find(s=>s[0]===o.at)[1].toLowerCase(),fp=fitOf(p.sp,st),shows=o.at!=='back'||(fp.b&&!(o.wings&&fp.noWings)),short=o.cost-S.coins,set=setOf(o.id);
-  const fit=fitsAll(o)?'Fits every pal, at every age.':shows?`Fits ${esc(p.name)} now. Some pals hide it in some forms.`:`${esc(p.name)} hides it in this form. It shows on other pals.`;
+  const why=backWhy(o,p.sp,st,p.name),fit=fitsAll(o)?'Fits every pal, at every age.':shows?`Fits ${esc(p.name)} now. Some pals tuck it away in some forms.`:esc(why);
   return `<span class="grab" aria-hidden="true"></span>
-    <div class="buy-try" role="img" aria-label="${esc(p.name)} trying the ${esc(o.name)}">${petSVG(p.sp,Object.assign({},wearOf(p),{[o.at]:o.id}),st)}<span class="stick-tag">Trying it on</span></div>
+    ${shows?`<div class="buy-try" role="img" aria-label="${esc(p.name)} trying the ${esc(o.name)}">${petSVG(p.sp,Object.assign({},wearOf(p),{[o.at]:o.id}),st)}<span class="stick-tag">Trying it on</span></div>`
+      :`<div class="buy-try apart" role="img" aria-label="${esc(p.name)} and the ${esc(o.name)}, which stays tucked away in this form">${petSVG(p.sp,wearOf(p),st)}<span class="buy-stk">${stickerSVG(o.id)}</span><span class="stick-tag">Tucked away</span></div>`}
     <div class="buy-t"><h2 id="zoom-h">${esc(o.name)}</h2><p class="fine m0">A ${lab} sticker. ${fit}${set?` Part of the ${set.name} set.`:''}</p></div>
     ${short>0?`<p class="buy-price">${coinsTxt(o.cost)}<span class="fine">· ${short} more coins to go. Errands bring them in.</span></p><div class="buy-acts"><button class="btn big" type="button" data-zoom="close">OK</button></div>`
     :`<p class="buy-price">${coinsTxt(o.cost)}<span class="fine">· you'll have ${S.coins-o.cost} left</span></p>
