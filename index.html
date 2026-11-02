@@ -13,97 +13,226 @@
 <meta property="og:description" content="Offload your to-do list in seconds. Simple, and seriously cute.">
 <meta property="og:image" content="img/feature-graphic.png">
 <link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js')</script>
 <style>
-/* One spacing scale (8, 16, 24, 40, 64, 96 px) and one phone size, so every screenshot matches. */
-.page{display:grid;gap:clamp(64px,10vw,104px)}
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(40px,6vw,72px);align-items:center}
+/* Landing page. Each section is its own full-width band; the art is the app's own pals and stickers.
+   Spacing scale: 8, 16, 24, 40, 64, 104 px. Motion is gentle and switches off with reduced motion. */
+body{overflow-x:hidden}
+.band{position:relative}
+.in{max-width:1040px;margin:0 auto;padding:clamp(64px,9vw,104px) max(20px,env(safe-area-inset-right)) clamp(64px,9vw,104px) max(20px,env(safe-area-inset-left))}
+.top .in{padding-block:24px 0;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.top .btn{min-height:44px;padding:8px 18px;font-size:1rem}
+h1,h2,h3{font-family:var(--f-display)}
+.eyebrow{font:700 .95rem var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--pink);margin:0}
+
+/* hero */
+.hero .in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:clamp(40px,6vw,72px);align-items:center;padding-top:clamp(40px,6vw,72px)}
 .hero-text{display:grid;gap:24px;max-width:34rem}
-.hero h1{font-size:clamp(2.5rem,6.2vw,3.9rem);line-height:1.04}
+.hero h1{font-size:clamp(2.6rem,6.4vw,4.2rem);line-height:1.02}
 .lede{font-size:clamp(1.12rem,2.2vw,1.3rem);line-height:1.55;margin:0;color:var(--muted)}
 .cta{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;margin-top:8px}
-.cta .pill{min-height:48px;padding:0 18px}
-/* phone frame: the same everywhere */
-.phone{width:var(--pw,260px);aspect-ratio:390/844;border-radius:calc(var(--pw,260px)*.15);padding:calc(var(--pw,260px)*.035);background:var(--frame);
-  box-shadow:0 24px 48px -12px rgba(74,27,60,.28);flex:none}
-.phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:calc(var(--pw,260px)*.12)}
-.hero .phone{--pw:clamp(240px,26vw,290px)}
-.feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 32px}
-.feat{display:grid;gap:24px;justify-items:center;text-align:center;align-content:start}
-.feat .phone{--pw:clamp(200px,20vw,236px)}
-.feat h3{font-size:1.3rem}
-.feat p{margin:8px 0 0;color:var(--muted);max-width:30ch}
-.section-h{text-align:center;display:grid;gap:12px;justify-items:center;margin-bottom:40px}
-.section-h h2{font-size:clamp(1.6rem,3.6vw,2.1rem)}
-.section-h p{margin:0;color:var(--muted);max-width:44ch}
-.gentle{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding:40px}
-.gentle div{display:grid;gap:8px;justify-items:center;text-align:center}
-.gentle .ic{width:48px;height:48px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--pink)}
-.gentle .ic svg{width:24px;height:24px}
-.gentle h3{font-size:1.1rem}
-.gentle p{margin:0;color:var(--muted);font-size:1rem}
-.iphone{display:flex;gap:16px;align-items:flex-start;padding:24px;border-radius:22px;background:var(--soft)}
-.iphone .ic{flex:none;color:var(--pink);margin-top:2px}
-.iphone h3{font-size:1.1rem;margin-bottom:4px}
-.iphone p{margin:0}
-footer{margin-top:0}
+.soon{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.95rem;color:var(--muted)}
+.soon svg{width:18px;height:18px;color:var(--pink);flex:none}
+.stage{position:relative;justify-self:center;width:min(100%,400px);aspect-ratio:4/5;display:grid;place-items:center}
+.phone{--pw:260px;width:var(--pw);aspect-ratio:390/844;border-radius:calc(var(--pw)*.15);padding:calc(var(--pw)*.035);background:var(--frame);
+  box-shadow:0 30px 60px -18px rgba(74,27,60,.35);flex:none}
+.phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top;border-radius:calc(var(--pw)*.12)}
+.stage .phone{--pw:clamp(220px,25vw,270px);transform:rotate(3deg)}
+.stk{position:absolute;width:var(--s,72px);height:auto;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(74,27,60,.18));will-change:transform}
+.stk img,.stk svg{display:block;width:100%;height:auto}
+.s1{--s:clamp(70px,9vw,104px);left:-2%;top:6%;rotate:-14deg}
+.s2{--s:clamp(70px,9vw,100px);right:-4%;top:28%;rotate:10deg}
+.s3{--s:clamp(56px,7vw,80px);left:2%;bottom:14%;rotate:12deg}
+.s4{--s:48px;right:6%;bottom:6%;rotate:-8deg}
+.s5{--s:42px;left:4%;top:36%;rotate:6deg}
+.s6{--s:40px;right:12%;top:4%;rotate:-6deg}
+
+/* pals ribbon */
+.ribbon{background:var(--soft);overflow:hidden}
+.ribbon .in{display:grid;gap:40px;padding-bottom:clamp(40px,6vw,64px)}
+.ribbon-h{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
+.ribbon h2{font-size:clamp(1.8rem,4vw,2.6rem)}
+.ribbon p{margin:0;color:var(--muted);max-width:34ch}
+.marquee{display:flex;width:max-content;gap:24px;padding-block:8px 24px;animation:slide 48s linear infinite}
+.marquee:hover{animation-play-state:paused}
+.marquee figure{margin:0;width:clamp(120px,15vw,168px);display:grid;justify-items:center;gap:8px;flex:none}
+.marquee figure:nth-child(odd){translate:0 14px}
+.marquee img{width:100%;height:auto;display:block}
+.marquee figcaption{font:700 1rem var(--f-display);color:var(--ink)}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* how it works: alternating rows */
+.how{background:var(--surface)}
+.how .head,.gentle .head{text-align:center;display:grid;gap:12px;justify-items:center;margin-bottom:clamp(40px,7vw,72px)}
+.how h2,.gentle h2{font-size:clamp(1.8rem,4vw,2.6rem)}
+.head p{margin:0;color:var(--muted);max-width:44ch}
+.steps{display:grid;gap:clamp(64px,9vw,104px)}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(32px,6vw,80px);align-items:center;max-width:860px;margin:0 auto;width:100%}
+.step:nth-child(even){grid-template-columns:minmax(0,1fr) auto}
+.step:nth-child(even) .phone{order:2}
+.step .phone{--pw:clamp(200px,22vw,240px)}
+.step-text{display:grid;gap:16px;max-width:28rem}
+.num{width:56px;height:56px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font:700 1.6rem var(--f-display);color:var(--ink);
+  box-shadow:0 0 0 4px var(--surface),0 6px 14px rgba(74,27,60,.18);rotate:-6deg}
+.step h3{font-size:clamp(1.5rem,3vw,2rem)}
+.step p{margin:0;color:var(--muted);font-size:1.1rem}
+
+/* gentle by design */
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.cards article{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:32px 24px;display:grid;gap:12px;justify-items:center;text-align:center;
+  box-shadow:0 10px 24px -14px rgba(74,27,60,.25)}
+.cards article:nth-child(1){rotate:-1.5deg}.cards article:nth-child(3){rotate:1.5deg}
+.cards .ic{width:56px;height:56px;border-radius:50%;background:var(--soft);display:grid;place-items:center;color:var(--pink)}
+.cards .ic svg{width:26px;height:26px}
+.cards h3{font-size:1.3rem}
+.cards p{margin:0;color:var(--muted)}
+
+/* closing band */
+.close{background:var(--band);color:var(--band-ink)}
+.close .in{display:grid;gap:24px;justify-items:center;text-align:center}
+.close h2{font-size:clamp(2rem,5vw,3rem);color:var(--band-ink)}
+.close p{margin:0;max-width:46ch;color:var(--band-muted)}
+.close .btn{background:var(--band-btn);color:var(--band-btn-ink);box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.close a{color:var(--band-ink)}
+.close .pals{display:flex;gap:8px;margin-bottom:8px}
+.close .pals{gap:16px}.close .pals img{width:clamp(80px,12vw,112px);height:auto}
+.iphone{margin-top:16px;padding:16px 20px;border-radius:16px;border:1px solid var(--band-line);max-width:560px;font-size:1rem;color:var(--band-muted)}
+.iphone b{color:var(--band-ink)}
+.foot .in{padding-block:32px 40px}
+.foot footer{margin:0;padding:0;border:0}
+
+/* motion: things settle in as they scroll into view */
+.js .reveal{opacity:0;translate:0 32px;transition:opacity .7s ease,translate .7s cubic-bezier(.2,.7,.2,1)}
+.js .reveal.seen{opacity:1;translate:0 0}
+.js .step .phone{transform:rotate(var(--tilt,-6deg)) scale(.94);transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.js .step:nth-child(even) .phone{--tilt:6deg}
+.js .step.seen .phone{transform:rotate(calc(var(--tilt,-6deg)/4)) scale(1)}
+.stk{animation:bob 6s ease-in-out infinite}
+.s2{animation-delay:-2s}.s3{animation-delay:-4s}.s4{animation-delay:-1s}.s5{animation-delay:-3s}
+@keyframes bob{50%{translate:0 -8px}}
+@media (prefers-reduced-motion:reduce){
+  .marquee{animation:none;flex-wrap:wrap;width:auto;justify-content:center}.marquee .dup{display:none}
+  .stk{animation:none}.js .reveal{opacity:1;translate:none;transition:none}.js .step .phone{transform:none;transition:none}
+}
+
 @media (max-width:860px){
-  .hero{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .hero .in{grid-template-columns:1fr;text-align:center;justify-items:center}
   .hero-text{justify-items:center}
   .cta{justify-content:center}
-  .feats{grid-template-columns:1fr;gap:64px}
-  .feat .phone{--pw:240px}
-  .gentle{grid-template-columns:1fr;padding:32px 24px;gap:32px}
+  .stage{width:min(100%,360px)}
+  .step,.step:nth-child(even){grid-template-columns:1fr;justify-items:center;text-align:center}
+  .step:nth-child(even) .phone{order:0}
+  .step-text{justify-items:center}
+  .cards{grid-template-columns:1fr;max-width:420px;margin:0 auto}
+  .cards article{rotate:0deg!important}
+  .ribbon-h{justify-content:center;text-align:center}
 }
 </style>
 </head>
 <body>
-<div class="wrap page">
-  <header class="top"><a class="brand" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Pawgress</a></header>
+<div class="band top"><div class="in">
+  <a class="brand" href="./"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Pawgress</a>
+  <a class="btn ghost" href="app/">Try it</a>
+</div></div>
 
-  <section class="hero">
-    <div class="hero-text">
-      <h1>Offload your to-do list in seconds.</h1>
-      <p class="lede">Simple, and seriously cute. Dump everything on your mind, Pawgress sorts it, and every task you finish helps your pal grow up.</p>
-      <div class="cta">
-        <a class="btn" href="app/">Try it in your browser</a>
-        <span class="pill" id="play"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Coming soon to Google Play</span>
-      </div>
+<main>
+<section class="band hero"><div class="in">
+  <div class="hero-text">
+    <h1>Offload your to-do list in seconds.</h1>
+    <p class="lede">Simple, and seriously cute. Dump everything on your mind, Pawgress sorts it, and every task you finish helps your pal grow up.</p>
+    <div class="cta">
+      <a class="btn" href="app/">Try it in your browser</a>
+      <span class="soon" id="play"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Coming soon to Google Play</span>
     </div>
+  </div>
+  <div class="stage" aria-hidden="false">
     <div class="phone"><img src="img/app-home.jpg" alt="Tigrr the pink tiger pal, grown up, with a crown and bow tie sticker, in a cosy decorated room." width="600" height="1298"></div>
-  </section>
+    <span class="stk s1" data-speed="-.12"><img src="img/art/sticker-crown.svg" alt=""></span>
+    <span class="stk s2" data-speed=".1"><img src="img/art/sticker-shades.svg" alt=""></span>
+    <span class="stk s3" data-speed="-.06"><img src="img/art/sticker-flowers.svg" alt=""></span>
+    <span class="stk s4" data-speed=".16"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="#FFB92E" stroke="#FFF" stroke-width="3" paint-order="stroke"/><circle cx="12" cy="12" r="9.5" fill="none" stroke="#D98F00" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="none" stroke="#D98F00" stroke-width="1.6"/></svg></span>
+    <span class="stk s5" data-speed=".22"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" fill="#FF4F9A" stroke="#FFF" stroke-width="3" paint-order="stroke" stroke-linejoin="round"/></svg></span>
+    <span class="stk s6" data-speed="-.2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z" fill="#6C4BD8" stroke="#FFF" stroke-width="3" paint-order="stroke" stroke-linejoin="round"/></svg></span>
+  </div>
+</div></section>
 
-  <section aria-labelledby="how-h">
-    <div class="section-h"><h2 id="how-h">How it works</h2><p>Three steps, no setup and no account.</p></div>
-    <div class="feats">
-      <div class="feat"><div class="phone"><img src="img/app-offload.jpg" alt="The Offload box with six tasks typed in plain words, each already sorted." loading="lazy" width="600" height="1298"></div>
-        <div><h3>Offload it all</h3><p>Type it how you think: "bins every friday 6pm, remind me 30 mins before". Dates, repeats, reminders and sizes are worked out for you.</p></div></div>
-      <div class="feat"><div class="phone"><img src="img/app-tasks.jpg" alt="Today's task list, with hearts and energy for each task." loading="lazy" width="600" height="1298"></div>
-        <div><h3>Your day, sorted</h3><p>Today first, then what's coming up, with gentle reminders. Every finished task earns hearts for your pal and energy for errands.</p></div></div>
-      <div class="feat"><div class="phone"><img src="img/app-stickers.jpg" alt="Tigrr trying on a bow tie sticker, with the sticker album below." loading="lazy" width="600" height="1298"></div>
-        <div><h3>Grow a pal, stick on stickers</h3><p>Ten pals to raise, drawn by the developer's kids. Coins from errands buy stickers, cosy rooms and holidays.</p></div></div>
-    </div>
-  </section>
+<section class="band ribbon" aria-labelledby="pals-h"><div class="in">
+  <div class="ribbon-h reveal"><h2 id="pals-h">Ten pals to raise</h2><p>Each one grows from baby to grown up. They were drawn by the developer's kids.</p></div>
+</div>
+  <div class="marquee" aria-hidden="true">
+    <figure><img src="img/art/pal-cat.svg" alt=""><figcaption>Tigrr</figcaption></figure>
+    <figure><img src="img/art/pal-panda.svg" alt=""><figcaption>Pandy</figcaption></figure>
+    <figure><img src="img/art/pal-dog.svg" alt=""><figcaption>Soosy</figcaption></figure>
+    <figure><img src="img/art/pal-hedge.svg" alt=""><figcaption>Marcy</figcaption></figure>
+    <figure><img src="img/art/pal-cater.svg" alt=""><figcaption>Catipil</figcaption></figure>
+    <figure><img src="img/art/pal-ant.svg" alt=""><figcaption>Jaceub</figcaption></figure>
+    <figure><img src="img/art/pal-bird.svg" alt=""><figcaption>Careeun</figcaption></figure>
+    <figure><img src="img/art/pal-camel.svg" alt=""><figcaption>Camle</figcaption></figure>
+    <figure><img src="img/art/pal-alien.svg" alt=""><figcaption>Anyun</figcaption></figure>
+    <figure><img src="img/art/pal-uni.svg" alt=""><figcaption>Glimmer</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-cat.svg" alt=""><figcaption>Tigrr</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-panda.svg" alt=""><figcaption>Pandy</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-dog.svg" alt=""><figcaption>Soosy</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-hedge.svg" alt=""><figcaption>Marcy</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-cater.svg" alt=""><figcaption>Catipil</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-ant.svg" alt=""><figcaption>Jaceub</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-bird.svg" alt=""><figcaption>Careeun</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-camel.svg" alt=""><figcaption>Camle</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-alien.svg" alt=""><figcaption>Anyun</figcaption></figure>
+    <figure class="dup"><img src="img/art/pal-uni.svg" alt=""><figcaption>Glimmer</figcaption></figure>
+  </div>
+  <p class="sr">The ten pals are Tigrr, Pandy, Soosy, Marcy, Catipil, Jaceub, Careeun, Camle, Anyun and Glimmer.</p>
+</section>
 
-  <section aria-labelledby="gentle-h">
-    <div class="section-h"><h2 id="gentle-h">Gentle by design</h2><p>Made to help on hard days, not to nag on good ones.</p></div>
-    <div class="gentle card">
-      <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" fill="currentColor"/></svg></span><h3>No streaks</h3><p>Nothing expires and nothing is ever late. Your pal is always happy to see you.</p></div>
-      <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg></span><h3>Small steps count</h3><p>Tiny tasks pay off, and "Just start" sits with you for five minutes.</p></div>
-      <div><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="currentColor"/></svg></span><h3>Private and free</h3><p>No account and no ads. Your list stays on your phone.</p></div>
-    </div>
-  </section>
+<section class="band how" aria-labelledby="how-h"><div class="in">
+  <div class="head reveal"><p class="eyebrow">How it works</p><h2 id="how-h">Three steps. No setup, no account.</h2></div>
+  <div class="steps">
+    <div class="step reveal"><div class="phone"><img src="img/app-offload.jpg" alt="The Offload box with six tasks typed in plain words, each already sorted." loading="lazy" width="600" height="1298"></div>
+      <div class="step-text"><span class="num">1</span><h3>Offload it all</h3><p>Type it how you think: "bins every friday 6pm, remind me 30 mins before". Dates, repeats, reminders and sizes are worked out for you. You can even say it out loud.</p></div></div>
+    <div class="step reveal"><div class="phone"><img src="img/app-tasks.jpg" alt="Today's task list, with hearts and energy for each task." loading="lazy" width="600" height="1298"></div>
+      <div class="step-text"><span class="num">2</span><h3>Your day, sorted</h3><p>Today first, then what's coming up, with gentle reminders. Every finished task earns hearts for your pal and energy for errands.</p></div></div>
+    <div class="step reveal"><div class="phone"><img src="img/app-stickers.jpg" alt="Tigrr trying on a bow tie sticker, with the sticker album below." loading="lazy" width="600" height="1298"></div>
+      <div class="step-text"><span class="num">3</span><h3>Grow a pal, stick on stickers</h3><p>Hearts help your pal grow up. Errands bring back coins for stickers, cosy rooms and holidays.</p></div></div>
+  </div>
+</div></section>
 
-  <section class="iphone">
-    <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg></span>
-    <div><h3>On an iPhone?</h3>
-    <p>Open the <a href="app/">web version</a> in Safari, tap Share, then Add to Home Screen. It works offline and saves on your phone. Reminders need the Android app for now.</p></div>
-  </section>
+<section class="band gentle" aria-labelledby="gentle-h"><div class="in">
+  <div class="head reveal"><p class="eyebrow">Gentle by design</p><h2 id="gentle-h">Made to help on hard days, not nag on good ones.</h2></div>
+  <div class="cards">
+    <article class="reveal"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z" fill="currentColor"/></svg></span><h3>No streaks</h3><p>Nothing expires and nothing is ever late. Your pal is always happy to see you.</p></article>
+    <article class="reveal"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/></svg></span><h3>Small steps count</h3><p>Tiny tasks pay off, and "Just start" sits with you for five minutes.</p></article>
+    <article class="reveal"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5z" fill="currentColor"/></svg></span><h3>Private and free</h3><p>No account and no ads. Your list stays on your phone.</p></article>
+  </div>
+</div></section>
 
+<section class="band close" aria-labelledby="close-h"><div class="in">
+  <div class="pals reveal" aria-hidden="true"><img src="img/art/pal-panda.svg" alt=""><img src="img/art/pal-cat.svg" alt=""><img src="img/art/pal-uni.svg" alt=""></div>
+  <h2 id="close-h" class="reveal">Ready to offload?</h2>
+  <p class="reveal">Try Pawgress in your browser now. The Android app is coming soon to Google Play.</p>
+  <a class="btn reveal" href="app/">Try it in your browser</a>
+  <p class="iphone reveal"><b>On an iPhone?</b> Open the <a href="app/">web version</a> in Safari, tap Share, then Add to Home Screen. It works offline and saves on your phone. Reminders need the Android app for now.</p>
+</div></section>
+</main>
+
+<div class="band foot"><div class="in">
   <footer>
     <span>Pawgress</span>
     <nav><a href="privacy.html">Privacy policy</a><span>Contact: <a href="mailto:app.pawgress@gmail.com">app.pawgress@gmail.com</a></span></nav>
   </footer>
-</div>
+</div></div>
+
+<script>
+// Sections settle in as they scroll into view; hero stickers drift at different speeds. Off with reduced motion.
+(function(){
+  var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var els=document.querySelectorAll('.reveal');
+  if(calm||!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('seen')});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('seen');io.unobserve(e.target)}})},{rootMargin:'0px 0px -12% 0px',threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+  var stk=[].slice.call(document.querySelectorAll('.stk[data-speed]')),ticking=false;
+  function move(){var y=window.scrollY;stk.forEach(function(s){s.style.transform='translateY('+(y*parseFloat(s.dataset.speed)).toFixed(1)+'px)'});ticking=false}
+  window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(move)}},{passive:true});
+})();
+</script>
 </body>
 </html>

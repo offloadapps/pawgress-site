@@ -5,12 +5,14 @@
 @font-face{font-family:'Atkinson Hyperlegible';src:url(fonts/AtkinsonHyperlegible-Bold.ttf) format('truetype');font-weight:700;font-display:swap}
 :root{
   --bg:#FFF6FA;--surface:#FFFFFF;--soft:#FFE0EE;--ink:#4A1B3C;--muted:#7D4C6D;--line:#F0D3E1;--outline:#4A1B3C;--frame:#4A1B3C;
+  --band:#4A1B3C;--band-ink:#FFF6FA;--band-muted:#F0D3E1;--band-btn:#FF8EC1;--band-btn-ink:#2A0C20;--band-line:rgba(255,246,250,.25);
   --pink:#C42672;--btn-bg:#C42672;--btn-ink:#FFFFFF;--btn-shadow:#4A1B3C;--focus:#5B2CC9;
   --f-display:'DynaPuff','Trebuchet MS',system-ui,sans-serif;--f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#1E0F1A;--surface:#2A1624;--soft:#4A1F3B;--ink:#FBE9F2;--muted:#D2AFC3;--line:#4A2A40;--outline:#8C6382;--frame:#0E050B;
+  --band:#FFE0EE;--band-ink:#4A1B3C;--band-muted:#7D4C6D;--band-btn:#C42672;--band-btn-ink:#FFFFFF;--band-line:rgba(74,27,60,.2);
   --pink:#FF8EC1;--btn-bg:#FF8EC1;--btn-ink:#2A0C20;--btn-shadow:#0E050B;--focus:#D2C2FF;color-scheme:dark}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -18,8 +20,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.6 var(--f-body)}
 a{color:var(--ink);font-weight:700;text-underline-offset:3px}
 a:focus-visible,.btn:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:12px}
 .wrap{max-width:980px;margin:0 auto;padding:32px max(20px,env(safe-area-inset-right)) 48px max(20px,env(safe-area-inset-left))}
-h1{font-family:var(--f-display);font-weight:700;line-height:1.1;color:var(--ink);text-wrap:balance;margin:0}
-h2,h3{font-family:var(--f-body);font-weight:700;line-height:1.25;color:var(--ink);text-wrap:balance;margin:0}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.12;color:var(--ink);text-wrap:balance;margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--ink)}
 .brand svg{width:32px;height:32px;color:var(--pink);flex:none}
 .pill svg,.iphone .ic svg{width:20px;height:20px;color:var(--pink)}
