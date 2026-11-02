@@ -17,8 +17,9 @@
 <style>
 /* Landing page. Each section is its own full-width band; the art is the app's own pals and stickers.
    Spacing scale: 8, 16, 24, 40, 64, 104 px. Motion is gentle and switches off with reduced motion. */
-body{overflow-x:hidden}
-.band{position:relative}
+/* Nothing may make the page wider than the screen: iPhone Safari zooms the whole page out if anything does. */
+html,body{overflow-x:hidden;overflow-x:clip}
+.band{position:relative;overflow-x:hidden;overflow-x:clip}
 .in{max-width:1040px;margin:0 auto;padding:clamp(64px,9vw,104px) max(20px,env(safe-area-inset-right)) clamp(64px,9vw,104px) max(20px,env(safe-area-inset-left))}
 .top .in{padding-block:24px 0;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .top .btn{min-height:44px;padding:8px 18px;font-size:1rem}
@@ -48,12 +49,13 @@ h1,h2,h3{font-family:var(--f-display)}
 .s6{--s:40px;right:12%;top:4%;rotate:-6deg}
 
 /* pals ribbon */
-.ribbon{background:var(--soft);overflow:hidden}
+.ribbon{background:var(--soft)}
 .ribbon .in{display:grid;gap:40px;padding-bottom:clamp(40px,6vw,64px)}
 .ribbon-h{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px 24px}
 .ribbon h2{font-size:clamp(1.8rem,4vw,2.6rem)}
 .ribbon p{margin:0;color:var(--muted);max-width:34ch}
-.marquee{display:flex;width:max-content;gap:24px;padding-block:8px 24px;animation:slide 48s linear infinite}
+.track{position:relative;overflow:hidden;contain:paint;height:calc(clamp(120px,15vw,168px) + 72px)}
+.marquee{position:absolute;left:0;top:0;display:flex;width:max-content;gap:24px;padding-block:8px 24px;animation:slide 48s linear infinite}
 .marquee:hover{animation-play-state:paused}
 .marquee figure{margin:0;width:clamp(120px,15vw,168px);display:grid;justify-items:center;gap:8px;flex:none}
 .marquee figure:nth-child(odd){translate:0 14px}
@@ -111,7 +113,7 @@ h1,h2,h3{font-family:var(--f-display)}
 .s2{animation-delay:-2s}.s3{animation-delay:-4s}.s4{animation-delay:-1s}.s5{animation-delay:-3s}
 @keyframes bob{50%{translate:0 -8px}}
 @media (prefers-reduced-motion:reduce){
-  .marquee{animation:none;flex-wrap:wrap;width:auto;justify-content:center}.marquee .dup{display:none}
+  .track{height:auto;contain:none}.marquee{position:static;animation:none;flex-wrap:wrap;width:auto;justify-content:center}.marquee .dup{display:none}
   .stk{animation:none}.js .reveal{opacity:1;translate:none;transition:none}.js .step .phone{transform:none;transition:none}
 }
 
@@ -159,7 +161,7 @@ h1,h2,h3{font-family:var(--f-display)}
 <section class="band ribbon" aria-labelledby="pals-h"><div class="in">
   <div class="ribbon-h reveal"><h2 id="pals-h">Ten pals to raise</h2><p>Each one grows from baby to grown up.</p></div>
 </div>
-  <div class="marquee" aria-hidden="true">
+  <div class="track"><div class="marquee" aria-hidden="true">
     <figure><img src="img/art/pal-cat.svg" alt=""><figcaption>Tigrr</figcaption></figure>
     <figure><img src="img/art/pal-panda.svg" alt=""><figcaption>Pandy</figcaption></figure>
     <figure><img src="img/art/pal-dog.svg" alt=""><figcaption>Soosy</figcaption></figure>
@@ -180,7 +182,7 @@ h1,h2,h3{font-family:var(--f-display)}
     <figure class="dup"><img src="img/art/pal-camel.svg" alt=""><figcaption>Camle</figcaption></figure>
     <figure class="dup"><img src="img/art/pal-alien.svg" alt=""><figcaption>Anyun</figcaption></figure>
     <figure class="dup"><img src="img/art/pal-uni.svg" alt=""><figcaption>Glimmer</figcaption></figure>
-  </div>
+  </div></div>
   <p class="sr">The ten pals are Tigrr, Pandy, Soosy, Marcy, Catipil, Jaceub, Careeun, Camle, Anyun and Glimmer.</p>
 </section>
 
