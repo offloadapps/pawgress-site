@@ -4,13 +4,13 @@
 @font-face{font-family:'Atkinson Hyperlegible';src:url(fonts/AtkinsonHyperlegible-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
 @font-face{font-family:'Atkinson Hyperlegible';src:url(fonts/AtkinsonHyperlegible-Bold.ttf) format('truetype');font-weight:700;font-display:swap}
 :root{
-  --bg:#FFF6FA;--surface:#FFFFFF;--soft:#FFE0EE;--ink:#4A1B3C;--muted:#7D4C6D;--line:#F0D3E1;--outline:#4A1B3C;
+  --bg:#FFF6FA;--surface:#FFFFFF;--soft:#FFE0EE;--ink:#4A1B3C;--muted:#7D4C6D;--line:#F0D3E1;--outline:#4A1B3C;--frame:#4A1B3C;
   --pink:#C42672;--btn-bg:#C42672;--btn-ink:#FFFFFF;--btn-shadow:#4A1B3C;--focus:#5B2CC9;
   --f-display:'DynaPuff','Trebuchet MS',system-ui,sans-serif;--f-body:'Atkinson Hyperlegible','Segoe UI',system-ui,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#1E0F1A;--surface:#2A1624;--soft:#4A1F3B;--ink:#FBE9F2;--muted:#D2AFC3;--line:#4A2A40;--outline:#8C6382;
+  --bg:#1E0F1A;--surface:#2A1624;--soft:#4A1F3B;--ink:#FBE9F2;--muted:#D2AFC3;--line:#4A2A40;--outline:#8C6382;--frame:#0E050B;
   --pink:#FF8EC1;--btn-bg:#FF8EC1;--btn-ink:#2A0C20;--btn-shadow:#0E050B;--focus:#D2C2FF;color-scheme:dark}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -22,6 +22,7 @@ h1{font-family:var(--f-display);font-weight:700;line-height:1.1;color:var(--ink)
 h2,h3{font-family:var(--f-body);font-weight:700;line-height:1.25;color:var(--ink);text-wrap:balance;margin:0}
 .brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:1.6rem;color:var(--ink)}
 .brand svg{width:32px;height:32px;color:var(--pink);flex:none}
+.pill svg,.iphone .ic svg{width:20px;height:20px;color:var(--pink)}
 .btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:14px;background:var(--btn-bg);color:var(--btn-ink);
   font:700 1.05rem var(--f-body);text-decoration:none;box-shadow:0 3px 0 var(--btn-shadow)}
 .btn.ghost{background:var(--surface);color:var(--ink);box-shadow:none;border:1.5px solid var(--outline)}
