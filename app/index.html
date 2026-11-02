@@ -756,41 +756,11 @@ details.addwrap>summary h2{font-size:1.06rem}
 </div>
 <div id="toast" class="toast" hidden></div><div id="sr-live" class="sr" role="status" aria-live="polite"></div>
 <script>
-// Pawgress app logic. tools/build.py sets DEMO to true for the demo page (fast timers, free hearts, example tasks).
-const DEMO=false;
-// Test builds of the Android app (the debug APK from GitHub) get the same test controls as the demo.
-// The Play Store build is a release build, so it never shows them.
-const TEST=(()=>{try{const N=window.PawgressNative;return !!(N&&N.isTestBuild&&N.isTestBuild())}catch(e){return false}})();
-/* ---------- helpers ---------- */
-const $=(s,r=document)=>r.querySelector(s);
-const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+// Pawgress art and its data: pals, stickers (with how they fit each pal), backdrops and room decor.
+// Loaded before app.js, which holds everything else. Long single lines here are SVG drawings.
+
 // Lookup tables by id, with no inherited keys: a saved id like "constructor" or "__proto__" finds nothing.
 const byId=a=>Object.assign(Object.create(null),Object.fromEntries(a.map(x=>[x.id,x])));
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-const ICONS={
-  heart:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>',
-  gear:'<path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z" fill="currentColor"/>',
-  bell:'<path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z" fill="currentColor"/>',
-  bolt:'<path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/>',
-  coin:'<circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>',
-  list:'<path d="M5 6h14M5 12h14M5 18h9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/>',
-  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/>',
-  bag:'<path d="M5.5 8h13l1 12.5h-15z" fill="currentColor"/><path d="M9 9V6.5a3 3 0 0 1 6 0V9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
-  book:'<path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v15h5.5c.8 0 1.5.7 1.5 1.5z" fill="currentColor"/>',
-  back:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  paw:'<ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/>',
-  mic:'<rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  sticker:'<path d="M5 4h10l4 4v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 4v3a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
-  check:'<path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  edit:'<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  star:'<path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.6 5.8 21.2l1.4-7L2 9.4l7-.9z" fill="currentColor"/>',
-  trash:'<path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
-  left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
-};
-const ic=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
 
 /* ---------- pet drawing (original creatures, drawn from parts) ---------- */
 const M=s=>`<g transform="translate(120 0) scale(-1 1)">${s}</g>`;
@@ -910,11 +880,11 @@ const OUTFITS=[
   {id:'party',name:'Party Hat',cost:35,at:'head',hat:true,draw:(h,e)=>`<path d="M47 ${h+5} L60 ${h-28} L73 ${h+5}Z" fill="#FF6FAE"/><path d="M52 ${h-6} L68 ${h-6} M56 ${h-17} L64 ${h-17}" stroke="#B9A2FF" stroke-width="3"/><path d="M45 ${h+5} Q60 ${h+9} 75 ${h+5}" stroke="#E8508F" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="60" cy="${h-29}" r="4.2" fill="#FFC83D"/>`},
   {id:'beanie',name:'Strawberry Beanie',cost:45,at:'head',dome:true,draw:(h,e,v,b)=>`<path d="M27 ${b} C24 ${h-24} 96 ${h-24} 93 ${b}Z" fill="#FF5C8A"/>${[[42,h-4],[54,h-11],[66,h-11],[78,h-4],[48,b-12],[60,h-2],[72,b-12],[36,b-14],[84,b-14]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="1.4" ry="2.1" fill="#FFE27A"/>`).join('')}<rect x="24" y="${b-7}" width="72" height="10" rx="5" fill="#E8325F"/><path d="${[30,37,44,51,58,65,72,79,86].map(x=>`M${x} ${b-6} v8`).join(' ')}" stroke="#C42150" stroke-width="1.3"/><path d="M60 ${h-15} c-5 -7 -13 -5 -13 -1 c5 1 9 1 13 1 c4 0 8 0 13 -1 c0 -4 -8 -6 -13 1Z" fill="#6BC99A"/><path d="M60 ${h-15} v-5" stroke="#4E9A5E" stroke-width="2.2" stroke-linecap="round"/>`},
   {id:'chef',name:"Chef's Hat",cost:60,at:'head',dome:true,draw:(h,e,v,b)=>`<circle cx="42" cy="${b-19}" r="13" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.3"/><circle cx="78" cy="${b-19}" r="13" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.3"/><circle cx="60" cy="${b-27}" r="15" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.3"/><path d="M28 ${b} C28 ${b-14} 92 ${b-14} 92 ${b}Z" fill="#FFFFFF"/><rect x="30" y="${b-12}" width="60" height="13" rx="3" fill="#FFFFFF" stroke="#E3CFE0" stroke-width="1.3"/><path d="M42 ${b-10} v9 M51 ${b-10} v9 M60 ${b-10} v9 M69 ${b-10} v9 M78 ${b-10} v9" stroke="#EADCE6" stroke-width="1.3"/>`},
-  {id:'frog',name:'Frog Hat',cost:70,at:'head',dome:true,draw:(h,e,v,b)=>`<path d="M27 ${b} C24 ${h-22} 96 ${h-22} 93 ${b}Z" fill="#8BD9A0"/><path d="M27 ${b} Q60 ${b+5} 93 ${b}" stroke="#5DB57A" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="43" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="77" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="43" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="77" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="44" cy="${h-11}" r="2.9" fill="#3A1431"/><circle cx="78" cy="${h-11}" r="2.9" fill="#3A1431"/><path d="M50 ${h-1} Q60 ${h+5} 70 ${h-1}" stroke="#3A1431" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="40" cy="${h-1}" rx="3.6" ry="2" fill="#FF9CC9" opacity=".7"/><ellipse cx="80" cy="${h-1}" rx="3.6" ry="2" fill="#FF9CC9" opacity=".7"/>`},
+  {id:'frog',name:'Frog Hat',cost:70,at:'head',dome:true,top:h=>`<circle cx="43" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="77" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="43" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="77" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="44" cy="${h-11}" r="2.9" fill="#3A1431"/><circle cx="78" cy="${h-11}" r="2.9" fill="#3A1431"/>`,draw:(h,e,v,b)=>`<path d="M27 ${b} C24 ${h-22} 96 ${h-22} 93 ${b}Z" fill="#8BD9A0"/><path d="M27 ${b} Q60 ${b+5} 93 ${b}" stroke="#5DB57A" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="43" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="77" cy="${h-12}" r="9" fill="#8BD9A0"/><circle cx="43" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="77" cy="${h-12}" r="5.6" fill="#fff"/><circle cx="44" cy="${h-11}" r="2.9" fill="#3A1431"/><circle cx="78" cy="${h-11}" r="2.9" fill="#3A1431"/><path d="M50 ${h-1} Q60 ${h+5} 70 ${h-1}" stroke="#3A1431" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="40" cy="${h-1}" rx="3.6" ry="2" fill="#FF9CC9" opacity=".7"/><ellipse cx="80" cy="${h-1}" rx="3.6" ry="2" fill="#FF9CC9" opacity=".7"/>`},
   {id:'flowers',name:'Flower Crown',cost:55,at:'head',draw:(h,e)=>[-3,-2,-1,0,1,2,3].map(i=>{const x=60+i*8.6,y=h+4+i*i*.9,col=['#FFFFFF','#FF9CC9','#D9C8FF'][Math.abs(i)%3];return `<circle cx="${x}" cy="${y}" r="5.2" fill="${col}" stroke="#FF6FAE" stroke-width="1"/><circle cx="${x}" cy="${y}" r="2" fill="#FFC83D"/>`}).join('')},
   {id:'mushroom',name:'Mushroom Cap',cost:75,at:'head',dome:true,draw:(h,e,v,b)=>`<path d="M18 ${b+1} C18 ${h-28} 102 ${h-28} 102 ${b+1} Q60 ${b+8} 18 ${b+1}Z" fill="#FF6FAE" stroke="#E8508F" stroke-width="1.4"/><circle cx="40" cy="${h-6}" r="5" fill="#fff"/><circle cx="62" cy="${h-13}" r="6" fill="#fff"/><circle cx="82" cy="${h-3}" r="4.4" fill="#fff"/><circle cx="54" cy="${b-6}" r="3.4" fill="#fff"/><circle cx="28" cy="${b-5}" r="2.6" fill="#fff"/><circle cx="90" cy="${b-6}" r="2.8" fill="#fff"/><circle cx="72" cy="${b-8}" r="2.4" fill="#fff"/>`},
   {id:'cloud',name:'Cloud Hat',cost:80,at:'head',dome:true,draw:(h,e,v,b)=>`<path d="M92 ${b+1} q2 6 -1 9" stroke="#9DB9FF" stroke-width="1.2" fill="none"/><path d="M91 ${b+10} q-2.6 3.6 0 5.2 q2.6 -1.6 0 -5.2Z" fill="#8FD3FF"/><g fill="#FFFFFF" stroke="#D9C8FF" stroke-width="1.5"><circle cx="38" cy="${b-10}" r="12"/><circle cx="82" cy="${b-10}" r="12"/><circle cx="50" cy="${h-6}" r="13"/><circle cx="70" cy="${h-6}" r="13"/><circle cx="60" cy="${h-14}" r="13"/></g><path d="M27 ${b} C26 ${h-8} 94 ${h-8} 93 ${b}Z" fill="#FFFFFF"/><path d="M27 ${b} H93" stroke="#D9C8FF" stroke-width="1.5" stroke-linecap="round"/>`},
-  {id:'headphones',name:'Headphones',cost:90,at:'head',draw:(h,e)=>`<path d="M31 ${e-4} C29 ${h-16} 91 ${h-16} 89 ${e-4}" stroke="#B9A2FF" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="24" y="${e-14}" width="12" height="18" rx="6" fill="#FF6FAE"/><rect x="84" y="${e-14}" width="12" height="18" rx="6" fill="#FF6FAE"/><rect x="27" y="${e-10}" width="6" height="10" rx="3" fill="#FFC2DC"/><rect x="87" y="${e-10}" width="6" height="10" rx="3" fill="#FFC2DC"/>`},
+  {id:'headphones',name:'Headphones',cost:90,at:'head',draw:(h,e,v,b,a)=>v==='side'?(()=>{const cx=78,cy=e+2,yt=h-7,tx=cx-2;return `<path d="M${cx-5.5} ${cy} L${tx-4.5} ${yt} L${tx+4.5} ${yt} L${cx+5.5} ${cy}Z" fill="#B9A2FF"/><ellipse cx="${tx}" cy="${yt}" rx="4.5" ry="1.9" fill="#9B84F0"/><ellipse cx="${cx}" cy="${cy}" rx="8.5" ry="11" fill="#FF6FAE"/><ellipse cx="${cx}" cy="${cy}" rx="5.2" ry="7.2" fill="#FFC2DC"/>`})():`<path d="M31 ${e-4} C29 ${h-16+(a&&a.arch||0)} 91 ${h-16+(a&&a.arch||0)} 89 ${e-4}" stroke="#B9A2FF" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="24" y="${e-14}" width="12" height="18" rx="6" fill="#FF6FAE"/><rect x="84" y="${e-14}" width="12" height="18" rx="6" fill="#FF6FAE"/><rect x="27" y="${e-10}" width="6" height="10" rx="3" fill="#FFC2DC"/><rect x="87" y="${e-10}" width="6" height="10" rx="3" fill="#FFC2DC"/>`},
   {id:'sunhat',name:'Sun Hat',cost:85,at:'head',dome:true,draw:(h,e,v,b)=>`<ellipse cx="60" cy="${b}" rx="45" ry="9" fill="#FFD89A" stroke="#E8B860" stroke-width="1.3"/><path d="M30 ${b} C29 ${h-20} 91 ${h-20} 90 ${b}Z" fill="#FFE3A8" stroke="#E8B860" stroke-width="1.3"/><path d="M30.4 ${b-4} H89.6" stroke="#FF6FAE" stroke-width="6"/><circle cx="80" cy="${b-6}" r="5" fill="#fff"/><circle cx="80" cy="${b-6}" r="2" fill="#FFC83D"/><circle cx="86" cy="${b-3}" r="3.4" fill="#FF9CC9"/>`},
   {id:'witch',name:'Witch Hat',cost:100,at:'head',dome:true,draw:(h,e,v,b)=>`<ellipse cx="60" cy="${b}" rx="41" ry="7.5" fill="#5A2A6E"/><path d="M33 ${b-1} C36 ${h-12} 52 ${h-20} 62 ${h-38} C66 ${h-22} 84 ${h-12} 87 ${b-1}Z" fill="#7B3FA0"/><path d="M34 ${b-6} Q60 ${b-1} 86 ${b-6}" stroke="#FFC83D" stroke-width="5" fill="none"/><path d="M62 ${h-24} l1.8 3.8 4 .5 -3 2.7 .9 4 -3.7 -2.1 -3.7 2.1 .9 -4 -3 -2.7 4 -.5z" fill="#FFC83D"/>`},
   {id:'halo',name:'Angel Halo',cost:115,at:'head',draw:(h,e)=>`<ellipse cx="60" cy="${h-8}" rx="18" ry="6" fill="none" stroke="#FFE9A0" stroke-width="9" opacity=".45"/><ellipse cx="60" cy="${h-8}" rx="17" ry="5" fill="none" stroke="#FFC83D" stroke-width="4.5"/><path d="M48 ${h-11} Q54 ${h-13.5} 60 ${h-13.5}" stroke="#FFF6CC" stroke-width="1.8" fill="none" stroke-linecap="round"/>`},
@@ -922,17 +892,17 @@ const OUTFITS=[
   {id:'tiara',name:'Pearl Tiara',cost:160,at:'head',draw:(h,e)=>`<path d="M40 ${h+7} Q60 ${h-4} 80 ${h+7}" stroke="#E8C8D8" stroke-width="2" fill="none"/>${[-4,-3,-2,-1,1,2,3,4].map(i=>{const x=60+i*5,y=h+1.5+i*i*.42-(Math.abs(i)<2?1:0);return `<circle cx="${x}" cy="${y}" r="${2.4-Math.abs(i)*.18}" fill="#FFF6FA" stroke="#E8C8D8" stroke-width=".8"/>`}).join('')}<path d="M60 ${h-11} L65 ${h-3} L60 ${h+3} L55 ${h-3}Z" fill="#FF6FAE" stroke="#E8508F" stroke-width="1"/><path d="M58.5 ${h-6} l1.5 -2.5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>`},
   /* ----- face ----- */
   {id:'freckles',name:'Rosy Freckles',cost:25,at:'face',draw:(h,e,v)=>(v==='side'?[[50,e+10],[55,e+13],[47,e+15]]:[[36,e+10],[41,e+13],[33,e+15],[84,e+10],[79,e+13],[87,e+15]]).map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2" fill="#C42672" opacity=".8"/>`).join('')},
-  {id:'glasses',name:'Round Glasses',cost:40,at:'face',draw:(h,e,v)=>v==='side'||v==='mono'?`${v==='mono'?`<path d="M49.5 ${e-1} L30 ${e-5}" stroke="#4A1B3C" stroke-width="2.4" stroke-linecap="round"/>`:''}<path d="M70.5 ${e-1} L90 ${e-5}" stroke="#4A1B3C" stroke-width="2.4" stroke-linecap="round"/><circle cx="60" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><path d="M54 ${e-5} q3 -3 6 -3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/>`:`<circle cx="44" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><circle cx="76" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><path d="M54.5 ${e-1} Q60 ${e-5} 65.5 ${e-1}" stroke="#4A1B3C" stroke-width="2.4" fill="none"/><path d="M38 ${e-5} q3 -3 6 -3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/>`},
-  {id:'sleepmask',name:'Sleep Mask',cost:55,at:'face',draw:(h,e,v)=>v==='side'?`<path d="M46 ${e-15} H92" stroke="#B9A2FF" stroke-width="3" stroke-linecap="round"/><path d="M47 ${e-23} Q60 ${e-27} 73 ${e-23} Q75 ${e-14} 66 ${e-11} Q56 ${e-9} 49 ${e-13} Q45 ${e-17} 47 ${e-23}Z" fill="#D9C8FF" stroke="#B9A2FF" stroke-width="1.4"/><path d="M54 ${e-18} Q59 ${e-14} 64 ${e-18}" stroke="#5A2A6E" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 ${e-16} l-1 2 M59 ${e-15} v2 M63 ${e-16} l1 2" stroke="#5A2A6E" stroke-width="1" stroke-linecap="round"/>`:`<path d="M30 ${e-15} H90" stroke="#B9A2FF" stroke-width="3" stroke-linecap="round"/><path d="M38 ${e-24} Q60 ${e-28} 82 ${e-24} Q84 ${e-15} 78 ${e-11} Q68 ${e-9} 60 ${e-13} Q52 ${e-9} 42 ${e-11} Q36 ${e-15} 38 ${e-24}Z" fill="#D9C8FF" stroke="#B9A2FF" stroke-width="1.4"/><path d="M43 ${e-18} Q48 ${e-14} 53 ${e-18} M67 ${e-18} Q72 ${e-14} 77 ${e-18}" stroke="#5A2A6E" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M44 ${e-16} l-1 2 M48 ${e-15} v2 M52 ${e-16} l1 2 M68 ${e-16} l-1 2 M72 ${e-15} v2 M76 ${e-16} l1 2" stroke="#5A2A6E" stroke-width="1" stroke-linecap="round"/>`},
-  {id:'shades',name:'Heart Shades',cost:70,at:'face',draw:(h,e,v)=>{const L=x=>`<path transform="translate(${x} ${e+1}) scale(1.3)" d="M0 6.5 C-12 -1 -9.5 -11 0 -5 C9.5 -11 12 -1 0 6.5Z" fill="#5A1F49" stroke="#FF4F9A" stroke-width="1.3" stroke-linejoin="round"/><path d="M${x-8} ${e-5} q3 -3 6 -2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".75"/>`;return v==='side'||v==='mono'?`<path d="M70 ${e-2} L90 ${e-6}${v==='mono'?` M50 ${e-2} L30 ${e-6}`:''}" stroke="#FF4F9A" stroke-width="2.6" stroke-linecap="round"/>`+L(60):`<path d="M54 ${e-4} Q60 ${e-8} 66 ${e-4}" stroke="#FF4F9A" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+L(44)+L(76)}},
-  {id:'starshades',name:'Star Shades',cost:75,at:'face',draw:(h,e,v)=>v==='side'||v==='mono'?`<path d="M71 ${e-2} L90 ${e-6}${v==='mono'?` M49 ${e-2} L30 ${e-6}`:''}" stroke="#FFC83D" stroke-width="2.6" stroke-linecap="round"/>`+STAR(60,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+`<path d="M55 ${e-4} l3 -3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".75"/>`:`<path d="M55 ${e-3} Q60 ${e-7} 65 ${e-3}" stroke="#FFC83D" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+STAR(44,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+STAR(76,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+`<path d="M39 ${e-4} l3 -3 M71 ${e-4} l3 -3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".75"/>`},
+  {id:'glasses',name:'Round Glasses',cost:40,at:'face',draw:(h,e,v,bx=90)=>v==='side'||v==='mono'?`${v==='mono'?'':`<path d="M70.5 ${e-1} L${bx} ${e-5}" stroke="#4A1B3C" stroke-width="2.4" stroke-linecap="round"/>`}<circle cx="60" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><path d="M54 ${e-5} q3 -3 6 -3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/>`:`<circle cx="44" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><circle cx="76" cy="${e}" r="10.5" fill="#FFFFFF" fill-opacity=".22" stroke="#4A1B3C" stroke-width="2.4"/><path d="M54.5 ${e-1} Q60 ${e-5} 65.5 ${e-1}" stroke="#4A1B3C" stroke-width="2.4" fill="none"/><path d="M38 ${e-5} q3 -3 6 -3" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".8"/>`},
+  {id:'sleepmask',name:'Sleep Mask',cost:55,at:'head',eyes:true,draw:(h,e,v,bx)=>v==='side'?`<path d="M46 ${e-15} H${bx||92}" stroke="#B9A2FF" stroke-width="3" stroke-linecap="round"/><path d="M47 ${e-23} Q60 ${e-27} 73 ${e-23} Q75 ${e-14} 66 ${e-11} Q56 ${e-9} 49 ${e-13} Q45 ${e-17} 47 ${e-23}Z" fill="#D9C8FF" stroke="#B9A2FF" stroke-width="1.4"/><path d="M54 ${e-18} Q59 ${e-14} 64 ${e-18}" stroke="#5A2A6E" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 ${e-16} l-1 2 M59 ${e-15} v2 M63 ${e-16} l1 2" stroke="#5A2A6E" stroke-width="1" stroke-linecap="round"/>`:`<path d="M${120-(bx||90)} ${e-15} H${bx||90}" stroke="#B9A2FF" stroke-width="3" stroke-linecap="round"/><path d="M38 ${e-24} Q60 ${e-28} 82 ${e-24} Q84 ${e-15} 78 ${e-11} Q68 ${e-9} 60 ${e-13} Q52 ${e-9} 42 ${e-11} Q36 ${e-15} 38 ${e-24}Z" fill="#D9C8FF" stroke="#B9A2FF" stroke-width="1.4"/><path d="M43 ${e-18} Q48 ${e-14} 53 ${e-18} M67 ${e-18} Q72 ${e-14} 77 ${e-18}" stroke="#5A2A6E" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M44 ${e-16} l-1 2 M48 ${e-15} v2 M52 ${e-16} l1 2 M68 ${e-16} l-1 2 M72 ${e-15} v2 M76 ${e-16} l1 2" stroke="#5A2A6E" stroke-width="1" stroke-linecap="round"/>`},
+  {id:'shades',name:'Heart Shades',cost:70,at:'face',draw:(h,e,v,bx=90)=>{const L=x=>`<path transform="translate(${x} ${e+1}) scale(1.3)" d="M0 6.5 C-12 -1 -9.5 -11 0 -5 C9.5 -11 12 -1 0 6.5Z" fill="#5A1F49" stroke="#FF4F9A" stroke-width="1.3" stroke-linejoin="round"/><path d="M${x-8} ${e-5} q3 -3 6 -2" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".75"/>`;return v==='side'||v==='mono'?(v==='mono'?'':`<path d="M70 ${e-2} L${bx} ${e-6}" stroke="#FF4F9A" stroke-width="2.6" stroke-linecap="round"/>`)+L(60):`<path d="M54 ${e-4} Q60 ${e-8} 66 ${e-4}" stroke="#FF4F9A" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+L(44)+L(76)}},
+  {id:'starshades',name:'Star Shades',cost:75,at:'face',draw:(h,e,v,bx=90)=>v==='side'||v==='mono'?(v==='mono'?'':`<path d="M71 ${e-2} L${bx} ${e-6}" stroke="#FFC83D" stroke-width="2.6" stroke-linecap="round"/>`)+STAR(60,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+`<path d="M55 ${e-4} l3 -3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".75"/>`:`<path d="M55 ${e-3} Q60 ${e-7} 65 ${e-3}" stroke="#FFC83D" stroke-width="2.6" fill="none" stroke-linecap="round"/>`+STAR(44,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+STAR(76,e,12.5,'#5A1F49',' stroke="#FFC83D" stroke-width="1.8" stroke-linejoin="round"')+`<path d="M39 ${e-4} l3 -3 M71 ${e-4} l3 -3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" opacity=".75"/>`},
   /* ----- neck ----- */
-  {id:'bell',name:'Bell Collar',cost:35,at:'neck',draw:()=>`<path d="${NECK}" stroke="#FF4F9A" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="60" cy="100" r="5" fill="#FFC83D" stroke="#E69A00" stroke-width="1.2"/><path d="M56 100 H64 M60 100 V104" stroke="#B87800" stroke-width="1.2"/><circle cx="58.3" cy="98.2" r="1.2" fill="#fff" opacity=".7"/>`},
-  {id:'bandana',name:'Bandana',cost:40,at:'neck',draw:()=>`<path d="M36 87 Q60 101 84 87 L60 112Z" fill="#FF6FAE" stroke="#E8508F" stroke-width="1.2" stroke-linejoin="round"/><path d="${NECK}" stroke="#E8508F" stroke-width="4" fill="none" stroke-linecap="round"/>${[[50,97],[60,100],[70,97],[56,105],[64,105],[60,109]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`).join('')}`},
+  {id:'bell',name:'Bell Collar',cost:35,at:'neck',band:true,draw:()=>`<path d="${NECK}" stroke="#FF4F9A" stroke-width="5.5" fill="none" stroke-linecap="round"/><circle cx="60" cy="100" r="5" fill="#FFC83D" stroke="#E69A00" stroke-width="1.2"/><path d="M56 100 H64 M60 100 V104" stroke="#B87800" stroke-width="1.2"/><circle cx="58.3" cy="98.2" r="1.2" fill="#fff" opacity=".7"/>`},
+  {id:'bandana',name:'Bandana',cost:40,at:'neck',band:true,draw:()=>`<path d="M36 87 Q60 101 84 87 L60 112Z" fill="#FF6FAE" stroke="#E8508F" stroke-width="1.2" stroke-linejoin="round"/><path d="${NECK}" stroke="#E8508F" stroke-width="4" fill="none" stroke-linecap="round"/>${[[50,97],[60,100],[70,97],[56,105],[64,105],[60,109]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.4" fill="#fff"/>`).join('')}`},
   {id:'bowtie',name:'Bow Tie',cost:45,at:'neck',draw:()=>`<path d="M60 97 L47 89 Q45 97 47 105Z M60 97 L73 89 Q75 97 73 105Z" fill="#7B3FA0" stroke="#5A2A6E" stroke-width="1.2" stroke-linejoin="round"/><rect x="56.5" y="93" width="7" height="8" rx="2" fill="#5A2A6E"/><circle cx="51" cy="95" r="1.2" fill="#fff" opacity=".6"/><circle cx="69" cy="95" r="1.2" fill="#fff" opacity=".6"/>`},
-  {id:'daisy',name:'Daisy Chain',cost:55,at:'neck',draw:()=>`<path d="${NECK}" stroke="#6BC99A" stroke-width="1.6" fill="none"/>`+[[37,89],[47,94],[60,96],[73,94],[83,89]].map(([x,y])=>[0,1,2,3,4].map(k=>{const a=k*Math.PI*2/5;return `<circle cx="${(x+3.2*Math.cos(a)).toFixed(1)}" cy="${(y+3.2*Math.sin(a)).toFixed(1)}" r="2.4" fill="#fff" stroke="#F0D8E4" stroke-width=".6"/>`}).join('')+`<circle cx="${x}" cy="${y}" r="2" fill="#FFC83D"/>`).join('')},
-  {id:'locket',name:'Heart Locket',cost:90,at:'neck',draw:()=>`<path d="M38 86 C50 98 70 98 82 86" stroke="#FFC83D" stroke-width="1.4" fill="none" stroke-dasharray="2 1.2"/>`+HEART(60,103,1.15,'#FFC83D',' stroke="#E69A00" stroke-width="1"')+HEART(60,103,.55,'#FF6FAE')},
-  {id:'scarf',name:'Cozy Scarf',cost:45,at:'neck',draw:()=>`<path d="M34 86 C48 97 72 97 86 86 L89 97 C72 108 48 108 31 97Z" fill="#B9A2FF"/><path d="M76 99 L84 119 L95 114 L87 95Z" fill="#9B7BE8"/><path d="M84 119 l-1 4 M88 117.5 l0 4 M92 115.5 l1 4" stroke="#9B7BE8" stroke-width="2" stroke-linecap="round"/><path d="M42 93 L40 102 M54 97 L53 106 M66 97 L67 106" stroke="#fff" stroke-width="2.4" opacity=".7"/><ellipse cx="80" cy="97" rx="6" ry="5" fill="#A88BF0"/>`},
+  {id:'daisy',name:'Daisy Chain',cost:55,at:'neck',band:true,draw:()=>`<path d="${NECK}" stroke="#6BC99A" stroke-width="1.6" fill="none"/>`+[[37,89],[47,94],[60,96],[73,94],[83,89]].map(([x,y])=>[0,1,2,3,4].map(k=>{const a=k*Math.PI*2/5;return `<circle cx="${(x+3.2*Math.cos(a)).toFixed(1)}" cy="${(y+3.2*Math.sin(a)).toFixed(1)}" r="2.4" fill="#fff" stroke="#F0D8E4" stroke-width=".6"/>`}).join('')+`<circle cx="${x}" cy="${y}" r="2" fill="#FFC83D"/>`).join('')},
+  {id:'locket',name:'Heart Locket',cost:90,at:'neck',band:true,draw:()=>`<path d="M38 86 C50 98 70 98 82 86" stroke="#FFC83D" stroke-width="1.4" fill="none" stroke-dasharray="2 1.2"/>`+HEART(60,103,1.15,'#FFC83D',' stroke="#E69A00" stroke-width="1"')+HEART(60,103,.55,'#FF6FAE')},
+  {id:'scarf',name:'Cozy Scarf',cost:45,at:'neck',band:true,draw:()=>`<path d="M34 86 C48 97 72 97 86 86 L89 97 C72 108 48 108 31 97Z" fill="#B9A2FF"/><path d="M76 99 L84 119 L95 114 L87 95Z" fill="#9B7BE8"/><path d="M84 119 l-1 4 M88 117.5 l0 4 M92 115.5 l1 4" stroke="#9B7BE8" stroke-width="2" stroke-linecap="round"/><path d="M42 93 L40 102 M54 97 L53 106 M66 97 L67 106" stroke="#fff" stroke-width="2.4" opacity=".7"/><ellipse cx="80" cy="97" rx="6" ry="5" fill="#A88BF0"/>`},
   {id:'swimring',name:'Swim Ring',cost:60,at:'neck',draw:()=>`<path d="M27 92 A33 12 0 0 0 93 92" stroke="#FF7DB6" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M27 92 A33 12 0 0 0 93 92" stroke="#FFFFFF" stroke-width="10" fill="none" stroke-dasharray="9 11" stroke-dashoffset="4"/><path d="M33 95 A28 9 0 0 0 52 102" stroke="#fff" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>`},
   /* ----- back: returns [behind the body, in front]; v = 'front' or 'side' view ----- */
   {id:'backpack',name:'Tiny Backpack',cost:80,at:'back',draw:(v,bl=102)=>v==='side'
@@ -957,7 +927,7 @@ const nHang=(r,x,y,c)=>`<g transform="rotate(${-r} ${x} ${y})">${c}</g>`;
 const NECK_SIDE={
   bell:r=>`<path d="${NBAND}" stroke="#FF4F9A" stroke-width="5.5" fill="none" stroke-linecap="round"/>`+nHang(r,59.5,99,`<circle cx="59.5" cy="104" r="4.6" fill="#FFC83D" stroke="#E69A00" stroke-width="1.2"/><path d="M55.8 104 H63.2 M59.5 104 V107.6" stroke="#B87800" stroke-width="1.1"/><circle cx="57.9" cy="102.4" r="1.1" fill="#fff" opacity=".7"/>`),
   bandana:r=>nHang(r,59,97,`<path d="M67.5 85.5 L55.5 98 Q57 107 61 114.5 Q66.5 105 70 95Z" fill="#FF6FAE" stroke="#E8508F" stroke-width="1.2" stroke-linejoin="round"/>${[[60,100.5],[64.5,94],[61.5,108],[65.5,101],[67,90.5]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.3" fill="#fff"/>`).join('')}`)+`<path d="${NBAND}" stroke="#E8508F" stroke-width="4" fill="none" stroke-linecap="round"/>`,
-  bowtie:r=>`<path d="${NBAND}" stroke="#5A2A6E" stroke-width="2.2" fill="none" stroke-linecap="round"/>`+nHang(r,58.5,98,`<g transform="translate(58.5 98) scale(.78) translate(-60 -97)"><path d="M60 97 L47 89 Q45 97 47 105Z M60 97 L73 89 Q75 97 73 105Z" fill="#7B3FA0" stroke="#5A2A6E" stroke-width="1.2" stroke-linejoin="round"/><rect x="56.5" y="93" width="7" height="8" rx="2" fill="#5A2A6E"/><circle cx="51" cy="95" r="1.2" fill="#fff" opacity=".6"/><circle cx="69" cy="95" r="1.2" fill="#fff" opacity=".6"/></g>`),
+  bowtie:(r,nob)=>(nob?'':`<path d="${NBAND}" stroke="#5A2A6E" stroke-width="2.2" fill="none" stroke-linecap="round"/>`)+nHang(r,58.5,98,`<g transform="translate(58.5 98) scale(.78) translate(-60 -97)"><path d="M60 97 L47 89 Q45 97 47 105Z M60 97 L73 89 Q75 97 73 105Z" fill="#7B3FA0" stroke="#5A2A6E" stroke-width="1.2" stroke-linejoin="round"/><rect x="56.5" y="93" width="7" height="8" rx="2" fill="#5A2A6E"/><circle cx="51" cy="95" r="1.2" fill="#fff" opacity=".6"/><circle cx="69" cy="95" r="1.2" fill="#fff" opacity=".6"/></g>`),
   daisy:()=>`<path d="${NBAND}" stroke="#6BC99A" stroke-width="1.6" fill="none"/>`+[[60.3,77.5],[58.6,84.5],[58.2,91],[59.6,97.5]].map(([x,y])=>[0,1,2,3,4].map(k=>{const a=k*Math.PI*2/5;return `<circle cx="${(x+3.2*Math.cos(a)).toFixed(1)}" cy="${(y+3.2*Math.sin(a)).toFixed(1)}" r="2.4" fill="#fff" stroke="#F0D8E4" stroke-width=".6"/>`}).join('')+`<circle cx="${x}" cy="${y}" r="1.9" fill="#FFC83D"/>`).join(''),
   locket:r=>`<path d="${NBAND}" stroke="#FFC83D" stroke-width="1.4" fill="none" stroke-dasharray="2 1.2"/>`+nHang(r,59.5,98,`<path d="M59.5 98 V100.5" stroke="#FFC83D" stroke-width="1.4"/>`+HEART(59.5,105,1.05,'#FFC83D',' stroke="#E69A00" stroke-width="1"')+HEART(59.5,105,.5,'#FF6FAE')),
   scarf:r=>nHang(r,58,96,`<path d="M54 94 L50 114 L60 115 L62 95Z" fill="#9B7BE8"/><path d="M51 114 l-.6 4 M55 114.5 l0 4 M59 114.8 l.4 4" stroke="#9B7BE8" stroke-width="2" stroke-linecap="round"/>`)+`<path d="${NBAND}" stroke="#B9A2FF" stroke-width="8.5" fill="none" stroke-linecap="round"/><path d="M55.5 82 l5.5 1.5 M55 89 l5.5 .8 M55.5 95.5 l5.5 0" stroke="#fff" stroke-width="2.2" opacity=".6" stroke-linecap="round"/>`+nHang(r,58,97,`<circle cx="58" cy="97" r="4.2" fill="#9B7BE8"/>`),
@@ -979,23 +949,50 @@ const balG=s=>{let d=0;const o=s.replace(/<g\b[^>]*>|<\/g>/g,m=>{if(m[1]==='/'){
    s:    head size relative to Tigrr's head (head items scale by it)
    head: [centre x, top of head]          eye: [x, y] of the eye line (centre between the eyes)
    hb:   where a hat that covers the head should stop, just above the eyes
-   fs:   size for face items, matched to the eyes;  fv: 'side' (one eye, facing left) or 'mono' (one big eye)
+   fbx:  {id: fb} a different stop for one face item (hide the Sleep Mask band under the mask)
+   fb:   back of the head in face units, where side-on arms and bands stop (front-facing: the mask band's half-width);  hv: 'side' for side-on head items (headphones)
+   fs:   size for face items, matched to the eyes;  fv: 'side' (one eye, facing left) or 'mono' (one big eye: a single lens, no arms)
    n:    [x, y, size, rotation, view] for neck items; view 'side' uses the side-on versions (NECK_SIDE), centred on the neck; 'sideR' is the same mirrored, for pals facing right
    b:    [x, y, size, rotation, view] for back items, or null where the form already has a saddle. view: 'front', 'side' (side-on,
          facing left) or 'sideR' (side-on, facing right: the side drawings are mirrored). noWings: wing items are not shown
+   nb:   optional [x, y, size, rotation] for band neck items (band:true: collars, chains, scarves) when they sit lower than the rest
+   adj:  optional per-sticker nudges, in the sticker's own units: {id:{x, y, r (tilt), s (size), sx (width), sy (height)}}
+         (head items also get it as their 5th argument: headphones read arch, how far the band's arch is lowered).
+         They turn and scale around the hat's base, the eye line, the neck curve's centre or the back's centre.
+   adjF: {id: nudge} for a back item's front parts only (cape string and clasp)
+   nover: {on:[neck items], part:k=>...} a part of the pal redrawn over those items (Careeun's wings over the swim ring)
+   nclip: {on:[neck items], x:[x0,x1]} neck items cut off outside that band of x (collars stop at the shoulders)
+   noFront: back items listed here lose their front parts (backpack straps, cape string and clasp)
+   hatTop: head items whose top parts (frog eyes) are redrawn over the poke parts
+   ncut: {on:[neck items], c:[x,y,r]} the head circle those items are tucked under;  noBand: side-on neck items drawn without the band
+   pokeOn: other head items the poke parts are redrawn over (an antenna in front of a halo)
+   pc:   [cx, cy, rx, ry] the head shape cut out of the poke parts after their shadow, so only what sticks out of the head
+         shows through a hat, with no shadow along the cut edge
    poke: the parts that poke up through a hat (ears, antennae, horn, crest), redrawn over the hat inside its outline */
 const FIT={
-  cat:s=>({s:1,head:[60,[28,26,24][s]],eye:[60,[52,50,48][s]],hb:[42,40,38][s],fs:1,n:[60,[76,74,72][s],[.9,.95,1][s],0],b:[60,[80,78,76][s],[.85,.95,1.05][s],0,'front'],poke:k=>k.back}),
-  panda:s=>({s:[1.03,.97,.97][s],head:[60,[24,22,20][s]],eye:[60,[57,53,51][s]],hb:[45,41,39][s],fs:1,n:[60,[76,76,74][s],[.9,1,1][s],0],b:[60,[78,76,74][s],[.9,1,1.05][s],0,'front'],poke:k=>k.back}),
-  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],bk:[[54,56,60][s],[88,94,98][s],[83,82,80][s],96,[64,60,56][s]],poke:k=>k.mid}),
-  hedge:s=>({noWings:true,s:[.95,1,1.05][s],head:[60,[34,27,19][s]],eye:[60,83],hb:[48,42,36][s],fs:[.75,.72,.72][s],n:[60,[95,96,97][s],[.8,.85,.9][s],0],b:[60,[84,82,80][s],[1.05,1.15,1.25][s],0,'front']}),
-  cater:s=>s===2?{s:.36,head:[60,35],eye:[60,45.5],hb:40,fs:.36,n:[60,57,.4,0],b:null,poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M55 38'))}
-    :{s:[.45,.48][s],head:[[78,94.5][s],[72,71][s]],eye:[[79.5,96][s],85],hb:80,fs:[.36,.38][s],n:[[66.5,82][s],[90.5,90.8][s],[.68,.8][s],-20,'side'],b:[[56,62][s],[90,86][s],[.4,.52][s],0,'sideR'],bk:[[33,22][s],[58,74][s],[92,92][s],[103,103.5][s],[80,77][s]],poke:k=>k.back},
-  ant:s=>({s:[.55,.61,.68][s],head:[30,[55,53,51][s]],eye:[30,71],hb:[59,58,57][s],fs:[.8,.9,1][s],fv:'side',n:[[45.3,47.4,49.4][s],76,[.62,.66,.7][s],[15,13,12][s],'side'],b:[[56,58,61][s],75,[.5,.56,.62][s],0,'side'],bk:[[54.5,58,61][s],[87.5,98,109][s],[84,85,86][s],[88,89,90][s],[63,60,57][s]],noWings:s===2,poke:k=>k.back}),
-  bird:s=>({s:[.66,.72,.78][s],head:[60,[30,20,11][s]],eye:[60,[50,40,31][s]],hb:[40,30,21][s],fs:.72,n:[60,[60,58,52][s],[.62,.68,.75][s],0],b:s===2?null:[60,[62,58][s],[.7,.8][s],0,'front'],poke:k=>k.back}),
-  camel:s=>({s:[.5,.52,.54][s],head:[27,31],eye:[28,41],hb:33,fs:.7,fv:'side',n:[35.8,61,[.7,.72,.74][s],70,'side'],b:s===2?null:[[72,74][s],[70,68][s],[.55,.6][s],0,'side'],bk:[[47,48][s],[97.5,101][s],[81,80][s],96,[56,50][s]],poke:k=>k.mid}),
-  alien:s=>({s:[1,1.07,1.16][s],head:[60,[47,44,41][s]],eye:[60,[68,64,70][s]],hb:[53,50,47][s],fs:[1.33,.88,1][s],fv:s===0?'mono':'',n:[60,[90,94,98][s],[.95,1.05,1.1][s],0],b:[60,[78,76,74][s],[1,1.1,1.2][s],0,'front'],poke:k=>k.back}),
-  uni:s=>({s:1.05,head:[60,44],eye:[60,66],hb:57,fs:1,n:[60,[84,84,82][s],1,0],b:s===2?null:[60,[86,86][s],1,0,'front'],poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M40 46'))+(k.front||'')})
+  cat:s=>({s:1,head:[60,[28,26,24][s]],eye:[60,[52,50,48][s]],hb:[42,40,38][s],fs:1,n:[60,[76,74,72][s],[.9,.95,1][s],0],b:[60,[80,78,76][s],[.85,.95,1.05][s],0,'front'],noFront:['backpack'],
+    nclip:{on:['bell','bandana'],x:[42,78]},adj:{swimring:{sx:.75},scarf:{sx:.75}},pc:[60,[54,52,50][s],31,26],poke:k=>k.back}),
+  panda:s=>({s:[1.03,.97,.97][s],head:[60,[24,22,20][s]],eye:[60,[57,53,51][s]],hb:[45,41,39][s],fs:1,n:[60,[76,76,74][s],[.9,1,1][s],0],b:[60,[78,76,74][s],[.9,1,1.05][s],0,'front'],noFront:['backpack'],
+    nclip:{on:['bell','bandana'],x:[[44,40,42][s],[76,80,78][s]]},adj:{swimring:{sx:.75}},adjF:{cape:{y:[10,6,6][s]}},
+    pc:[60,[56,52,50][s],[32,30,30][s]],poke:k=>k.back}),
+  dog:s=>({s:[.6,.68,.75][s],head:[[31,33,35][s],38],eye:[[35.6,38,40.5][s],[51.8,53.6,55.5][s]],hb:[42,44,46][s],fs:[.8,.78,.78][s],fv:'side',n:[[51,53,55.5][s],[66,66.5,67][s],[.62,.74,.86][s],[42,36,33][s],'side'],b:[[71,76,80][s],[72,70,67][s],[.6,.7,.8][s],0,'side'],bk:[[54,56,60][s],[88,94,98][s],[83,82,80][s],96,[64,60,56][s]],fb:[76,78,80][s],fbx:{sleepmask:72},hv:'side',
+    adj:{cherries:{x:40,y:1},mushroom:{sx:.8},headphones:{x:[10,8,6][s]}},poke:k=>k.mid.slice(k.mid.indexOf('<ellipse'))}),
+  hedge:s=>({noWings:true,s:[.95,1,1.05][s],head:[60,[34,27,19][s]],eye:[60,83],hb:[48,42,36][s],fs:[.75,.72,.72][s],n:[60,[95,96,97][s],[.8,.85,.9][s],0],b:[60,[84,82,80][s],[1.05,1.15,1.25][s],0,'front'],noFront:['backpack','cape'],
+    adj:(y=>({bunny:{y},flowers:{y:y-4},crown:{y},tiara:{y},mushroom:{sx:.9},headphones:{arch:[29,36,40][s]}}))([31,36,41][s])}),
+  cater:s=>s===2?{s:.36,head:[60,35],eye:[60,45.5],hb:40,fs:.36,n:[60,57,.4,0],b:null,pc:[60,46,11],hatTop:['frog'],adj:{mushroom:{sx:.75}},ncut:{on:['bandana'],c:[60,46,11]},poke:k=>k.back.slice(k.back.lastIndexOf('<path d="M55 38'))}
+    :{s:[.45,.48][s],head:[[78,94.5][s],[72,71][s]],eye:[[79.5,96][s],85],hb:80,fs:[.36,.38][s],n:[[66.5,82][s],[90.5,90.8][s],[.68,.8][s],-20,'side'],b:[[56,62][s],[90,86][s],[.4,.52][s],0,'sideR'],bk:[[33,22][s],[58,74][s],[92,92][s],[103,103.5][s],[80,77][s]],
+      hatTop:['frog'],adj:{mushroom:{sx:.75}},noBand:['bowtie'],ncut:{on:['bandana'],c:(g=>[g.hx,g.hy,g.hr+.7])(catGeo(s))},pc:(g=>[g.hx,g.hy,g.hr])(catGeo(s)),poke:k=>k.back},
+  ant:s=>({s:[.55,.61,.68][s],head:[30,[55,53,51][s]],eye:[30,71],hb:[59,58,57][s],fs:[.8,.9,1][s],fv:'side',n:[[45.3,47.4,49.4][s],76,[.62,.66,.7][s],[15,13,12][s],'side'],b:[[56,58,61][s],75,[.5,.56,.62][s],0,'side'],bk:[[54.5,58,61][s],[87.5,98,109][s],[84,85,86][s],[88,89,90][s],[63,60,57][s]],noWings:s===2,fb:76,hv:'side',pokeOn:['halo'],pc:[30,72,[17,19,21][s]],
+    adj:{beanie:{sx:.88},mushroom:{sx:.72},halo:{s:1.35,y:4},freckles:{x:25,y:-5},headphones:{x:8}},poke:k=>k.back}),
+  bird:s=>({s:[.66,.72,.78][s],head:[60,[30,20,11][s]],eye:[60,[50,40,31][s]],hb:[40,30,21][s],fs:.72,n:[60,[60,58,52][s],[.62,.68,.75][s],0],b:s===2?null:[60,[62,58][s],[.7,.8][s],0,'front'],noFront:['backpack'],fb:80,nover:{on:['swimring'],part:k=>k.mid},pc:[60,[58,51,45][s],[19,20,21][s],[28,31,34][s]],
+    adj:{beanie:{sx:.8},chef:{sx:.8},flowers:{sx:.8},mushroom:{sx:.66},cloud:{sx:.8},sunhat:{sx:.75},witch:{sx:.8}},poke:k=>k.back}),
+  camel:s=>({s:[.5,.52,.54][s],head:[27,31],eye:[28,41],hb:33,fs:.7,fv:'side',n:[35.8,61,[.7,.72,.74][s],70,'side'],b:s===2?null:[[72,74][s],[70,68][s],[.55,.6][s],0,'side'],bk:[[47,48][s],[97.5,101][s],[81,80][s],96,[56,50][s]],fb:81,hv:'side',
+    adj:{cherries:{x:38,y:4},bunny:{x:6,r:10,s:1.12},party:{x:6,r:10},crown:{x:5,y:-3},headphones:{x:6},beanie:{sx:.85},chef:{sx:.85},frog:{sx:.85},flowers:{sx:.85},mushroom:{sx:.7},cloud:{sx:.85}},poke:k=>k.mid}),
+  alien:s=>({s:[1,1.07,1.16][s],head:[60,[47,44,41][s]],eye:[60,[68,64,70][s]],hb:[53,50,47][s],fs:[1.33,.88,1][s],fv:s===0?'mono':'',n:[60,[90,94,98][s],[.95,1.05,1.1][s],0],b:[60,[78,76,74][s],[1,1.1,1.2][s],0,'front'],noFront:['backpack','cape'],pc:[60,74,[30,33,36][s],[27,30,33][s]],
+    adj:{chef:{y:3,sx:.88},frog:{y:3,sx:.88},mushroom:{y:3,sx:.72},cloud:{y:3,sx:.86},sunhat:{y:3,sx:.8},swimring:{y:-8,sx:.84},fairywings:{y:[-12,-8,-5][s]},
+      ...(s===0?{sleepmask:{sx:.75},freckles:{s:.72,y:3}}:{})},poke:k=>k.back}),
+  uni:s=>({s:1.05,head:[60,44],eye:[60,66],hb:57,fs:1,n:[60,[84,84,82][s],1,0],nb:[60,[91,91,89][s],1,0],b:null,pc:[60,72,36,32],
+    adj:{cherries:{x:-4,y:-5},party:{x:19,y:6,r:32},crown:{x:20,y:6,r:34},mushroom:{sx:.8}},poke:k=>k.back.slice(k.back.indexOf('<path d="M40 46'))+(k.front||'')})
 };
 const fitOf=(id,stage,hd)=>FIT[id]?FIT[id](stage):{s:1,head:[hd?hd[0]:60,hd?hd[1]:30],eye:[hd?hd[0]:60,hd?hd[2]:54],hb:hd?hd[2]-11:43,fs:1,n:[60,86,1,0],b:[60,80,1,0,'front']};
 /* The Starry Cape on a side-on pal (fit bk = [cape start x, cape end x, hem y, underside y, top of back y]).
@@ -1007,29 +1004,40 @@ function sideCape(bk,k){
   const r=(x1-x0)/50,stars=[[.16,.55],[.38,.25],[.6,.6],[.82,.3],[.5,.85]].map(([fx,fy])=>STAR(x0+(x1-x0)*fx,top+(hem-top)*fy+2,(fy>.7?2:2.6)*Math.max(.8,r),'#FFE27A')).join('');
   return `<mask id="${m}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240"><g stroke="#000" stroke-width="3" stroke-linejoin="round">${k.back||''}${k.body||''}</g></mask><g mask="url(#${m})"><path d="M${x0} -40 H${x1} V${hem}${edge} Z" fill="#5A3F94"/>${stars}<path d="M${x1} ${hem}${edge}" stroke="#3E2A70" stroke-width="1.8" fill="none"/></g>`;
 }
+/* a per-pal nudge for one sticker (FIT adj), turned and scaled around (px,py); wrap() puts it round the drawing */
+const AJ=(a,px,py)=>a?`translate(${a.x||0} ${a.y||0}) rotate(${a.r||0} ${px} ${py}) translate(${px} ${py}) scale(${(a.sx||1)*(a.s||1)} ${(a.sy||1)*(a.s||1)}) translate(${-px} ${-py})`:'';
+const cutC=(c,[cx,cy,r,ry=r])=>{const m='cc'+(++OLN);return `<mask id="${m}" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240"><rect x="-60" y="-60" width="240" height="240" fill="#fff"/><ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${ry}" fill="#000"/></mask><g mask="url(#${m})">${c}</g>`};
+const wrapT=(t,c)=>t&&c?`<g transform="${t}">${c}</g>`:c;
 /* returns [drawn behind the body, drawn in front] for everything the pal is wearing */
 function outfitSVG(id,wear,stage,hd,k){
-  const w=wearOf(wear),f=fitOf(id,stage,hd);let under='',over='';
+  const w=wearOf(wear),f=fitOf(id,stage,hd);let under='',over='',top='';
   const[hx,ht]=f.head,[ex,ey]=f.eye,s=f.s,N=y=>ht+(y-ht)/s;
-  for(const [slot] of SLOTS){
-    const O=OUTFIT_BY[w[slot]];if(!O||O.at!==slot)continue;
+  // back stickers go before neckwear, so a cape clasp or backpack strap never covers a collar
+  for(const slot of ['head','face','back','neck']){
+    const O=OUTFIT_BY[w[slot]];if(!O||O.at!==slot)continue;const a=f.adj&&f.adj[O.id];
     if(slot==='back'){
       if(!f.b||(O.wings&&f.noWings))continue;
       if(O.id==='cape'&&f.bk&&k){over+=sideCape(f.bk,k);continue}
-      const[bx,by,bs,br,v]=f.b,flip=v==='sideR',[u,o]=O.draw(flip?'side':v,f.bk?80+(f.bk[3]-by)/bs:undefined),T=`translate(${bx} ${by}) rotate(${br}) scale(${bs})${flip?' scale(-1 1)':''} translate(-60 -80)`;
+      const[bx,by,bs,br,v]=f.b,flip=v==='sideR',[u0,o0]=O.draw(flip?'side':v,f.bk?80+(f.bk[3]-by)/bs:undefined),T=`translate(${bx} ${by}) rotate(${br}) scale(${bs})${flip?' scale(-1 1)':''} translate(-60 -80)`,u=wrapT(AJ(a,60,80),u0),o=f.noFront&&f.noFront.includes(O.id)?'':wrapT(AJ(f.adjF&&f.adjF[O.id]||a,60,80),o0);
       if(u)under+=`<g transform="${T}">${u}</g>`;if(o)over+=`<g transform="${T}">${o}</g>`;continue}
-    if(slot==='neck'){const[nx,ny,ns,nr,nv]=f.n,flip=nv==='sideR',side=(nv==='side'||flip)&&NECK_SIDE[O.id];over+=`<g transform="translate(${nx} ${ny}) rotate(${nr}) scale(${ns})${side&&flip?' scale(-1 1)':''} translate(-60 -86)">${side?side(flip?-nr:nr):O.draw()}</g>`;continue}
-    if(slot==='face'){over+=`<g transform="translate(${ex} ${ey}) scale(${f.fs||s}) translate(-60 ${-ey})">${O.draw(ht,ey,f.fv)}</g>`;continue}
+    if(slot==='neck'){const[nx,ny,ns,nr,nv]=O.band&&f.nb||f.n,flip=nv==='sideR',side=(nv==='side'||flip)&&NECK_SIDE[O.id];let g=`<g transform="translate(${nx} ${ny}) rotate(${nr}) scale(${ns})${side&&flip?' scale(-1 1)':''} translate(-60 -86)">${wrapT(AJ(a,60,86),side?side(flip?-nr:nr,f.noBand&&f.noBand.includes(O.id)):O.draw())}</g>`;
+      // tucked under the face: the head's circle is cut out of the neck item
+      if(f.nclip&&f.nclip.on.includes(O.id)){const m='nk'+(++OLN),[x0,x1]=f.nclip.x;g=`<clipPath id="${m}"><rect x="${x0}" y="-60" width="${x1-x0}" height="240"/></clipPath><g clip-path="url(#${m})">${g}</g>`}
+      if(f.ncut&&f.ncut.on.includes(O.id)){const m='nc'+(++OLN),[cx,cy,cr]=f.ncut.c;g=`<mask id="${m}" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240"><rect x="-60" y="-60" width="240" height="240" fill="#fff"/><circle cx="${cx}" cy="${cy}" r="${cr}" fill="#000"/></mask><g mask="url(#${m})">${g}</g>`}
+      over+=g;if(f.nover&&f.nover.on.includes(O.id)&&k)top+=f.nover.part(k);continue}
+    // face items, and head items worn over the eyes (the sleep mask), sit on the eyes
+    if(slot==='face'||O.eyes){over+=`<g transform="translate(${ex} ${ey}) scale(${f.fs||s}) translate(-60 ${-ey})">${wrapT(AJ(a,60,ey),O.draw(ht,ey,f.fv,f.fbx&&f.fbx[O.id]||f.fb))}</g>`;continue}
     // head: drawn around Tigrr's head, then moved and scaled onto this pal's head
-    const hat=`<g transform="translate(${hx} ${ht}) scale(${s}) translate(-60 ${-ht})">${O.draw(ht,N(ey),'',N(f.hb))}</g>`;
+    const hat=`<g transform="translate(${hx} ${ht}) scale(${s}) translate(-60 ${-ht})">${wrapT(AJ(a,60,ht+5),O.draw(ht,N(ey),f.hv||'',N(f.hb),a))}</g>`;
     over+=hat;
     // ears, antennae and horns poke through holes in a hat that covers the head
-    if(O.dome&&f.poke&&k){const mid='pk'+(++OLN);over+=`<mask id="${mid}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240">${hat}</mask><filter id="${mid}s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.4" stdDeviation=".7" flood-color="#4A1B3C" flood-opacity=".4"/></filter><g mask="url(#${mid})"><g filter="url(#${mid}s)">${balG(f.poke(k))}</g></g>`}
+    if((O.dome||f.pokeOn&&f.pokeOn.includes(O.id))&&f.poke&&k){const mid='pk'+(++OLN);top+=`<mask id="${mid}" mask-type="alpha" maskUnits="userSpaceOnUse" x="-60" y="-60" width="240" height="240"><filter id="${mid}d" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="1.4"/></filter><g filter="url(#${mid}d)">${hat}</g></mask><filter id="${mid}s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.4" stdDeviation=".7" flood-color="#4A1B3C" flood-opacity=".4"/></filter><g mask="url(#${mid})">${(x=>f.pc?cutC(x,f.pc):x)(`<g filter="url(#${mid}s)">${balG(f.poke(k))}</g>`)}</g>`}
+    if(O.top&&f.hatTop&&f.hatTop.includes(O.id))top+=`<g transform="translate(${hx} ${ht}) scale(${s}) translate(-60 ${-ht})">${wrapT(AJ(a,60,ht+5),O.top(ht,N(f.hb)))}</g>`;
   }
   // a whole set worn together gets a little sparkle
   const vals=Object.values(w);
   if(OUTFIT_SETS.some(st=>st.items.every(x=>vals.includes(x)&&(OUTFIT_BY[x].at!=='back'||(f.b&&!(OUTFIT_BY[x].wings&&f.noWings))))))over+=spark(18,30,4.2)+spark(102,40,3.4,'#FF9CC9')+spark(96,10,2.6,'#fff');
-  return [under,over];
+  return [under,over,top];
 }
 
 /* ---------- creatures from the children's sketches ---------- */
@@ -1305,8 +1313,10 @@ KIND.bird=(c,s)=>{
   const back=leg(53,51)+leg(67,69)+crest;
   const body=SH(60,cy,rx,ry,B)+SH(60,cy+ry*.4,rx*.7,ry*.52,L)+`<path d="M${60-rx*.6} ${top+27} L60 ${top+43} L${60+rx*.6} ${top+27}" fill="none" stroke="#FF9CC9" stroke-width="2" stroke-linejoin="round" opacity=".7"/>`;
   const mid=SH(60-rx+1,cy+8,6.5,16,'#FF9CC9',RT(10,60-rx+1,cy+8))+SH(60+rx-1,cy+8,6.5,16,'#FF9CC9',RT(-10,60+rx-1,cy+8));
-  const face=EYE(51,top+20,8.2)+EYE(69,top+20,8.2)+`<path d="M52 ${top+29} L68 ${top+29} L60 ${top+45}Z" fill="#FFB92E" stroke="#FFB92E" stroke-width="2" stroke-linejoin="round"/>`+CHEEK(43,top+33)+CHEEK(77,top+33);
-  return{back,body,mid,face};
+  const face=EYE(51,top+20,8.2)+EYE(69,top+20,8.2)+CHEEK(43,top+33)+CHEEK(77,top+33);
+  // the beak is drawn last (top), over the heart and anything worn at the neck
+  const top2=`<path d="M52 ${top+29} L68 ${top+29} L60 ${top+45}Z" fill="#FFB92E" stroke="#FFB92E" stroke-width="2" stroke-linejoin="round"/>`;
+  return{back,body,mid,face,top:top2};
 };
 
 KIND.alien=(c,s)=>{
@@ -1333,11 +1343,11 @@ function petSVG(id,outfit,stage=1,sz=''){
   let aura='',under='',over='';
   if(stage===2){const e=EVO3[id](c);aura=`<circle cx="60" cy="62" r="58" fill="${c[2]}" opacity=".13"/>`;under=e[0];over=e[1]+gm}
   else if(stage===1){over=gm+spark(18,36,3.8)}
-  const [ou,o]=outfitSVG(id,outfit,stage,hd,k);
+  const [ou,o,ot]=outfitSVG(id,outfit,stage,hd,k);
   const fid='sh'+(++OLN),sm=sz==='sm',sid='stk'+OLN;
   const stk=x=>x?`<g filter="url(#${sid})">${x}</g>`:'';
   const defs=`<defs><filter id="${fid}" x="-30%" y="-30%" width="160%" height="170%" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="${sm?4:3}" stdDeviation="0" flood-color="#4A1B3C" flood-opacity=".16" result="a"/><feDropShadow in="a" dx="0" dy="${sm?11:9}" stdDeviation="${sm?9:7}" flood-color="#4A1B3C" flood-opacity=".28"/></filter>${ou||o?STICKER(sid,1.1,.6,.18):''}</defs>`;
-  return `<svg viewBox="-12 -12 144 144" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">${defs}<g transform="translate(60 112) scale(${SCALE[stage]}) translate(-60 -112)"><ellipse cx="60" cy="110" rx="34" ry="5" fill="#4A1B3C" opacity=".14"/>${aura}<g filter="url(#${fid})">${under}${stk(ou)}${k.back||''}${body}${k.mid||''}${fc}${k.front||''}${over}${stk(o)}</g></g></svg>`;
+  return `<svg viewBox="-12 -12 144 144" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">${defs}<g transform="translate(60 112) scale(${SCALE[stage]}) translate(-60 -112)"><ellipse cx="60" cy="110" rx="34" ry="5" fill="#4A1B3C" opacity=".14"/>${aura}<g filter="url(#${fid})">${under}${stk(ou)}${k.back||''}${body}${k.mid||''}${fc}${k.front||''}${over}${stk(o)}${ot}${k.top||''}</g></g></svg>`;
 }
 
 /* ---------- backdrops (also the holiday souvenirs) ---------- */
@@ -1351,52 +1361,6 @@ const SCENES=[
 ];
 const SCENE_BY=byId(SCENES);
 
-/* ---------- game data ---------- */
-const DAILY_CAP=40,ENERGY_MAX=12,ENERGY_START=6,DAILY_ENERGY=8;
-const SIZES=[
-  {id:'tiny',label:'Tiny',hearts:1,energy:1,hint:'Under 5 min'},
-  {id:'small',label:'Small',hearts:2,energy:1,hint:'5 to 15 min'},
-  {id:'medium',label:'Medium',hearts:4,energy:2,hint:'15 to 45 min'},
-  {id:'big',label:'Big',hearts:8,energy:3,hint:'An hour or more'}
-];
-const SIZE_BY=byId(SIZES);
-const JOBS=[
-  {id:'berry',name:'Berry picking',sec:900,coins:10,energy:2,desc:'A basket of sweet berries for the market.'},
-  {id:'mail',name:'Cloud mail route',sec:3600,coins:22,energy:4,desc:'Deliver letters across the sky.'},
-  {id:'gem',name:'Crystal digging',sec:10800,coins:36,energy:6,desc:'Dig deep for pink crystals.'}
-];
-const JOB_BY=byId(JOBS);
-const TRIPS=[
-  {id:'beach',name:'Beach Sunset',cost:75,sec:120},
-  {id:'sakura',name:'Cherry Blossom Picnic',cost:100,sec:150},
-  {id:'snow',name:'Snow Cabin Weekend',cost:125,sec:180},
-  {id:'carnival',name:'Candy Carnival',cost:160,sec:240},
-  {id:'stars',name:'Starry Campout',cost:200,sec:300}
-];
-const TRIP_BY=byId(TRIPS);
-const TREATS=[
-  {id:'milk',name:'Strawberry milk',cost:10,bond:1,desc:'A small sip of happiness.'},
-  {id:'cake',name:'Cake slice',cost:28,bond:3,desc:'Pink icing with a tiny star on top.'},
-  {id:'tea',name:'Tea party for two',cost:70,bond:8,desc:'Tiny cups, tiny sandwiches, big bonding.'}
-];
-const TREAT_BY=byId(TREATS);
-const BOND_STEP=5, BOND_MAX=5;
-const SAMPLE_TASKS=[['Drink a glass of water','tiny',{days:[0,1,2,3,4,5,6]},'morning'],['Reply to one message','small'],['Put a load of laundry on','medium']];
-const TASK_LINES=['Yay, you did it!','I am so proud of you.','That counts. Nice work.','Tiny steps add up.','You are doing great.','Look at you go!'];
-const VOICE={
-  cat:{cheer:['Roar! You did it!','Tigrr is so proud of you!','Pounce! Another one done!'],hi:['Grr-eat to see you!','Ready to prowl?']},
-  panda:{cheer:['Yay! Bamboo party!','You are the best!','Roll-around time!'],hi:['Hi hi hi!','Snack break soon?']},
-  dog:{cheer:['Boop! Good job!','Soosy wiggles with joy!','Woof! You did it!'],hi:['You are back! Yay!','Ooh, are we going out?']},
-  hedge:{cheer:['Spiky hugs for you!','I knew you could!','Prickly proud!'],hi:['Hello, softie.','Cosy day, hey?']},
-  cater:{cheer:['Wiggle wiggle hooray!','One step at a time, like me!','Tiny steps win!'],hi:['Hello! Slowly is fine.','Munch munch, hi!']},
-  ant:{cheer:['Teamwork! Well done!','Carrying that win home!','Busy and brilliant!'],hi:['Reporting for duty!','Ready when you are.']},
-  bird:{cheer:['Tweet-tweet! Amazing!','Flap flap hooray!','Sing it loud!'],hi:['Good to see you!','Ooh, what is today?']},
-  camel:{cheer:['Steady and strong! Nice!','Long walk, and you did it!','Humph of approval!'],hi:['Nice and easy today.','Ready for the long road?']},
-  alien:{cheer:['Beep boop! Perfect!','Scanning... you are amazing!','Zorp! Excellent!'],hi:['Greetings, friend!','Beep. Hello.']},
-  uni:{cheer:['Sparkle time!','Magic! You did it!','Glitter for you!'],hi:['Hello, sparkle!','What a lovely day!']}
-};
-const FOCUS_SEC=300;
-const skillLvl=n=>n>=10?3:n>=5?2:n>=2?1:0;
 const DECOR=[
   {id:'rug',room:'room',name:'Pink rug',cost:55,vb:'60 140 200 60',svg:`<ellipse cx="160" cy="178" rx="92" ry="15" fill="#FFF0F7"/><ellipse cx="160" cy="178" rx="92" ry="15" fill="none" stroke="#FF6FAE" stroke-width="3"/><ellipse cx="160" cy="178" rx="84" ry="11.5" fill="none" stroke="#FFB3D3" stroke-width="1.6" stroke-dasharray="4 4"/>${[-70,-46,-22,22,46,70].map(dx=>`<path transform="translate(${160+dx} ${178+Math.abs(dx)*-.02}) scale(.9)" d="M0 3 C-5 -.5 -4 -5 0 -2.4 C4 -5 5 -.5 0 3Z" fill="#FF9CC9"/>`).join('')}`},
   {id:'plant',room:'room',name:'Leafy plant',cost:30,vb:'18 96 80 84',svg:`<g transform="translate(8 0)"><path d="M46 150 C30 144 24 124 34 112 C38 128 44 138 46 150Z" fill="#6BC99A"/><path d="M46 150 C62 144 68 124 58 112 C54 128 48 138 46 150Z" fill="#7ED6A8"/><path d="M46 150 C40 132 44 112 50 104 C52 122 50 138 46 150Z" fill="#8FE0B4"/><path d="M46 150 C34 146 22 140 20 130 C32 132 40 140 46 150Z" fill="#7ED6A8"/><path d="M46 150 C58 146 70 140 72 130 C60 132 52 140 46 150Z" fill="#6BC99A"/><path d="M34 150 h24 l-3 22 h-18Z" fill="#E8508F"/><rect x="32" y="148" width="28" height="6" rx="3" fill="#C42672"/></g>`},
@@ -1447,6 +1411,88 @@ const DECOR=[
   {id:'starjar',room:'stars',name:'Shooting star in a jar',gift:true,vb:'26 176 26 22',svg:`<rect x="30" y="180" width="16" height="15" rx="4" fill="#DDF2FF" fill-opacity=".45" stroke="#B8DCF0" stroke-width="1.1"/><rect x="29" y="177" width="18" height="4" rx="1.5" fill="#B9A2FF"/>${STAR(38,188,5,'#FFE27A',' stroke="#FFB92E" stroke-width=".8"')}<path d="M33 185 l-3 -3" stroke="#FFE27A" stroke-width="1" stroke-linecap="round"/>`}
 ];
 const DECOR_BY=byId(DECOR);
+
+// Pawgress app logic. tools/build.py sets DEMO to true for the demo page (fast timers, free hearts, example tasks).
+const DEMO=false;
+// Test builds of the Android app (the debug APK from GitHub) get the same test controls as the demo.
+// The Play Store build is a release build, so it never shows them.
+const TEST=(()=>{try{const N=window.PawgressNative;return !!(N&&N.isTestBuild&&N.isTestBuild())}catch(e){return false}})();
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const ICONS={
+  heart:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>',
+  gear:'<path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z" fill="currentColor"/>',
+  bell:'<path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z" fill="currentColor"/>',
+  bolt:'<path d="M13.5 2L4.5 13.5h6L9.5 22l9-11.5h-6z" fill="currentColor"/>',
+  coin:'<circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="12" cy="12" r="6.2" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>',
+  list:'<path d="M5 6h14M5 12h14M5 18h9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" fill="none"/>',
+  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/>',
+  bag:'<path d="M5.5 8h13l1 12.5h-15z" fill="currentColor"/><path d="M9 9V6.5a3 3 0 0 1 6 0V9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  book:'<path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v15h5.5c.8 0 1.5.7 1.5 1.5z" fill="currentColor"/>',
+  back:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  paw:'<ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/>',
+  mic:'<rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  sticker:'<path d="M5 4h10l4 4v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 4v3a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  star:'<path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.6 5.8 21.2l1.4-7L2 9.4l7-.9z" fill="currentColor"/>',
+  trash:'<path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
+  left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+};
+const ic=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+
+
+/* ---------- game data ---------- */
+const DAILY_CAP=40,ENERGY_MAX=12,ENERGY_START=6,DAILY_ENERGY=8;
+const SIZES=[
+  {id:'tiny',label:'Tiny',hearts:1,energy:1,hint:'Under 5 min'},
+  {id:'small',label:'Small',hearts:2,energy:1,hint:'5 to 15 min'},
+  {id:'medium',label:'Medium',hearts:4,energy:2,hint:'15 to 45 min'},
+  {id:'big',label:'Big',hearts:8,energy:3,hint:'An hour or more'}
+];
+const SIZE_BY=byId(SIZES);
+const JOBS=[
+  {id:'berry',name:'Berry picking',sec:900,coins:10,energy:2,desc:'A basket of sweet berries for the market.'},
+  {id:'mail',name:'Cloud mail route',sec:3600,coins:22,energy:4,desc:'Deliver letters across the sky.'},
+  {id:'gem',name:'Crystal digging',sec:10800,coins:36,energy:6,desc:'Dig deep for pink crystals.'}
+];
+const JOB_BY=byId(JOBS);
+const TRIPS=[
+  {id:'beach',name:'Beach Sunset',cost:75,sec:120},
+  {id:'sakura',name:'Cherry Blossom Picnic',cost:100,sec:150},
+  {id:'snow',name:'Snow Cabin Weekend',cost:125,sec:180},
+  {id:'carnival',name:'Candy Carnival',cost:160,sec:240},
+  {id:'stars',name:'Starry Campout',cost:200,sec:300}
+];
+const TRIP_BY=byId(TRIPS);
+const TREATS=[
+  {id:'milk',name:'Strawberry milk',cost:10,bond:1,desc:'A small sip of happiness.'},
+  {id:'cake',name:'Cake slice',cost:28,bond:3,desc:'Pink icing with a tiny star on top.'},
+  {id:'tea',name:'Tea party for two',cost:70,bond:8,desc:'Tiny cups, tiny sandwiches, big bonding.'}
+];
+const TREAT_BY=byId(TREATS);
+const BOND_STEP=5, BOND_MAX=5;
+const SAMPLE_TASKS=[['Drink a glass of water','tiny',{days:[0,1,2,3,4,5,6]},'morning'],['Reply to one message','small'],['Put a load of laundry on','medium']];
+const TASK_LINES=['Yay, you did it!','I am so proud of you.','That counts. Nice work.','Tiny steps add up.','You are doing great.','Look at you go!'];
+const VOICE={
+  cat:{cheer:['Roar! You did it!','Tigrr is so proud of you!','Pounce! Another one done!'],hi:['Grr-eat to see you!','Ready to prowl?']},
+  panda:{cheer:['Yay! Bamboo party!','You are the best!','Roll-around time!'],hi:['Hi hi hi!','Snack break soon?']},
+  dog:{cheer:['Boop! Good job!','Soosy wiggles with joy!','Woof! You did it!'],hi:['You are back! Yay!','Ooh, are we going out?']},
+  hedge:{cheer:['Spiky hugs for you!','I knew you could!','Prickly proud!'],hi:['Hello, softie.','Cosy day, hey?']},
+  cater:{cheer:['Wiggle wiggle hooray!','One step at a time, like me!','Tiny steps win!'],hi:['Hello! Slowly is fine.','Munch munch, hi!']},
+  ant:{cheer:['Teamwork! Well done!','Carrying that win home!','Busy and brilliant!'],hi:['Reporting for duty!','Ready when you are.']},
+  bird:{cheer:['Tweet-tweet! Amazing!','Flap flap hooray!','Sing it loud!'],hi:['Good to see you!','Ooh, what is today?']},
+  camel:{cheer:['Steady and strong! Nice!','Long walk, and you did it!','Humph of approval!'],hi:['Nice and easy today.','Ready for the long road?']},
+  alien:{cheer:['Beep boop! Perfect!','Scanning... you are amazing!','Zorp! Excellent!'],hi:['Greetings, friend!','Beep. Hello.']},
+  uni:{cheer:['Sparkle time!','Magic! You did it!','Glitter for you!'],hi:['Hello, sparkle!','What a lovely day!']}
+};
+const FOCUS_SEC=300;
+const skillLvl=n=>n>=10?3:n>=5?2:n>=2?1:0;
 const roomOf=d=>d.room||'room';
 const roomDecor=id=>DECOR.filter(d=>roomOf(d)===id);
 const roomDone=id=>roomDecor(id).every(d=>S.decor.includes(d.id));
@@ -1470,6 +1516,7 @@ const decorSticker=d=>{const [,,w,h]=d.vb.split(' ').map(Number),s=Math.max(w,h)
 /* Why a back sticker can't show on this pal in this form, in plain words ('' when it shows). */
 function backWhy(o,sp,st,name){
   if(o.at!=='back')return '';const f=fitOf(sp,st);
+  if(!f.b&&[0,1,2].every(s=>!fitOf(sp,s).b))return `Back stickers don't fit ${name}, so they stay tucked away. They show on other pals.`;
   if(!f.b)return `${st===2?'Grown-up ':''}${name}'s back is already full, so back stickers stay tucked away. They show on ${st===2?'younger forms and on ':''}other pals.`;
   if(o.wings&&f.noWings){
     if([0,1,2].every(s=>fitOf(sp,s).noWings))return `Wing stickers don't fit ${name}, so they stay tucked away. They show on other pals.`;
@@ -1524,7 +1571,7 @@ function cleanState(o){
   s.pets=(Array.isArray(o.pets)?o.pets:[]).map(p=>{
     if(!p||typeof p!=='object')return null;
     const sp=PET_BY[p.sp]?p.sp:(Object.prototype.hasOwnProperty.call(MIG,p.sp)?MIG[p.sp]:'cat');if(seen.has(sp))return null;seen.add(sp);
-    const q={sp,name:strOr(p.name,14).trim()||PET_BY[sp].name.split(' ')[0],wear:(()=>{const src=p.wear&&typeof p.wear==='object'?p.wear:(OUTFIT_BY[p.outfit]?{[OUTFIT_BY[p.outfit].at]:p.outfit}:{}),w={};for(const [sl] of SLOTS){const x=src[sl];if(OUTFIT_BY[x]&&OUTFIT_BY[x].at===sl)w[sl]=x}return w})(),bond:intOr(p.bond,0,0,1e6),loved:intOr(p.loved,0,0,1e6),job:null,trip:null};
+    const q={sp,name:strOr(p.name,14).trim()||PET_BY[sp].name.split(' ')[0],wear:(()=>{const src=p.wear&&typeof p.wear==='object'?p.wear:(OUTFIT_BY[p.outfit]?{[OUTFIT_BY[p.outfit].at]:p.outfit}:{}),w={};for(const [sl] of SLOTS){const x=src[sl];if(OUTFIT_BY[x]&&OUTFIT_BY[x].at===sl)w[sl]=x}if(src.face==='sleepmask'&&!w.head)w.head='sleepmask';return w})(),bond:intOr(p.bond,0,0,1e6),loved:intOr(p.loved,0,0,1e6),job:null,trip:null};
     if(p.job&&typeof p.job==='object'&&JOB_BY[p.job.id])q.job={id:p.job.id,start:numOr(p.job.start,T,0,9e15),end:numOr(p.job.end,T,0,9e15),coins:intOr(p.job.coins,0,0,1e5)};
     if(p.trip&&typeof p.trip==='object'&&TRIP_BY[p.trip.id])q.trip={id:p.trip.id,start:numOr(p.trip.start,T,0,9e15),end:numOr(p.trip.end,T,0,9e15)};
     if(p.skill&&typeof p.skill==='object'){q.skill={};for(const k in JOB_BY)if(p.skill[k]!=null)q.skill[k]=intOr(p.skill[k],0,0,1e6)}
