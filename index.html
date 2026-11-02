@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Pawgress: offload your to-do list in seconds</title>
 <meta name="description" content="Offload your to-do list in seconds. Simple, and seriously cute. A gentle task app where finishing tasks grows a pink pal.">
-<meta name="theme-color" content="#FFF1F7">
+<meta name="theme-color" content="#FFF6FA">
 <link rel="icon" type="image/png" href="app/icon-192.png">
 <link rel="apple-touch-icon" href="app/icon-180.png">
 <meta property="og:title" content="Pawgress">
@@ -18,30 +18,31 @@
 .hero h1{font-size:clamp(2.4rem,6vw,3.8rem)}
 .hero .lede{font-size:1.25rem;margin:18px 0 26px;max-width:32ch}
 .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-.hero .phone{justify-self:center;width:min(300px,80vw);border-radius:28px;box-shadow:0 18px 40px rgba(74,27,60,.25);display:block}
+.hero .phone{justify-self:center;width:min(300px,80vw);border-radius:28px;border:1px solid var(--line);box-shadow:0 18px 40px rgba(74,27,60,.16);display:block}
 .feats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
-.feats img{width:100%;border-radius:18px;display:block;margin-bottom:14px}
-.feats h3{font-size:1.35rem;margin-bottom:6px}
+.feats img{width:100%;border-radius:22px;border:1px solid var(--line);display:block;margin-bottom:14px}
+.feats h3{font-size:1.25rem;margin-bottom:6px}
 .feats p{margin:0;color:var(--muted)}
 .gentle{margin-top:48px;text-align:center}
 .gentle h2{font-size:clamp(1.7rem,4vw,2.3rem);margin-bottom:10px}
 .gentle p{margin:0 auto;max-width:56ch}
 .iphone{margin-top:28px}
 .iphone h3{font-size:1.2rem;margin-bottom:6px}
+.pill svg{width:18px;height:18px;color:var(--pink)}
 .iphone p{margin:0}
 @media (max-width:720px){.hero{grid-template-columns:1fr;gap:28px}.hero .phone{grid-row:2}.feats{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a class="brand" href="./"><img src="img/logo-160.webp" alt="">Pawgress</a>
+  <a class="brand" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Pawgress</a>
 
   <section class="hero">
     <div>
       <h1>Offload your to-do list in seconds.</h1>
       <p class="lede">Simple, and seriously cute. Dump everything on your mind, Pawgress sorts it, and every task you finish helps your pal grow up.</p>
       <div class="cta">
-        <span class="pill" id="play">Coming soon to Google Play</span>
+        <span class="pill" id="play"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Coming soon to Google Play</span>
         <a class="btn ghost" href="app/">Try it in your browser</a>
       </div>
     </div>
@@ -51,7 +52,7 @@
   <section class="feats" aria-label="What Pawgress does">
     <div><img src="img/shot-offload.jpg" alt="" loading="lazy"><h3>Offload it all</h3><p>Type it how you think: "bins every friday 6pm, remind me 30 mins before". Dates, repeats, reminders and sizes are worked out for you.</p></div>
     <div><img src="img/shot-tasks.jpg" alt="" loading="lazy"><h3>Your day, sorted</h3><p>Today first, then what's coming up, with gentle reminders. Finished tasks earn hearts for your pal and energy for errands that earn coins.</p></div>
-    <div><img src="img/shot-pals.jpg" alt="" loading="lazy"><h3>Ten pals to raise</h3><p>Outfits, cosy rooms and holidays to collect. The pals were drawn by the developer's kids.</p></div>
+    <div><img src="img/shot-pals.jpg" alt="" loading="lazy"><h3>Ten pals to raise</h3><p>Stickers, cosy rooms and holidays to collect. The pals were drawn by the developer's kids.</p></div>
   </section>
 
   <section class="gentle card">
