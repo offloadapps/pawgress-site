@@ -277,6 +277,7 @@ li.task:last-child{border-bottom:0}
 .task .meta .bell{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
 .meterline{display:flex;gap:6px;align-items:flex-start;margin:12px 0 0;font-size:.92rem;color:var(--muted)}
 .meterline svg{flex:none;margin-top:3px;color:var(--pink)}
+.meterline.en svg{color:var(--energy)}
 #task-sheet .dump-card form{margin:0}
 #tasklist{padding-bottom:8px}
 
@@ -2182,7 +2183,10 @@ function renderTasks(){
   if(!$('#size-seg').children.length)$('#size-seg').innerHTML=`<legend>How big is it?</legend>`+SIZES.map((s,i)=>`<label><input class="sr" type="radio" name="size" value="${s.id}"${i===1?' checked':''}><span class="opt"><b>${s.label}</b><small class="rw" aria-label="Earns ${s.hearts} heart${s.hearts>1?'s':''} and ${s.energy} energy"><span>${ic('heart',14)}${s.hearts}</span><span class="bolt">${ic('bolt',14)}<i>${s.energy}</i></span></small></span></label>`).join('');
   updSizeHint();
   // The daily cap only shows up once you are close to it, so it never reads as a target.
-  $('#meter').innerHTML=S.dayHearts>=DAILY_CAP*.75?`<p class="meterline">${ic('heart',14)}<span>${S.dayHearts>=DAILY_CAP?'The heart meter is full for today. Tasks still count, they just stop paying hearts until tomorrow.':`The heart meter is nearly full (${S.dayHearts} of ${DAILY_CAP}). After that, tasks still count but stop paying hearts today.`}</span></p>`:'';
+  // Energy says so once today's energy is used up, so done tasks never seem to pay energy they don't.
+  const hFull=S.dayHearts>=DAILY_CAP,eDay=(S.dayEnergy||0)>=DAILY_ENERGY;
+  $('#meter').innerHTML=(S.dayHearts>=DAILY_CAP*.75?`<p class="meterline">${ic('heart',14)}<span>${hFull?'Hearts and energy are full for today. Tasks still count, they just stop paying until tomorrow.':`The heart meter is nearly full (${S.dayHearts} of ${DAILY_CAP}). After that, tasks still count but stop paying hearts today.`}</span></p>`:'')
+    +(eDay&&!hFull?`<p class="meterline en">${ic('bolt',14)}<span>That is all the energy for today. Tasks still pay hearts, and energy comes back tomorrow.</span></p>`:'');
   if(!$('#task-dom').options.length)$('#task-dom').innerHTML=Array.from({length:30},(_,i)=>`<option value="${i+1}">${ordinal(i+1)}</option>`).join('')+'<option value="31">Last day</option>';
   if(!$('#daygrid').children.length)$('#daygrid').innerHTML=[1,2,3,4,5,6,0].map(i=>`<label><input class="sr" type="checkbox" name="day" value="${i}"><span aria-label="${DOW_LONG[i]}">${DOW[i]}</span></label>`).join('');
   $('#today-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
@@ -2190,7 +2194,9 @@ function renderTasks(){
   $('#tsearch').hidden=S.tasks.length<6&&!qs;
   const due=S.tasks.filter(t=>!t.done&&isDue(t)&&mt(t)).sort(taskCmp),soon=S.tasks.filter(t=>!t.done&&!isDue(t)&&mt(t)).sort(soonCmp),done=S.tasks.filter(t=>t.done&&mt(t)&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).sort((a,b)=>b.doneAt-a.doneAt).slice(0,10);
   /* hearts and energy for a task: what it pays, or for a done task what it actually earned (older saves only kept hearts) */
-  const rewardChip=t=>{const s=SIZE_BY[t.size],h=t.done?t.earned:s.hearts,e=t.done?t.en:s.energy;
+  /* today's tasks show 0 energy once no more can be earned today (day's energy used, bank full, or hearts full) */
+  const noEn=eDay||hFull||S.energy>=ENERGY_MAX;
+  const rewardChip=(t,later)=>{const s=SIZE_BY[t.size],h=t.done?t.earned:s.hearts,e=t.done?t.en:(noEn&&!later?0:s.energy);
     const label=`${h} heart${h===1?'':'s'}`+(e!=null?` and ${e} energy`:'');
     return `<span class="chip rw" aria-label="${t.done?'Earned':'Earns'} ${label}"><span>${ic('heart',14)}${h}</span>${e!=null?`<span class="bolt">${ic('bolt',14)}<i>${e}</i></span>`:''}</span>`};
   const li=(t,dim)=>{
@@ -2207,7 +2213,7 @@ function renderTasks(){
     return `<li class="task${t.done?' done':''}${dim?' dim':''}${open?' open':''}">
       <button class="check" type="button" data-act="toggle" data-id="${t.id}" aria-label="${t.done?'Done: ':'Mark done: '}${esc(t.text)}" aria-pressed="${t.done}" ${t.done||dim?'aria-disabled="true"':''}>${t.done?ic('check',20):''}</button>
       ${`<button class="txt more" type="button" data-act="open" data-id="${t.id}" aria-expanded="${open}">${inner}<span class="sr">, options</span></button>`}
-      ${rewardChip(t)}${acts}${steps}</li>`;
+      ${rewardChip(t,dim)}${acts}${steps}</li>`;
   };
   let main;
   if(!due.length)main=`<p class="empty">${qs&&!soon.length?'Nothing matches that search.':!qs&&done.length?'All done for today. Well done!':soon.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
@@ -2673,7 +2679,9 @@ function complete(id){
   if(S.focus&&S.focus.id===id)S.focus=null;
   S.lastDone=dayKey();
   save();renderTop();renderTasks();renderShop();renderFocus();
-  const base=t.earned>0?`+${t.earned} heart${t.earned>1?'s':''}${en?` and +${en} energy`:''} for ${cur().name}.${enFull?' Energy is full, so send a pal on an errand.':enDay?' That is all the energy for today, more comes tomorrow.':''}`:'Done. The heart meter is full today, so no hearts this time.';
+  // Say when energy stops: on the task that uses the last of today's energy, and on every task after it.
+  const enLast=en>0&&S.dayEnergy>=DAILY_ENERGY;
+  const base=t.earned>0?`+${t.earned} heart${t.earned>1?'s':''}${en?` and +${en} energy`:''} for ${cur().name}.${enFull?' Energy is full, so send a pal on an errand.':enLast?' That is all the energy for today, more comes tomorrow.':enDay?' No energy this time, more comes tomorrow.':''}`:'Done. Hearts and energy are full for today, more comes tomorrow.';
   toast(base,true);
   sfx('tick_'+t.size);
   say(pick(VOICE[cur().sp].cheer));
