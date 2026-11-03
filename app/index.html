@@ -576,17 +576,24 @@ div.stk{cursor:default}
 .stick-done{width:100%;justify-content:center;margin-top:4px;position:sticky;bottom:0}
 /* Arrange [room] (3 Nov 2026) */
 .screenwrap{position:relative}
-.arr-btn{position:absolute;right:10px;top:10px;z-index:4;width:44px;height:44px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 rgba(74,27,60,.12)}
-.arr-btn:focus-visible{outline:3px solid var(--outline);outline-offset:2px}
 .arr-main{display:grid;gap:10px;min-width:0;align-content:start}
 .arr-stage{border-radius:20px;overflow:hidden;aspect-ratio:3/2;background:#FFE3EF;border:1.5px solid var(--line)}
-.arr-stage svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none}
-.arr-it{cursor:grab;touch-action:none;outline:none}
+.arr-stage svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none;touch-action:none}
+.arr-it{cursor:grab;touch-action:none;outline:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .arr-it.fixed{pointer-events:none}
-.arr-it.lift{cursor:grabbing;filter:drop-shadow(0 6px 4px rgba(74,27,60,.28))}
+.arr-it.lift{cursor:grabbing}
+.arr-it.lift>g{filter:none}
+.arr-it.lift .hit{fill:rgba(255,255,255,.35);stroke:#FF5FA2;stroke-width:1.6;stroke-dasharray:4 3}
+.arr-ghost.dim{opacity:.18}
 .arr-it:focus-visible .hit{stroke:#FF5FA2;stroke-width:1.6;stroke-dasharray:4 3}
 .arr-ghost{opacity:.35;pointer-events:none}
 .arr-tools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;column-gap:12px}
+.room-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.room-pick{border:0;background:none;padding:0;font:inherit;color:var(--ink);display:grid;gap:6px;text-align:left;cursor:pointer;min-width:0}
+.room-pic{position:relative;display:block;aspect-ratio:3/2;border-radius:16px;overflow:hidden;border:2px solid var(--line);background:#FFE3EF}
+.room-pic svg{width:100%;height:100%;display:block}
+.room-pick[aria-pressed="true"] .room-pic{border-color:var(--outline);box-shadow:0 0 0 2px var(--outline)}
+.room-pick b{font-size:.92rem}
 .alb-group{margin:4px 0 0;font-size:.92rem;color:var(--ink)}
 @media(min-width:900px){.zoom-card.stick-card{width:min(940px,100%);grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
   .stick-top,.stick-done{grid-column:1/-1}.stick-done{justify-self:end;width:auto;min-width:200px}}
@@ -1511,7 +1518,7 @@ const ICONS={
   back:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   paw:'<ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/>',
   mic:'<rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  sticker:'<path d="M5 4h10l4 4v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 4v3a1 1 0 0 0 1 1h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  sticker:'<path d="M7 3h10a4 4 0 0 1 4 4v7l-7 7H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z" fill="currentColor"/><path d="M21 14h-4.5A2.5 2.5 0 0 0 14 16.5V21z" fill="var(--surface)" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="9" cy="9.5" r="1.4" fill="var(--surface)"/><circle cx="15" cy="9.5" r="1.4" fill="var(--surface)"/><path d="M8.6 13.2q3.4 2.6 6.8 0" stroke="var(--surface)" stroke-width="1.7" fill="none" stroke-linecap="round"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   edit:'<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   star:'<path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.6 5.8 21.2l1.4-7L2 9.4l7-.9z" fill="currentColor"/>',
@@ -2099,27 +2106,19 @@ function renderDevice(){
       <svg class="scene" data-s="${sc.id}" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>${STICKER('dstk',1.3,.8,.2)}</defs><g class="base">${sc.svg}</g>${decorSVG()}</svg>
       ${state?`<div class="awaymsg"><span>${esc(p.name)} is ${state}</span></div>`:`<div class="petwrap${fx?(fx.phase==='charge'?' charging':' pop'):''}" id="petwrap">${petSVG(p.sp,p,shownStage(p))}</div>`}
       <div class="bubble${fx?' show':''}" id="bubble">${fx&&fx.msg?esc(fx.msg):''}</div><div class="flash" id="flash"></div><canvas class="fxc" id="fxc"></canvas>
-    </div>${fx||fxHold?'':`<button class="arr-btn" type="button" data-zoom="arrange" aria-label="Arrange ${esc(sc.name)}">${ic('move',20)}</button>`}</div>
+    </div></div>
     ${collectStrip()}
     <div class="palhead">
       <div class="palname"><h1>${esc(p.name)}</h1><p class="fine">${FORM_LABELS[shownStage(p)]} · Bond ${bondLevel(p)} · Loves ${JOB_BY[P.talent].name.toLowerCase()}</p></div>
-      <div class="palbtns"><button class="btn ghost iconbtn" type="button" data-act="pat" aria-label="Pat ${esc(p.name)}"><span class="heart">${ic('heart',22)}</span></button><button class="btn ghost" type="button" data-zoom="stick">${ic('sticker',18)}Stickers</button></div>
+      <div class="palbtns"><button class="btn ghost iconbtn" type="button" data-act="pat" aria-label="Pat ${esc(p.name)}"><span class="heart">${ic('heart',22)}</span></button><button class="btn ghost iconbtn" type="button" data-zoom="rooms" aria-label="Rooms"${fx||fxHold?' disabled':''}>${ic('home',22)}</button><button class="btn ghost iconbtn" type="button" data-zoom="stick" aria-label="Stickers">${ic('sticker',22)}</button></div>
     </div>
   </div>`;
 }
 
 function renderTools(){
   const p=cur();if(!p)return;
-  $('#pal-tools').innerHTML=`${growthHTML(p)}
-    <details class="more custom" id="customise"${customOpen?' open':''}><summary>Name and backdrop</summary>
-    <div class="two">
-      <div><label class="lbl" for="rename">Name</label><div class="row nowrap"><input id="rename" class="input" maxlength="14" value="${esc(p.name)}" autocomplete="off"><button class="btn ghost sm" type="button" data-act="rename">Save</button></div></div>
-      <div><label class="lbl" for="sel-scene">Backdrop</label><select id="sel-scene" class="field">${S.scenes.map(id=>`<option value="${id}"${id===S.scene?' selected':''}>${SCENE_BY[id].name}</option>`).join('')}</select></div>
-    </div></details>`;
+  $('#pal-tools').innerHTML=`${growthHTML(p)}`;
 }
-// The Customise section stays open across re-renders once someone opens it.
-let customOpen=false;
-document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='customise')customOpen=e.target.open},true);
 
 function growthHTML(p){
   const st=stageOf(p),l=p.loved||0,forms=`<div class="forms">${evoStrip(p.sp,st)}</div>`;
@@ -2286,9 +2285,10 @@ const zoomIsOpen=()=>!$('#zoom').hidden;
 function renderZoom(){
   const box=$('#zoom-card');if(!zoom||!box)return;
   const af=document.activeElement,fk=af&&box.contains(af)?{z:af.dataset.zoom,i:af.dataset.i,a:af.dataset.act}:null;
-  box.classList.toggle('stick-card',zoom.k==='stick'||zoom.k==='arrange');box.classList.toggle('arrange-card',zoom.k==='arrange');box.classList.toggle('buy-card',zoom.k==='buy'||zoom.k==='buyd');box.classList.toggle('pals-card',zoom.k==='pals');
+  box.classList.toggle('stick-card',zoom.k==='stick'||zoom.k==='arrange');box.classList.toggle('arrange-card',zoom.k==='arrange');box.classList.toggle('buy-card',zoom.k==='buy'||zoom.k==='buyd');box.classList.toggle('pals-card',zoom.k==='pals'||zoom.k==='rooms');
   if(zoom.k==='pals'){box.innerHTML=palsHTML();restoreZoomFocus(box,fk);return}
   if(zoom.k==='arrange'){box.innerHTML=arrangeHTML();restoreZoomFocus(box,fk);return}
+  if(zoom.k==='rooms'){box.innerHTML=roomsHTML();restoreZoomFocus(box,fk);return}
   if(zoom.k==='stick'){box.innerHTML=stickHTML();restoreZoomFocus(box,fk);return}
   // A re-draw while the pal slides are showing only refreshes the words under them, so a swipe is never cut short.
   if(zoom.k==='buy'&&box.dataset.for===zoom.id&&$('#buy-slides')&&OUTFIT_BY[zoom.id]){const bi=$('#buy-info');if(bi)bi.innerHTML=buyInfo(OUTFIT_BY[zoom.id],S.pets[buyPal()]);restoreZoomFocus(box,fk);return}
@@ -2374,16 +2374,26 @@ function buyInfo(o,q){
 }
 /* Arrange [room]: drag items around a big view of the room (the pal shows faintly where it stands), and stick any
    room sticker you own into this room or take it off. Each room keeps its own layout. */
+/* Rooms (3 Nov 2026, Amy's feedback): the house button on Home. Pick which room your pals live in, then Rearrange it. */
+function roomsHTML(){
+  const locked=SCENES.length-S.scenes.length;
+  return `<span class="grab" aria-hidden="true"></span>
+    <div class="pals-top"><h2 id="zoom-h">Rooms</h2><button class="zoom-x" type="button" data-zoom="close" aria-label="Close">&times;</button></div>
+    <div class="room-grid" role="group" aria-label="Choose a room">${S.scenes.map(id=>{const sc=SCENE_BY[id],on=id===S.scene;
+      return `<button class="room-pick" type="button" data-zoom="room" data-i="${id}" aria-pressed="${on}"><span class="room-pic"><svg class="scene" data-s="${id}" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g class="base">${sc.svg}</g>${decorLayer(id)}</svg>${on?`<span class="tick">${ic('check',12)}</span>`:''}</span><b>${sc.name}</b></button>`}).join('')}</div>
+    ${locked?`<p class="fine m0">Holidays unlock ${locked} more room${locked>1?'s':''}.</p>`:''}
+    <button class="btn big pals-all" type="button" data-zoom="arrange">Rearrange ${(SCENE_BY[S.scene]||SCENES[0]).name}</button>`;
+}
 function arrangeHTML(){
   const sc=SCENE_BY[S.scene]||SCENES[0],L=S.rooms[sc.id]||{},p=cur(),f=zoom.f==='here'?'here':'all';
-  const items=roomItems(sc.id).map(({d,x,y})=>{const [vx,vy,vw,vh]=vbOf(d),w=Math.max(vw,36),h=Math.max(vh,36);
+  const items=roomItems(sc.id).map(({d,x,y})=>{const [vx,vy,vw,vh]=vbOf(d),w=Math.max(vw,48),h=Math.max(vh,48);
     return `<g class="arr-it${d.hang?' fixed':''}" data-id="${d.id}" transform="translate(${x} ${y})"${d.hang?'':` tabindex="0" role="button" aria-label="${esc(d.name)}. Drag, or use the arrow keys, to move it"`}><rect class="hit" x="${vx-(w-vw)/2}" y="${vy-(h-vh)/2}" width="${w}" height="${h}" rx="6" fill="transparent"/><g filter="url(#astk)">${d.svg}</g></g>`}).join('');
   const ghost=p?petSVG(p.sp,p,stageOf(p)).replace('<svg ','<svg x="70" y="16" width="180" height="180" '):'';
   const own=DECOR.filter(d=>S.decor.includes(d.id)),shown=own.filter(d=>f==='all'||L[d.id]);
   const groups=SCENES.map(r=>{const list=shown.filter(d=>roomOf(d)===r.id);if(!list.length)return '';
     return `<h4 class="alb-group">${r.name}</h4><div class="album-grid">${list.map((d,i)=>{const on=!!L[d.id];
       return `<button class="alb${on?' on':''}" type="button" data-zoom="place" data-i="${d.id}" aria-pressed="${on}" aria-label="${esc(d.name)}${on?', in this room. Tap to take it off':''}"><span class="${ROT[i%4]}">${decorSticker(d)}</span>${on?`<span class="tick">${ic('check',12)}</span>`:''}<small>${esc(d.name)}</small></button>`}).join('')}</div>`}).join('');
-  return `<div class="stick-top"><button class="zoom-back" type="button" data-zoom="close" aria-label="Back">${ic('back',22)}</button><h2 id="zoom-h">Arrange ${sc.name}</h2></div>
+  return `<div class="stick-top"><button class="zoom-back" type="button" data-zoom="close" aria-label="Back">${ic('back',22)}</button><h2 id="zoom-h">Rearrange ${sc.name}</h2></div>
     <div class="arr-main">
     <div class="arr-stage"><svg class="scene arr-scene" data-s="${sc.id}" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice"><defs>${STICKER('astk',1.3,.8,.2)}</defs><g class="base">${sc.svg}</g><g class="arr-items">${items}</g><g class="arr-ghost" aria-hidden="true">${ghost}</g></svg></div>
     <div class="arr-tools"><p class="fine m0">Drag things to move them.</p><button class="linkbtn" type="button" data-zoom="reset">Put things back</button></div>
@@ -2409,24 +2419,30 @@ function roomReset(){
   undoFn=()=>{S.rooms[r]=was;save();renderDevice();renderShop();if(zoom&&zoom.k==='arrange')renderZoom()};
   toast(`${SCENE_BY[r].name} is back how it started.`,true);
 }
-// Dragging: the item follows the finger in room units and is kept inside the room. Saved when let go.
+// Dragging (smoothed 3 Nov 2026, Amy's feedback): the item follows the finger in room units and stays inside the room.
+// While it's held, its sticker edge is switched off and moves are drawn once per frame, so slower phones keep up. Saved
+// when let go.
 let drag=null;
 document.addEventListener('pointerdown',e=>{
-  const g=e.target.closest&&e.target.closest('.arr-it:not(.fixed)');if(!g||!zoom||zoom.k!=='arrange')return;
+  const g=e.target.closest&&e.target.closest('.arr-it:not(.fixed)');if(!g||!zoom||zoom.k!=='arrange'||drag)return;
   const svg=g.ownerSVGElement,m=svg.getScreenCTM();if(!m)return;
   const id=g.dataset.id,L=S.rooms[S.scene]||{};if(!L[id])return;
   e.preventDefault();try{g.setPointerCapture(e.pointerId)}catch(x){}
-  g.parentNode.appendChild(g);g.classList.add('lift');
-  drag={g,id,k:m.a,x0:e.clientX,y0:e.clientY,ox:L[id][0],oy:L[id][1],moved:false,pid:e.pointerId};
+  const ghost=g.parentNode.parentNode.querySelector('.arr-ghost');g.parentNode.appendChild(g);g.classList.add('lift');
+  drag={g,id,k:m.a,x0:e.clientX,y0:e.clientY,ox:L[id][0],oy:L[id][1],x:L[id][0],y:L[id][1],moved:false,pid:e.pointerId,raf:0};
+  if(ghost)ghost.classList.add('dim');
 });
 document.addEventListener('pointermove',e=>{
   if(!drag||e.pointerId!==drag.pid)return;e.preventDefault();
   const dx=(e.clientX-drag.x0)/drag.k,dy=(e.clientY-drag.y0)/drag.k;if(Math.abs(dx)+Math.abs(dy)>1)drag.moved=true;
-  const [x,y]=clampOff(DECOR_BY[drag.id],drag.ox+dx,drag.oy+dy);drag.x=x;drag.y=y;drag.g.setAttribute('transform',`translate(${x} ${y})`);
-});
+  [drag.x,drag.y]=clampOff(DECOR_BY[drag.id],drag.ox+dx,drag.oy+dy);
+  if(!drag.raf){const d=drag;d.raf=requestAnimationFrame(()=>{d.raf=0;d.g.setAttribute('transform',`translate(${d.x} ${d.y})`)})}
+},{passive:false});
 function dragEnd(e){
-  if(!drag||(e&&e.pointerId!==drag.pid))return;const d=drag;drag=null;d.g.classList.remove('lift');
-  if(d.moved&&d.x!=null){const L=S.rooms[S.scene]||{};if(L[d.id]){delete L[d.id];L[d.id]=[d.x,d.y];save();renderDevice();renderShop()}}
+  if(!drag||(e&&e.pointerId!==drag.pid))return;const d=drag;drag=null;
+  if(d.raf)cancelAnimationFrame(d.raf);d.g.setAttribute('transform',`translate(${d.x} ${d.y})`);d.g.classList.remove('lift');
+  const ghost=d.g.ownerSVGElement&&d.g.ownerSVGElement.querySelector('.arr-ghost');if(ghost)ghost.classList.remove('dim');
+  if(d.moved){const L=S.rooms[S.scene]||{};if(L[d.id]){delete L[d.id];L[d.id]=[d.x,d.y];save();renderDevice();renderShop()}}
 }
 document.addEventListener('pointerup',dragEnd);document.addEventListener('pointercancel',dragEnd);
 document.addEventListener('keydown',e=>{
@@ -3017,7 +3033,6 @@ document.addEventListener('click',e=>{
     case'next':move(1);break;
     case'pat':sfx('pat');chirp(cur(),.12);say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
     case'give':giveHearts(+b.dataset.n);break;
-    case'rename':{const v=$('#rename').value.trim();cur().name=(v||PET_BY[cur().sp].name.split(' ')[0]).slice(0,14);save();renderDevice();renderTools();renderJobs();renderShop();toast('Name saved.');break}
     case'demo-hearts':if(!DEMO&&!TEST)break;S.hearts+=50;save();renderTop();renderShop();toast('+50 hearts');break;
     case'demo-energy':if(!DEMO&&!TEST)break;S.energy=ENERGY_MAX;save();renderTop();renderJobs();toast('Energy full');break;
     case'demo-coins':if(!DEMO&&!TEST)break;S.coins+=200;save();renderTop();renderShop();toast('+200 coins');break;
@@ -3032,7 +3047,6 @@ document.addEventListener('change',e=>{
   const t=e.target;
   if(t.dataset.cfg){setCfg(t.dataset.cfg,t.checked);if(t.dataset.cfg==='sound'){const v=$('#guide [data-cfg="voices"]');if(v)v.disabled=!t.checked;if(t.checked)sfx('pat')}if(t.dataset.cfg==='voices'&&t.checked)chirp();return}
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
-  if(t.id==='sel-scene'){S.scene=t.value;save();renderDevice()}
   else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
   else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
   else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='brief')renderGuide()}
@@ -3050,7 +3064,6 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Tab'){const f=$$('input,select,textarea,button,summary',ts).filter(x=>x.offsetParent!==null&&!x.disabled);if(f.length){const first=f[0],last=f[f.length-1];
       if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}}
   }
-  if(e.key==='Enter'&&e.target.id==='rename'){e.preventDefault();$('[data-act="rename"]').click()}
 });
 
 /* ---------- start-up ---------- */
@@ -3440,7 +3453,9 @@ document.addEventListener('click',e=>{
   else if(z==='filter'){if(zoom){zoom.f=zoom.f===b.dataset.i&&b.classList.contains('spot')?'all':b.dataset.i;renderZoom()}}
   else if(z==='toggle'){if(zoom){const id=b.dataset.i,was=wearOf(cur())[OUTFIT_BY[id].at]===id;zoom.trying=was?null:id;wear(id)}}
   else if(z==='getmore'){closeZoom();shopTab='outfits';setTab('shop');renderShop()}
-  else if(z==='arrange'){if(zoomIsOpen())closeZoom();openZoom({k:'arrange',f:'all'},b)}
+  else if(z==='arrange'){const from=zoomFrom;if(zoomIsOpen())closeZoom();openZoom({k:'arrange',f:'all'},from||b)}
+  else if(z==='rooms'){if(!fx&&!fxHold)openZoom({k:'rooms'},b)}
+  else if(z==='room'){if(S.scenes.includes(b.dataset.i)){S.scene=b.dataset.i;save();renderDevice();renderZoom()}}
   else if(z==='arrf'){if(zoom){zoom.f=b.dataset.i;renderZoom()}}
   else if(z==='place')placeToggle(b.dataset.i);
   else if(z==='reset')roomReset();
