@@ -132,7 +132,36 @@ p{margin:0}
 .palrow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .palchip{flex:none;display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:3px 14px 3px 3px;font-weight:700}
 .palchip[aria-pressed="true"]{border-color:var(--outline);background:var(--pink-soft)}
+.palchip:disabled{cursor:default}
+.palchip:disabled:not([aria-pressed="true"]){opacity:.55}
 .mini{width:38px;height:38px;border-radius:50%;background:var(--surface);display:block;overflow:hidden}
+/* pal button and Your pals (3 Nov 2026) */
+.palbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 14px 3px 3px;font:inherit;font-weight:700;font-size:1rem;color:var(--ink);cursor:pointer;text-align:left}
+.palbtn:disabled{cursor:default;opacity:.7}
+.palbtn .mini{background:var(--pink-soft)}
+.palbtn-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.palbtn-b{flex:none;font-size:.8rem;background:var(--btn-bg);color:var(--btn-ink);border-radius:999px;padding:3px 10px}
+.zoom-card.pals-card{align-content:start;gap:8px}
+.pals-top{display:flex;align-items:center;gap:10px}
+.pals-top h2{flex:1;margin:0}
+.pals-all{width:100%;justify-content:center;margin:4px 0 2px}
+.plist{display:grid}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow-main{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:center;border:0;background:none;font:inherit;color:var(--ink);text-align:left;padding:10px 6px;margin:0 -6px;border-radius:14px;cursor:pointer;min-width:0}
+.prow-main:hover,.prow-main:active{background:var(--surface-2)}
+.prow .face{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:block;overflow:hidden}
+.prow .face svg{width:100%;height:100%;display:block}
+.prow.cur .face{box-shadow:0 0 0 2.5px var(--outline);background:var(--pink-soft)}
+.prow-t{display:grid;gap:2px;min-width:0}
+.prow-t b{font-size:1rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.prow-t .chip{font-size:.72rem}
+.prow-t .bar{display:block;height:5px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:3px}
+.prow-t .bar>i{display:block;height:100%;background:var(--btn-bg)}
+.prow-jobs{grid-column:1/-1;display:grid;gap:0;margin:0 0 10px;padding:4px 12px;border-radius:14px;background:var(--surface-2)}
+.pjob{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pjob:last-child{border-bottom:0}
+.pjob b{font-size:.94rem}
 .mini svg{width:100%;height:100%;display:block}
 .job{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
 .job>div{min-width:0;flex:1 1 160px}
@@ -545,6 +574,20 @@ div.stk{cursor:default}
 .tick{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--btn-bg);color:var(--btn-ink);display:grid;place-items:center}
 .tick .ic{width:12px;height:12px}
 .stick-done{width:100%;justify-content:center;margin-top:4px;position:sticky;bottom:0}
+/* Arrange [room] (3 Nov 2026) */
+.screenwrap{position:relative}
+.arr-btn{position:absolute;right:10px;top:10px;z-index:4;width:44px;height:44px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 0 rgba(74,27,60,.12)}
+.arr-btn:focus-visible{outline:3px solid var(--outline);outline-offset:2px}
+.arr-main{display:grid;gap:10px;min-width:0;align-content:start}
+.arr-stage{border-radius:20px;overflow:hidden;aspect-ratio:3/2;background:#FFE3EF;border:1.5px solid var(--line)}
+.arr-stage svg{width:100%;height:100%;display:block;user-select:none;-webkit-user-select:none}
+.arr-it{cursor:grab;touch-action:none;outline:none}
+.arr-it.fixed{pointer-events:none}
+.arr-it.lift{cursor:grabbing;filter:drop-shadow(0 6px 4px rgba(74,27,60,.28))}
+.arr-it:focus-visible .hit{stroke:#FF5FA2;stroke-width:1.6;stroke-dasharray:4 3}
+.arr-ghost{opacity:.35;pointer-events:none}
+.arr-tools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;column-gap:12px}
+.alb-group{margin:4px 0 0;font-size:.92rem;color:var(--ink)}
 @media(min-width:900px){.zoom-card.stick-card{width:min(940px,100%);grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px;align-items:start}
   .stick-top,.stick-done{grid-column:1/-1}.stick-done{justify-self:end;width:auto;min-width:200px}}
 /* buy sheet */
@@ -563,6 +606,19 @@ div.stk{cursor:default}
 .buy-room{display:grid;place-items:center}
 .buy-room svg{width:70%;height:90%;overflow:visible}
 .buy-t{display:grid;gap:2px}
+/* one slide per pal in a sticker's buy sheet (3 Nov 2026) */
+.buy-car{position:relative;width:min(300px,100%)}
+.buy-slides{display:grid;grid-auto-flow:column;grid-auto-columns:100%;overflow-x:auto;scroll-snap-type:x mandatory;border-radius:22px;scrollbar-width:none;overscroll-behavior-x:contain}
+.buy-slides::-webkit-scrollbar{display:none}
+.buy-slides .buy-try{width:100%;scroll-snap-align:center;scroll-snap-stop:always}
+.slide-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.slide-arrow.prev{left:6px}.slide-arrow.next{right:6px}
+.slide-arrow[hidden]{display:none}
+.buy-dots{display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin-top:-4px}
+.buy-dots .dot{width:24px;height:24px;border:0;background:none;padding:0;display:grid;place-items:center;cursor:pointer}
+.buy-dots .dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line)}
+.buy-dots .dot[aria-pressed="true"]::before{background:var(--btn-bg);width:10px;height:10px}
+.buy-info{display:grid;gap:12px;justify-items:center;width:100%}
 .buy-t h2{font-size:1.75rem;color:var(--ink)}
 .buy-price{margin:0;display:inline-flex;align-items:center;gap:6px;font-weight:700;font-variant-numeric:tabular-nums;flex-wrap:wrap;justify-content:center}
 .buy-price .fine{font-weight:400}
@@ -683,7 +739,7 @@ details.addwrap>summary h2{font-size:1.06rem}
 
     <section id="p-shop" class="panel" role="tabpanel" aria-label="Shop" hidden>
       <div class="stack">
-        <div class="ptitle"><h1>Shop</h1><span class="fine" id="shop-for"></span></div>
+        <div class="ptitle"><h1>Shop</h1></div>
         <div class="subtabs" id="subtabs" role="group" aria-label="Shop sections"></div>
         <div id="shop-body" class="stack"></div>
       </div>
@@ -1361,11 +1417,19 @@ const SCENES=[
 ];
 const SCENE_BY=byId(SCENES);
 
+/* drawing helpers for the room items added on 3 Nov 2026 */
+const DH='M0 5 C-8 0 -7.5 -6 -3.6 -6 C-1.6 -6 -.5 -4.8 0 -3.6 C.5 -4.8 1.6 -6 3.6 -6 C7.5 -6 8 0 0 5Z';
+const DSH=(cx,cy,rx,ry=2.4,o='.12')=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#4A1B3C" opacity="${o}"/>`;
+const DFLOWER=(x,y,r,f,c='#FFD76A')=>[0,1,2,3,4].map(k=>{const a=k*Math.PI*2/5-Math.PI/2;return `<circle cx="${(x+r*Math.cos(a)).toFixed(1)}" cy="${(y+r*Math.sin(a)).toFixed(1)}" r="${(r*.85).toFixed(1)}" fill="${f}"/>`}).join('')+`<circle cx="${x}" cy="${y}" r="${(r*.6).toFixed(1)}" fill="${c}"/>`;
+const DBUNNY=(x,y)=>`<ellipse cx="${x-3}" cy="${y-8}" rx="2" ry="4.6" transform="rotate(-14 ${x-3} ${y-8})" fill="#FFFFFF" stroke="#FFC2DC" stroke-width="1"/><ellipse cx="${x+2}" cy="${y-8}" rx="2" ry="4.6" transform="rotate(14 ${x+2} ${y-8})" fill="#FFFFFF" stroke="#FFC2DC" stroke-width="1"/><ellipse cx="${x-3}" cy="${y-8}" rx=".9" ry="3" transform="rotate(-14 ${x-3} ${y-8})" fill="#FFB3D3"/><ellipse cx="${x+2}" cy="${y-8}" rx=".9" ry="3" transform="rotate(14 ${x+2} ${y-8})" fill="#FFB3D3"/><path d="M${x-9} ${y+5} Q${x-10} ${y-5} ${x} ${y-5} Q${x+10} ${y-5} ${x+9} ${y+5}Z" fill="#FFFFFF" stroke="#FFC2DC" stroke-width="1.2" stroke-linejoin="round"/><circle cx="${x-2.6}" cy="${y-1}" r=".9" fill="#3A1431"/><circle cx="${x+2.6}" cy="${y-1}" r=".9" fill="#3A1431"/><circle cx="${x}" cy="${y+1}" r=".9" fill="#FF7DB6"/>`;
+const DSKATE=(x,y)=>`<rect x="${x-.5}" y="${y-2.5}" width="9" height="3.4" rx="1.6" fill="#FF9CC9"/><path d="M${x} ${y} h8 v7 q0 2 2 2 h6 q4 0 4 4 v2 h-20Z" fill="#FFFFFF" stroke="#D9D0F0" stroke-width="1.2" stroke-linejoin="round"/><path d="M${x+2} ${y+3} l4 2 M${x+2} ${y+6} l4 2" stroke="#FF7DB6" stroke-width="1"/><path d="M${x+3} ${y+15} v3.4 M${x+16} ${y+15} v3.4" stroke="#A9B4D0" stroke-width="1.4"/><path d="M${x-1} ${y+18.6} h21 q3 0 3 -3" stroke="#A9B4D0" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+const DDUCK=(x,y)=>`<ellipse cx="${x}" cy="${y}" rx="4.2" ry="3" fill="#FFD84D"/><circle cx="${x+2.4}" cy="${y-3.6}" r="2.6" fill="#FFD84D"/><path d="M${x+4.6} ${y-3.8} l2.4 .6 -2.4 1Z" fill="#FF8A3C"/><circle cx="${x+3}" cy="${y-4.2}" r=".6" fill="#3A1431"/>`;
+
 const DECOR=[
-  {id:'rug',room:'room',name:'Pink rug',cost:55,vb:'60 140 200 60',svg:`<ellipse cx="160" cy="178" rx="92" ry="15" fill="#FFF0F7"/><ellipse cx="160" cy="178" rx="92" ry="15" fill="none" stroke="#FF6FAE" stroke-width="3"/><ellipse cx="160" cy="178" rx="84" ry="11.5" fill="none" stroke="#FFB3D3" stroke-width="1.6" stroke-dasharray="4 4"/>${[-70,-46,-22,22,46,70].map(dx=>`<path transform="translate(${160+dx} ${178+Math.abs(dx)*-.02}) scale(.9)" d="M0 3 C-5 -.5 -4 -5 0 -2.4 C4 -5 5 -.5 0 3Z" fill="#FF9CC9"/>`).join('')}`},
+  {id:'rug',flat:true,room:'room',name:'Pink rug',cost:55,vb:'60 140 200 60',svg:`<ellipse cx="160" cy="178" rx="92" ry="15" fill="#FFF0F7"/><ellipse cx="160" cy="178" rx="92" ry="15" fill="none" stroke="#FF6FAE" stroke-width="3"/><ellipse cx="160" cy="178" rx="84" ry="11.5" fill="none" stroke="#FFB3D3" stroke-width="1.6" stroke-dasharray="4 4"/>${[-70,-46,-22,22,46,70].map(dx=>`<path transform="translate(${160+dx} ${178+Math.abs(dx)*-.02}) scale(.9)" d="M0 3 C-5 -.5 -4 -5 0 -2.4 C4 -5 5 -.5 0 3Z" fill="#FF9CC9"/>`).join('')}`},
   {id:'plant',room:'room',name:'Leafy plant',cost:30,vb:'18 96 80 84',svg:`<g transform="translate(8 0)"><path d="M46 150 C30 144 24 124 34 112 C38 128 44 138 46 150Z" fill="#6BC99A"/><path d="M46 150 C62 144 68 124 58 112 C54 128 48 138 46 150Z" fill="#7ED6A8"/><path d="M46 150 C40 132 44 112 50 104 C52 122 50 138 46 150Z" fill="#8FE0B4"/><path d="M46 150 C34 146 22 140 20 130 C32 132 40 140 46 150Z" fill="#7ED6A8"/><path d="M46 150 C58 146 70 140 72 130 C60 132 52 140 46 150Z" fill="#6BC99A"/><path d="M34 150 h24 l-3 22 h-18Z" fill="#E8508F"/><rect x="32" y="148" width="28" height="6" rx="3" fill="#C42672"/></g>`},
   {id:'lamp',room:'room',name:'Glow lamp',cost:45,vb:'226 76 80 108',svg:`<ellipse cx="270" cy="110" rx="28" ry="14" fill="#FFE27A" opacity=".22"/><rect x="268" y="110" width="4" height="64" fill="#C3438B"/><ellipse cx="270" cy="176" rx="12" ry="4" fill="#C3438B"/><path d="M254 110 L286 110 L278 90 L262 90Z" fill="#FFE27A"/><path d="M254 110 L286 110" stroke="#F5C542" stroke-width="2.4" stroke-linecap="round"/>`},
-  {id:'lights',room:'room',name:'Fairy lights',cost:90,vb:'0 0 320 60',svg:(()=>{let d='M0 12',dots='';for(let x=0;x<=320;x+=8)d+=` L${x} ${(14+8*Math.sin(x/320*Math.PI*4)).toFixed(1)}`;for(let i=0;i<10;i++){const x=16+i*32;dots+=`<circle cx="${x}" cy="${(14+8*Math.sin(x/320*Math.PI*4)+5).toFixed(1)}" r="3.4" fill="${['#FFE27A','#FF7DB6','#9FF0F0'][i%3]}"/>`}return `<path d="${d}" fill="none" stroke="#C3438B" stroke-width="1.4"/>`+dots})()},
+  {id:'lights',hang:true,room:'room',name:'Fairy lights',cost:90,vb:'0 0 320 60',svg:(()=>{let d='M0 12',dots='';for(let x=0;x<=320;x+=8)d+=` L${x} ${(14+8*Math.sin(x/320*Math.PI*4)).toFixed(1)}`;for(let i=0;i<10;i++){const x=16+i*32;dots+=`<circle cx="${x}" cy="${(14+8*Math.sin(x/320*Math.PI*4)+5).toFixed(1)}" r="3.4" fill="${['#FFE27A','#FF7DB6','#9FF0F0'][i%3]}"/>`}return `<path d="${d}" fill="none" stroke="#C3438B" stroke-width="1.4"/>`+dots})()},
   {id:'cushion',room:'room',name:'Heart cushion',cost:40,vb:'54 150 64 44',svg:`<ellipse cx="84" cy="186" rx="18" ry="3.5" fill="#4A1B3C" opacity=".12"/><path transform="translate(84 172) scale(2.6)" d="M0 5 C-8 0 -7.5 -6 -3.6 -6 C-1.6 -6 -.5 -4.8 0 -3.6 C.5 -4.8 1.6 -6 3.6 -6 C7.5 -6 8 0 0 5Z" fill="#FF7DB6" stroke="#E8508F" stroke-width=".5" stroke-linejoin="round"/><path transform="translate(84 172) scale(2.6)" d="M0 3.2 C-5.5 -.2 -5.2 -4.2 -3 -4.2 C-1.6 -4.2 -.6 -3.2 0 -2" fill="none" stroke="#FFF0F6" stroke-width=".55" stroke-dasharray="1 .9" stroke-linecap="round"/><ellipse cx="76" cy="162" rx="4" ry="2.4" fill="#fff" opacity=".45"/>`},
   {id:'poster',room:'room',name:'Star poster',cost:70,vb:'20 58 62 64',svg:`<rect x="34" y="68" width="34" height="44" rx="3" fill="#fff"/><rect x="38" y="72" width="26" height="36" fill="#BFA8FF"/><polygon points="51,79 53,85 59,85 54,89 56,95 51,91 46,95 48,89 43,85 49,85" fill="#FFE27A"/><circle cx="44" cy="101" r="1.4" fill="#fff"/><circle cx="58" cy="77" r="1.2" fill="#fff"/><circle cx="51" cy="66" r="2" fill="#E8508F"/>`},
   {id:'crystals',room:'room',name:'Crystal cluster',gift:true,vb:'222 134 64 50',svg:`<ellipse cx="248" cy="174" rx="22" ry="4" fill="#4A1B3C" opacity=".12"/><path d="M236 174 L240 152 L248 144 L254 154 L256 174Z" fill="#C79BFF"/><path d="M248 144 L250 174 L256 174 L254 154Z" fill="#9F72F0"/><path d="M226 174 L229 160 L235 156 L240 162 L240 174Z" fill="#D9B8FF"/><path d="M254 174 L258 158 L264 154 L268 160 L266 174Z" fill="#B88AF5"/><path d="M241 156 L244 150" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>`},
@@ -1374,41 +1438,53 @@ const DECOR=[
   /* ----- Cozy Room, new ----- */
   {id:'fishbowl',room:'room',name:'Fishbowl',cost:50,vb:'204 68 64 36',svg:`<rect x="206" y="96" width="44" height="5" rx="2.5" fill="#E88CB8"/><ellipse cx="228" cy="86" rx="13" ry="11" fill="#CDEFFF" stroke="#9FD8F0" stroke-width="1.4"/><path d="M216 84 H240" stroke="#8FD3F5" stroke-width="1.2"/><path d="M218 84 Q228 82 238 84 L238 90 Q228 98 218 90Z" fill="#9FDDF7" opacity=".7"/><path d="M224 88 q4 -4 8 0 q-4 4 -8 0Z M232 88 l4 -3 v6Z" fill="#FF7DB6"/><circle cx="225.5" cy="87.4" r=".8" fill="#3A1431"/><circle cx="221" cy="80" r="1.2" fill="#fff" opacity=".8"/><path d="M220 76 h16" stroke="#9FD8F0" stroke-width="2" stroke-linecap="round"/>`},
   {id:'beanbag',room:'room',name:'Fluffy beanbag',cost:60,vb:'226 156 66 44',svg:`<ellipse cx="260" cy="194" rx="28" ry="4" fill="#4A1B3C" opacity=".12"/><path d="M236 192 C230 176 240 160 258 160 C278 160 290 176 284 192 Q260 198 236 192Z" fill="#B9A2FF"/><path d="M244 176 Q258 168 274 176" stroke="#9B84F0" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="250" cy="170" rx="6" ry="3.4" fill="#fff" opacity=".35"/>`},
+  {id:'mirror',room:'room',name:'Heart mirror',cost:50,vb:'67 51 38 44',svg:`<path d="M86 56 L77 70 M86 56 L95 70" stroke="#C3438B" stroke-width="1"/><circle cx="86" cy="56" r="1.6" fill="#C3438B"/><path transform="translate(86 80) scale(2.5)" d="${DH}" fill="#FF9CC9" stroke="#E8508F" stroke-width=".4" stroke-linejoin="round"/><path transform="translate(86 80.5) scale(1.85)" d="${DH}" fill="#DDF2FF"/><path d="M77 74 q2.5 -3.5 6.5 -3" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M78.5 79 q1 -1.4 2.6 -1.6" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round"/>`},
+  {id:'slippers',room:'room',name:'Bunny slippers',cost:35,vb:'191 172 46 29',svg:`${DSH(214,196,20)}${DBUNNY(224,188)}${DBUNNY(207,191)}`},
   /* ----- Beach Sunset ----- */
   {id:'cart',room:'beach',name:'Ice-cream cart',cost:110,vb:'26 110 72 64',svg:`<ellipse cx="62" cy="171" rx="32" ry="3.5" fill="#4A1B3C" opacity=".12"/><rect x="34" y="136" width="56" height="28" rx="5" fill="#FFF4FA" stroke="#FF9CC9" stroke-width="1.6"/><path d="M34 146 H90" stroke="#FF9CC9" stroke-width="1.6"/><path d="M40 150 h6 v8 h-6Z M52 150 h6 v8 h-6Z M64 150 h6 v8 h-6Z" fill="#FFD3E8"/><circle cx="44" cy="168" r="5" fill="#8A5A44"/><circle cx="80" cy="168" r="5" fill="#8A5A44"/><circle cx="44" cy="168" r="2" fill="#FFE8C8"/><circle cx="80" cy="168" r="2" fill="#FFE8C8"/><path d="M78 136 l4 -12 l4 12Z" fill="#FFC27A"/><circle cx="82" cy="122" r="4.5" fill="#FF9CC9"/><circle cx="82" cy="117" r="3.6" fill="#B9F0E0"/>`},
-  {id:'towel',room:'beach',name:'Stripy beach towel',cost:40,vb:'26 168 76 30',svg:`<path d="M34 176 L96 176 L90 194 L28 194Z" fill="#FF7DB6"/><path d="M42 176 L36 194 M56 176 L50 194 M70 176 L64 194 M84 176 L78 194" stroke="#FFFFFF" stroke-width="5"/>`},
+  {id:'towel',flat:true,room:'beach',name:'Stripy beach towel',cost:40,vb:'26 168 76 30',svg:`<path d="M34 176 L96 176 L90 194 L28 194Z" fill="#FF7DB6"/><path d="M42 176 L36 194 M56 176 L50 194 M70 176 L64 194 M84 176 L78 194" stroke="#FFFFFF" stroke-width="5"/>`},
   {id:'starfish',room:'beach',name:'Starfish and shells',cost:35,vb:'226 176 46 22',svg:`${STAR(240,188,7,'#FF8A65',' stroke="#E8664A" stroke-width="1" stroke-linejoin="round"')}<circle cx="238" cy="186" r=".8" fill="#fff"/><circle cx="242" cy="190" r=".8" fill="#fff"/><path d="M252 194 a6 6 0 0 1 12 0Z" fill="#FFD3E8" stroke="#FF9CC9" stroke-width="1"/><path d="M255 194 l1.5 -5 M258 194 v-6 M261 194 l-1.5 -5" stroke="#FF9CC9" stroke-width=".8"/><ellipse cx="268" cy="192" rx="3.4" ry="2.4" fill="#FFF0E0" stroke="#E8C8A8" stroke-width=".8"/>`},
   {id:'sandcastle',room:'beach',name:'Sandcastle',cost:55,vb:'222 124 50 58',svg:`<path d="M230 178 V156 h6 v4 h4 v-4 h6 v4 h4 v-4 h6 v22Z" fill="#F5D59A" stroke="#E0B870" stroke-width="1.2" stroke-linejoin="round"/><path d="M238 156 V142 h4 v3 h4 v-3 h4 v14Z" fill="#F5D59A" stroke="#E0B870" stroke-width="1.2" stroke-linejoin="round"/><path d="M244 168 a4 4 0 0 1 8 0 v10 h-8Z" fill="#E0B870"/><path d="M244 142 V128" stroke="#8A5A44" stroke-width="1.4"/><path d="M244 128 l10 3.5 -10 3.5Z" fill="#FF6FAE"/>`},
   {id:'surfboard',room:'beach',name:'Surfboard',cost:80,vb:'262 86 30 92',svg:`<ellipse cx="278" cy="174" rx="10" ry="2.5" fill="#4A1B3C" opacity=".12"/><path d="M278 90 C290 108 290 156 280 174 C276 176 274 176 272 174 C264 156 266 108 278 90Z" fill="#9FE3F0" stroke="#5FBFD4" stroke-width="1.4"/><path d="M278 96 V170" stroke="#FF7DB6" stroke-width="3"/><path d="M273 118 h10 M272 140 h12" stroke="#fff" stroke-width="1.6" opacity=".7"/>`},
   {id:'bottle',room:'beach',name:'Message in a bottle',gift:true,vb:'230 110 40 28',svg:`<g transform="rotate(-18 250 124)"><rect x="238" y="118" width="22" height="11" rx="5" fill="#BFF0DC" fill-opacity=".85" stroke="#7FCFAE" stroke-width="1.2"/><rect x="258" y="120.5" width="6" height="6" rx="1.5" fill="#B88A64"/><rect x="243" y="120" width="11" height="7" rx="1" fill="#FFF8E7"/><path d="M245 122.5 h7 M245 124.5 h5" stroke="#E0B870" stroke-width=".8"/></g><path d="M232 130 q6 -3 12 0 t12 0 t12 0" stroke="#fff" stroke-width="1.4" fill="none" opacity=".8"/>`},
+  {id:'seagull',room:'beach',name:'Seagull',cost:45,vb:'20 13 65 26',svg:`<path d="M30 30 l-7 -3 1.5 6.5Z" fill="#FFFFFF" stroke="#D9D0E6" stroke-width="1" stroke-linejoin="round"/><ellipse cx="40" cy="30" rx="11" ry="6.4" fill="#FFFFFF" stroke="#D9D0E6" stroke-width="1"/><path d="M33 28 Q38 13 48 24 Q41 24 33 28Z" fill="#E6E0EE" stroke="#C9BEDA" stroke-width="1" stroke-linejoin="round"/><circle cx="51" cy="26" r="5" fill="#FFFFFF" stroke="#D9D0E6" stroke-width="1"/><circle cx="52.6" cy="25" r="1" fill="#3A1431"/><path d="M55.6 26 l5.4 1.2 -5.4 1.8Z" fill="#FFB347"/><circle cx="50" cy="28.4" r="1.3" fill="#FFB3D3" opacity=".8"/><path d="M70 18 q3 -3.4 6 0 q3 -3.4 6 0" stroke="#FFFFFF" stroke-width="1.4" fill="none" stroke-linecap="round"/>`},
+  {id:'beachball',room:'beach',name:'Beach ball',cost:30,vb:'199 173 26 29',svg:`${DSH(212,196.5,10,2.2)}<circle cx="212" cy="186" r="10" fill="#FF7DB6"/><path d="M212 176 A10 10 0 0 0 212 196 Q203 186 212 176Z" fill="#FFE27A"/><path d="M212 176 A10 10 0 0 1 212 196 Q221 186 212 176Z" fill="#7FD3E8"/><path d="M212 176 Q207.6 186 212 196 Q216.4 186 212 176Z" fill="#FFFFFF"/><circle cx="212" cy="177.4" r="1.8" fill="#FFFFFF"/><ellipse cx="206.5" cy="181" rx="2.4" ry="1.4" fill="#FFFFFF" opacity=".6"/>`},
   /* ----- Cherry Blossom Park ----- */
-  {id:'lanterns',room:'sakura',name:'Paper lanterns',cost:60,vb:'20 0 280 44',svg:`<path d="M24 10 Q100 26 160 14 T296 12" stroke="#9A6A7C" stroke-width="1.2" fill="none"/>${[[44,15],[84,20],[236,16],[276,13]].map(([x,y],i)=>`<path d="M${x} ${y} v4" stroke="#9A6A7C" stroke-width="1"/><ellipse cx="${x}" cy="${y+12}" rx="7" ry="9" fill="${['#FF9CC9','#FFE27A','#FF7DB6','#FFE27A'][i]}"/><path d="M${x-7} ${y+12} h14 M${x} ${y+3} v18" stroke="#fff" stroke-width=".9" opacity=".6"/><rect x="${x-4}" y="${y+2}" width="8" height="2.4" rx="1" fill="#C3438B"/><rect x="${x-4}" y="${y+20}" width="8" height="2.4" rx="1" fill="#C3438B"/>`).join('')}`},
+  {id:'lanterns',hang:true,room:'sakura',name:'Paper lanterns',cost:60,vb:'20 0 280 44',svg:`<path d="M24 10 Q100 26 160 14 T296 12" stroke="#9A6A7C" stroke-width="1.2" fill="none"/>${[[44,15],[84,20],[236,16],[276,13]].map(([x,y],i)=>`<path d="M${x} ${y} v4" stroke="#9A6A7C" stroke-width="1"/><ellipse cx="${x}" cy="${y+12}" rx="7" ry="9" fill="${['#FF9CC9','#FFE27A','#FF7DB6','#FFE27A'][i]}"/><path d="M${x-7} ${y+12} h14 M${x} ${y+3} v18" stroke="#fff" stroke-width=".9" opacity=".6"/><rect x="${x-4}" y="${y+2}" width="8" height="2.4" rx="1" fill="#C3438B"/><rect x="${x-4}" y="${y+20}" width="8" height="2.4" rx="1" fill="#C3438B"/>`).join('')}`},
   {id:'swing',room:'sakura',name:'Blossom swing',cost:120,vb:'64 100 44 64',svg:`<path d="M74 108 V150 M98 108 V150" stroke="#9A6A7C" stroke-width="1.6"/><rect x="70" y="148" width="32" height="6" rx="3" fill="#C98B6B"/><g fill="#FFB3D3"><circle cx="74" cy="122" r="3"/><circle cx="98" cy="132" r="3"/><circle cx="74" cy="138" r="2.6"/><circle cx="98" cy="116" r="2.6"/></g><g fill="#FF8DBF"><circle cx="74" cy="122" r="1.1"/><circle cx="98" cy="132" r="1.1"/></g>`},
-  {id:'picnic',room:'sakura',name:'Picnic blanket',cost:45,vb:'22 166 80 30',svg:`<path d="M34 172 L98 172 L92 192 L28 192Z" fill="#FFFFFF"/><path d="M34 172 L98 172 L92 192 L28 192Z" fill="none" stroke="#FF7DB6" stroke-width="1.4"/><path d="M45 172 L39 192 M56 172 L50 192 M67 172 L61 192 M78 172 L72 192 M89 172 L83 192 M32 179 H96 M30 186 H94" stroke="#FF9CC9" stroke-width="3.6" opacity=".7"/>`},
+  {id:'picnic',flat:true,room:'sakura',name:'Picnic blanket',cost:45,vb:'22 166 80 30',svg:`<path d="M34 172 L98 172 L92 192 L28 192Z" fill="#FFFFFF"/><path d="M34 172 L98 172 L92 192 L28 192Z" fill="none" stroke="#FF7DB6" stroke-width="1.4"/><path d="M45 172 L39 192 M56 172 L50 192 M67 172 L61 192 M78 172 L72 192 M89 172 L83 192 M32 179 H96 M30 186 H94" stroke="#FF9CC9" stroke-width="3.6" opacity=".7"/>`},
   {id:'teaset',room:'sakura',name:'Tea set',cost:55,vb:'34 154 46 28',svg:`<ellipse cx="50" cy="174" rx="11" ry="9" fill="#FFFFFF" stroke="#FF9CC9" stroke-width="1.4"/><path d="M39 172 q-6 -1 -8 -6" stroke="#FF9CC9" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M61 170 q6 0 6 6 q0 4 -5 5" stroke="#FF9CC9" stroke-width="1.6" fill="none"/><rect x="46" y="163" width="8" height="3" rx="1.5" fill="#FF9CC9"/><circle cx="50" cy="162" r="2" fill="#FF7DB6"/>${HEART(50,175,.7,'#FF7DB6')}<path d="M68 174 h10 l-1.5 7 h-7Z" fill="#FFFFFF" stroke="#FF9CC9" stroke-width="1.2"/><ellipse cx="73" cy="182" rx="7" ry="1.6" fill="#FFD3E8"/><path d="M72 170 q2 -3 0 -6 M75 170 q2 -3 0 -6" stroke="#fff" stroke-width="1" fill="none" opacity=".8"/>`},
   {id:'koi',room:'sakura',name:'Little koi pond',cost:100,vb:'222 164 72 34',svg:`<ellipse cx="258" cy="182" rx="34" ry="11" fill="#9FC7F0" stroke="#C9B9A8" stroke-width="3"/><ellipse cx="258" cy="182" rx="28" ry="7.5" fill="#B9DAFA"/><g transform="translate(250 181) rotate(-12)"><ellipse rx="6" ry="2.6" fill="#FFFFFF"/><path d="M5 0 l4 -3 v6Z" fill="#FFFFFF"/><circle cx="-1" cy="-.6" r="1.6" fill="#FF7A5C"/></g><g transform="translate(268 184) rotate(160)"><ellipse rx="5.4" ry="2.4" fill="#FF8A5C"/><path d="M4.6 0 l3.6 -2.6 v5.2Z" fill="#FF8A5C"/></g><ellipse cx="240" cy="180" rx="4" ry="2.4" fill="#7ED6A8"/>`},
   {id:'goldblossom',room:'sakura',name:'Golden blossom',gift:true,vb:'226 54 24 24',svg:`${[0,1,2,3,4].map(k=>{const a=k*Math.PI*2/5-Math.PI/2;return `<circle cx="${(238+5*Math.cos(a)).toFixed(1)}" cy="${(66+5*Math.sin(a)).toFixed(1)}" r="4.4" fill="#FFD76A" stroke="#E6A800" stroke-width=".8"/>`}).join('')}<circle cx="238" cy="66" r="3" fill="#FF8DBF"/>${spark(248,58,2.4,'#fff')}`},
+  {id:'stonelantern',room:'sakura',name:'Stone lantern',cost:85,vb:'227 116 34 56',svg:`<ellipse cx="244" cy="138" rx="13" ry="9" fill="#FFE27A" opacity=".22"/>${DSH(244,166,12,2.5)}<rect x="234" y="160" width="20" height="6" rx="1.5" fill="#D9D0E6" stroke="#B8AACB" stroke-width="1"/><rect x="240" y="146" width="8" height="14" fill="#E3DCEC" stroke="#B8AACB" stroke-width="1"/><rect x="235" y="142" width="18" height="5" rx="1.5" fill="#D9D0E6" stroke="#B8AACB" stroke-width="1"/><rect x="237" y="131" width="14" height="11" rx="1.5" fill="#E3DCEC" stroke="#B8AACB" stroke-width="1"/><rect x="240.5" y="133.5" width="7" height="6" rx="1" fill="#FFE27A"/><path d="M230 132 Q244 120 258 132Z" fill="#D9D0E6" stroke="#B8AACB" stroke-width="1" stroke-linejoin="round"/><circle cx="244" cy="121.5" r="2.6" fill="#D9D0E6" stroke="#B8AACB" stroke-width="1"/><g opacity=".95">${DFLOWER(252,129,1.6,'#FFB3D3','#FF7DB6')}</g>`},
+  {id:'wateringcan',room:'sakura',name:'Watering can',cost:40,vb:'173 167 44 33',svg:`${DSH(200,195,14)}<path d="M193 186 L181 176" stroke="#8FD6E8" stroke-width="3.4" stroke-linecap="round"/><ellipse cx="180" cy="175" rx="2.6" ry="3.8" transform="rotate(-40 180 175)" fill="#6FC3D8"/><path d="M197 180 Q202 169 208 180" stroke="#6FC3D8" stroke-width="2.4" fill="none"/><rect x="192" y="180" width="19" height="14" rx="3.5" fill="#9FE3F0" stroke="#6FC3D8" stroke-width="1.2"/>${DFLOWER(201.5,187,1.9,'#FF9CC9')}`},
   /* ----- Snow Cabin (Christmas) ----- */
-  {id:'stockings',room:'snow',name:'Christmas stockings',cost:45,vb:'20 2 280 44',svg:`<path d="M24 8 Q90 24 150 12 T296 10" stroke="#3E8E6A" stroke-width="3" fill="none"/>${[[34,11],[62,15],[236,13],[268,10]].map(([x,y],i)=>`<path d="M${x} ${y} v4" stroke="#3E8E6A" stroke-width="1"/><path d="M${x-5} ${y+4} h10 v12 q0 6 6 7 q2 5 -4 6 q-9 0 -12 -6Z" fill="${i%2?'#FFFFFF':'#E8325F'}" stroke="${i%2?'#E8325F':'#C42150'}" stroke-width="1"/><rect x="${x-6}" y="${y+3}" width="12" height="4" rx="2" fill="${i%2?'#E8325F':'#FFFFFF'}"/>`).join('')}<g fill="#E8325F"><circle cx="150" cy="12" r="2"/><circle cx="153" cy="14" r="2"/></g><path d="M144 12 q3 -5 6 0 q3 -5 6 0" fill="#3E8E6A"/>`},
+  {id:'stockings',hang:true,room:'snow',name:'Christmas stockings',cost:45,vb:'20 2 280 44',svg:`<path d="M24 8 Q90 24 150 12 T296 10" stroke="#3E8E6A" stroke-width="3" fill="none"/>${[[34,11],[62,15],[236,13],[268,10]].map(([x,y],i)=>`<path d="M${x} ${y} v4" stroke="#3E8E6A" stroke-width="1"/><path d="M${x-5} ${y+4} h10 v12 q0 6 6 7 q2 5 -4 6 q-9 0 -12 -6Z" fill="${i%2?'#FFFFFF':'#E8325F'}" stroke="${i%2?'#E8325F':'#C42150'}" stroke-width="1"/><rect x="${x-6}" y="${y+3}" width="12" height="4" rx="2" fill="${i%2?'#E8325F':'#FFFFFF'}"/>`).join('')}<g fill="#E8325F"><circle cx="150" cy="12" r="2"/><circle cx="153" cy="14" r="2"/></g><path d="M144 12 q3 -5 6 0 q3 -5 6 0" fill="#3E8E6A"/>`},
   {id:'xmastree',room:'snow',name:'Christmas tree',cost:110,vb:'228 74 64 110',svg:`<rect x="257" y="164" width="8" height="10" fill="#8A5A44"/><path d="M261 86 L280 118 H271 L286 144 H274 L292 168 H230 L248 144 H236 L251 118 H242Z" fill="#3E9E72"/><path d="M246 128 Q262 136 278 126 M240 152 Q262 162 284 150" stroke="#FFE27A" stroke-width="1.4" fill="none"/>${[[252,110],[270,112],[246,138],[262,134],[278,140],[242,158],[258,160],[276,158],[268,124]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="3" fill="${['#E8325F','#FFE27A','#FF9CC9','#9FD8F0'][i%4]}"/>`).join('')}${STAR(261,84,7,'#FFD24D',' stroke="#E6A800" stroke-width="1" stroke-linejoin="round"')}<rect x="236" y="168" width="14" height="12" rx="1.5" fill="#E8325F"/><path d="M243 168 v12 M236 174 h14" stroke="#FFE27A" stroke-width="2"/><rect x="270" y="170" width="16" height="10" rx="1.5" fill="#9FD8F0"/><path d="M278 170 v10 M270 175 h16" stroke="#FF7DB6" stroke-width="2"/>`},
   {id:'snowman',room:'snow',name:'Snowman',cost:50,vb:'26 108 48 72',svg:`<ellipse cx="50" cy="176" rx="18" ry="3.5" fill="#4A1B3C" opacity=".1"/><circle cx="50" cy="162" r="14" fill="#FFFFFF" stroke="#D9D0F0" stroke-width="1.4"/><circle cx="50" cy="138" r="10" fill="#FFFFFF" stroke="#D9D0F0" stroke-width="1.4"/><rect x="42" y="118" width="16" height="12" rx="1.5" fill="#3A1431"/><rect x="38" y="128" width="24" height="3.4" rx="1.5" fill="#3A1431"/><rect x="42" y="124" width="16" height="3" fill="#E8325F"/><circle cx="46" cy="136" r="1.4" fill="#3A1431"/><circle cx="54" cy="136" r="1.4" fill="#3A1431"/><path d="M50 139 l7 1.5 -7 1.5Z" fill="#FF8A3C"/><path d="M40 146 Q50 152 60 146 l1 4 Q50 156 39 150Z" fill="#E8325F"/><path d="M56 148 l3 10 4 -1 -2 -10Z" fill="#C42150"/><circle cx="50" cy="158" r="1.4" fill="#3A1431"/><circle cx="50" cy="164" r="1.4" fill="#3A1431"/>`},
   {id:'sled',room:'snow',name:'Sled of presents',cost:55,vb:'22 164 80 34',svg:`<path d="M30 190 H92 q6 0 6 -6" stroke="#C3438B" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M38 190 v-6 M84 190 v-6" stroke="#C3438B" stroke-width="2"/><rect x="32" y="180" width="60" height="5" rx="2" fill="#C98B6B"/><rect x="38" y="166" width="16" height="14" rx="1.5" fill="#9FD8F0"/><path d="M46 166 v14 M38 173 h16" stroke="#E8325F" stroke-width="2"/><rect x="56" y="170" width="14" height="10" rx="1.5" fill="#FFE27A"/><path d="M63 170 v10 M56 175 h14" stroke="#3E9E72" stroke-width="2"/><rect x="72" y="168" width="14" height="12" rx="1.5" fill="#E8325F"/><path d="M79 168 v12 M72 174 h14" stroke="#FFFFFF" stroke-width="2"/><path d="M76 168 q3 -5 3 0 q0 -5 3 0" stroke="#FFFFFF" stroke-width="1.4" fill="none"/>`},
   {id:'cocoa',room:'snow',name:'Hot cocoa and candy cane',cost:35,vb:'226 168 40 30',svg:`<ellipse cx="244" cy="194" rx="11" ry="2.4" fill="#4A1B3C" opacity=".1"/><rect x="236" y="178" width="16" height="16" rx="3" fill="#FFFFFF" stroke="#E8325F" stroke-width="1.4"/><path d="M252 182 q6 0 6 5 q0 5 -6 5" stroke="#E8325F" stroke-width="1.6" fill="none"/><ellipse cx="244" cy="179" rx="8" ry="2.2" fill="#8A5A44"/><circle cx="241" cy="178" r="2" fill="#FFFFFF"/><circle cx="246" cy="177.6" r="1.8" fill="#FFFFFF"/><path d="M240 174 q2 -3 0 -6 M246 173 q2 -3 0 -6" stroke="#fff" stroke-width="1" fill="none" opacity=".9"/><path d="M258 194 V178 q0 -5 5 -5 q5 0 5 5" stroke="#FFFFFF" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M258 194 V178 q0 -5 5 -5 q5 0 5 5" stroke="#E8325F" stroke-width="3.4" fill="none" stroke-dasharray="2.4 2.4" stroke-linecap="butt"/>`},
   {id:'snowglobe',room:'snow',name:'Snow globe',gift:true,vb:'262 168 30 30',svg:`<path d="M268 194 h20 l-2 -6 h-16Z" fill="#E8325F"/><circle cx="278" cy="180" r="10" fill="#DDF2FF" fill-opacity=".85" stroke="#B8DCF0" stroke-width="1.2"/><path d="M274 184 v-5 l4 -4 4 4 v5Z" fill="#C98B6B"/><path d="M273 179 l5 -5 5 5" stroke="#FFFFFF" stroke-width="1.4" fill="none"/><g fill="#fff"><circle cx="272" cy="176" r=".9"/><circle cx="284" cy="174" r=".9"/><circle cx="280" cy="187" r=".8"/></g><circle cx="274" cy="174" r="1.8" fill="#fff" opacity=".8"/>`},
+  {id:'gingerbread',room:'snow',name:'Gingerbread house',cost:65,vb:'193 163 38 37',svg:`${DSH(212,195,16)}<rect x="200" y="178" width="24" height="16" rx="1.5" fill="#C98B6B"/><rect x="209" y="185" width="6" height="9" rx="3" fill="#8A5A44"/><rect x="202.5" y="181.5" width="4.4" height="4.4" rx=".8" fill="#FFE27A"/><rect x="217.1" y="181.5" width="4.4" height="4.4" rx=".8" fill="#FFE27A"/><path d="M196 180.5 L212 166 L228 180.5Z" fill="#FFFFFF" stroke="#E3D8F0" stroke-width="1.2" stroke-linejoin="round"/><path d="M200 178 q2 2.4 4 0 q2 2.4 4 0 q2 2.4 4 0 q2 2.4 4 0 q2 2.4 4 0 q2 2.4 4 0" stroke="#FFFFFF" stroke-width="1.6" fill="none"/><circle cx="207" cy="175" r="1.4" fill="#E8325F"/><circle cx="212" cy="171" r="1.4" fill="#3E9E72"/><circle cx="217" cy="175" r="1.4" fill="#FF9CC9"/><path d="M220 168 v8" stroke="#E8325F" stroke-width="2.2" stroke-linecap="round"/><path d="M220 168 v8" stroke="#FFFFFF" stroke-width="2.2" stroke-dasharray="1.4 1.4" stroke-linecap="round"/>`},
+  {id:'skates',room:'snow',name:'Ice skates',cost:50,vb:'99 170 46 33',svg:`${DSH(122,197,20,2.2,'.1')}${DSKATE(103,175)}${DSKATE(116,178)}`},
   /* ----- Candy Carnival ----- */
-  {id:'bunting',room:'carnival',name:'Bunting',cost:35,vb:'20 0 280 30',svg:`<path d="M22 6 Q160 22 298 6" stroke="#C3438B" stroke-width="1.2" fill="none"/>${[30,52,74,96,224,246,268,290].map((x,i)=>{const y=6+16*(1-Math.pow((x-160)/138,2))*.9;return `<path d="M${x-7} ${y} L${x+7} ${y} L${x} ${y+12}Z" fill="${['#FF7DB6','#FFE27A','#9FE3F0','#B9A2FF'][i%4]}"/>`}).join('')}`},
+  {id:'bunting',hang:true,room:'carnival',name:'Bunting',cost:35,vb:'20 0 280 30',svg:`<path d="M22 6 Q160 22 298 6" stroke="#C3438B" stroke-width="1.2" fill="none"/>${[30,52,74,96,224,246,268,290].map((x,i)=>{const y=6+16*(1-Math.pow((x-160)/138,2))*.9;return `<path d="M${x-7} ${y} L${x+7} ${y} L${x} ${y+12}Z" fill="${['#FF7DB6','#FFE27A','#9FE3F0','#B9A2FF'][i%4]}"/>`}).join('')}`},
   {id:'carousel',room:'carnival',name:'Carousel horse',cost:130,vb:'52 116 52 80',svg:`<path d="M76 118 V190" stroke="#FFC83D" stroke-width="3"/><circle cx="76" cy="118" r="3" fill="#FFC83D"/><ellipse cx="76" cy="192" rx="16" ry="3.5" fill="#E8C060"/><path d="M62 156 q-2 -14 12 -14 h10 q4 -10 12 -8 q2 6 -2 10 l-2 14 q-4 6 -16 6 h-10 q-6 0 -4 -8Z" fill="#FFFFFF" stroke="#FF9CC9" stroke-width="1.4"/><path d="M90 134 q4 2 6 8 M88 136 q-2 6 2 12" stroke="#FF7DB6" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M66 164 l-4 12 M74 166 l-2 12 M84 164 l3 11 M90 160 l5 10" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/><path d="M66 164 l-4 12 M74 166 l-2 12 M84 164 l3 11 M90 160 l5 10" stroke="#FF9CC9" stroke-width="1" stroke-linecap="round" fill="none" opacity=".6"/><rect x="72" y="146" width="12" height="6" rx="2" fill="#B9A2FF"/><circle cx="93" cy="137" r="1.2" fill="#3A1431"/><path d="M60 158 q-6 4 -6 12" stroke="#FF7DB6" stroke-width="3" fill="none" stroke-linecap="round"/>`},
   {id:'popcorn',room:'carnival',name:'Popcorn box',cost:40,vb:'26 160 40 38',svg:`<path d="M34 172 h20 l-3 22 h-14Z" fill="#FFFFFF"/><path d="M38 172 l1.5 22 M44 172 v22 M50 172 l-1.5 22" stroke="#E8325F" stroke-width="2.6"/><g fill="#FFF3C4" stroke="#F0D68A" stroke-width=".8"><circle cx="37" cy="170" r="3.4"/><circle cx="43" cy="167" r="3.8"/><circle cx="49" cy="169" r="3.4"/><circle cx="53" cy="171" r="2.8"/><circle cx="40" cy="165" r="2.8"/><circle cx="47" cy="164" r="3"/></g>`},
   {id:'teddy',room:'carnival',name:'Prize teddy',cost:75,vb:'230 150 46 46',svg:`<ellipse cx="252" cy="193" rx="16" ry="3" fill="#4A1B3C" opacity=".12"/><circle cx="244" cy="160" r="4.4" fill="#E8A87C"/><circle cx="262" cy="160" r="4.4" fill="#E8A87C"/><ellipse cx="253" cy="182" rx="13" ry="11" fill="#E8A87C"/><circle cx="253" cy="166" r="10" fill="#E8A87C"/><ellipse cx="253" cy="169" rx="4.4" ry="3.2" fill="#FFE1C8"/><circle cx="249" cy="164" r="1.4" fill="#3A1431"/><circle cx="257" cy="164" r="1.4" fill="#3A1431"/><circle cx="253" cy="168" r="1.2" fill="#3A1431"/>${HEART(253,183,.9,'#FF6FAE')}<circle cx="243" cy="190" r="4" fill="#E8A87C"/><circle cx="263" cy="190" r="4" fill="#E8A87C"/><path d="M247 175 l-3 2 3 2 3 -2 -3 -2Z M259 175 l3 2 -3 2 -3 -2 3 -2Z" fill="#B9A2FF"/>`},
   {id:'balloons',room:'carnival',name:'Balloon bunch',cost:60,vb:'252 52 42 112',svg:`<path d="M272 160 Q266 130 264 96 M272 160 Q274 128 278 88 M272 160 Q280 130 286 102" stroke="#C3438B" stroke-width="1" fill="none"/><ellipse cx="264" cy="88" rx="9" ry="11" fill="#9FE3F0"/><ellipse cx="278" cy="78" rx="9" ry="11" fill="#FF7DB6"/><ellipse cx="286" cy="94" rx="8" ry="10" fill="#FFE27A"/><g fill="#fff" opacity=".6"><ellipse cx="261" cy="84" rx="2" ry="3"/><ellipse cx="275" cy="74" rx="2" ry="3"/><ellipse cx="283" cy="90" rx="1.8" ry="2.8"/></g><path d="M270 160 l2 -4 2 4Z" fill="#C3438B"/>`},
   {id:'ticket',room:'carnival',name:'Golden ticket',gift:true,vb:'266 178 28 20',svg:`<g transform="rotate(-10 280 188)"><path d="M268 182 h24 v4 a2 2 0 0 0 0 4 v4 h-24 v-4 a2 2 0 0 0 0 -4Z" fill="#FFD24D" stroke="#E6A800" stroke-width="1"/><path d="M274 182 v12" stroke="#E6A800" stroke-width=".8" stroke-dasharray="1.4 1.2"/>${STAR(283,188,3.2,'#FF7DB6')}</g>`},
+  {id:'candyfloss',room:'carnival',name:'Candy floss',cost:35,vb:'278 146 32 55',svg:`${DSH(294,196,7,1.8)}<path d="M294 196 V170" stroke="#FFF3C4" stroke-width="2.4" stroke-linecap="round"/><path d="M294 196 V170" stroke="#F0D68A" stroke-width=".8"/><g fill="#FFB3D8"><circle cx="288" cy="164" r="7"/><circle cx="300" cy="164" r="7"/><circle cx="294" cy="157" r="8"/><circle cx="294" cy="168" r="6"/></g><g fill="#FFFFFF" opacity=".55"><circle cx="290" cy="155" r="2.6"/><circle cx="286" cy="162" r="1.6"/></g><g fill="#C9B3FF" opacity=".8"><circle cx="299" cy="160" r="2"/><circle cx="296" cy="167" r="1.6"/></g>`},
+  {id:'ducks',room:'carnival',name:'Lucky ducks',cost:70,vb:'97 175 54 26',svg:`${DSH(124,196,24,2.4)}<ellipse cx="124" cy="188" rx="23" ry="7.5" fill="#FF7DB6"/><ellipse cx="124" cy="186.6" rx="20" ry="5.6" fill="#9FE3F0"/><path d="M104 189 q3 6 20 6.6 q17 -.6 20 -6.6" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-dasharray="3 3"/>${DDUCK(113,186)}${DDUCK(124,184.5)}${DDUCK(135,186.4)}`},
   /* ----- Starry Campout ----- */
   {id:'telescope',room:'stars',name:'Telescope',cost:120,vb:'24 96 60 80',svg:`<path d="M52 138 L38 174 M52 138 L52 176 M52 138 L66 174" stroke="#8A5A44" stroke-width="2.4" stroke-linecap="round"/><g transform="rotate(-38 52 134)"><rect x="34" y="128" width="40" height="11" rx="3" fill="#B9A2FF" stroke="#8C74E0" stroke-width="1.2"/><rect x="72" y="126" width="7" height="15" rx="2" fill="#8C74E0"/><rect x="28" y="130.5" width="7" height="6" rx="1.5" fill="#8C74E0"/><path d="M44 129 v9 M62 129 v9" stroke="#FFE27A" stroke-width="1.6"/></g><circle cx="52" cy="138" r="3" fill="#FFE27A"/>`},
   {id:'lantern',room:'stars',name:'Camping lantern',cost:45,vb:'68 140 34 42',svg:`<g transform="translate(40 -8)"><ellipse cx="42" cy="172" rx="16" ry="14" fill="#FFE27A" opacity=".18"/><path d="M36 160 q6 -8 12 0" stroke="#5A3F94" stroke-width="2" fill="none"/><rect x="35" y="160" width="14" height="4" rx="1.5" fill="#5A3F94"/><rect x="36" y="164" width="12" height="16" rx="3" fill="#FFF3B0" stroke="#5A3F94" stroke-width="1.4"/><path d="M42 168 q3 4 0 8 q-3 -4 0 -8Z" fill="#FFB347"/><rect x="35" y="180" width="14" height="4" rx="1.5" fill="#5A3F94"/></g>`},
   {id:'sleepingbag',room:'stars',name:'Sleeping bag',cost:60,vb:'48 168 54 30',svg:`<path d="M56 194 Q52 182 60 176 L96 176 Q100 186 96 194Z" fill="#FF7DB6"/><path d="M60 176 Q56 184 58 194" stroke="#E8508F" stroke-width="1.4" fill="none"/><path d="M66 180 q10 -3 26 0 M66 188 q10 -3 26 0" stroke="#FF9CC9" stroke-width="1.6" fill="none"/><ellipse cx="62" cy="182" rx="7" ry="5" fill="#FFF0F6"/>${STAR(84,184,2.4,'#FFE27A')}`},
   {id:'campfire',room:'stars',name:'Campfire and marshmallows',cost:55,vb:'224 132 44 44',svg:`<ellipse cx="246" cy="168" rx="20" ry="9" fill="#FFB347" opacity=".2"/><path d="M234 170 L258 162 M234 162 L258 170" stroke="#8A5A44" stroke-width="5" stroke-linecap="round"/><path d="M246 164 C236 156 240 146 244 140 C244 148 250 148 250 140 C258 150 256 160 246 164Z" fill="#FF8A3C"/><path d="M246 163 C241 158 243 152 246 148 C247 154 251 154 250 150 C253 156 251 161 246 163Z" fill="#FFE27A"/><path d="M262 172 L250 150" stroke="#C98B6B" stroke-width="1.4"/><rect x="247" y="144" width="6" height="7" rx="2" fill="#FFFFFF" transform="rotate(-28 250 147.5)"/>`},
   {id:'fireflies',room:'stars',name:'Jar of fireflies',cost:70,vb:'262 160 32 38',svg:`<ellipse cx="277" cy="182" rx="15" ry="15" fill="#E6FF9A" opacity=".16"/><rect x="268" y="168" width="18" height="24" rx="5" fill="#DDF2FF" fill-opacity=".5" stroke="#B8DCF0" stroke-width="1.2"/><rect x="267" y="164" width="20" height="5" rx="2" fill="#C98B6B"/><g fill="#F2FF8A"><circle cx="273" cy="176" r="1.8"/><circle cx="280" cy="182" r="1.6"/><circle cx="275" cy="187" r="1.4"/><circle cx="282" cy="173" r="1.2"/></g>`},
-  {id:'starjar',room:'stars',name:'Shooting star in a jar',gift:true,vb:'26 176 26 22',svg:`<rect x="30" y="180" width="16" height="15" rx="4" fill="#DDF2FF" fill-opacity=".45" stroke="#B8DCF0" stroke-width="1.1"/><rect x="29" y="177" width="18" height="4" rx="1.5" fill="#B9A2FF"/>${STAR(38,188,5,'#FFE27A',' stroke="#FFB92E" stroke-width=".8"')}<path d="M33 185 l-3 -3" stroke="#FFE27A" stroke-width="1" stroke-linecap="round"/>`}
+  {id:'starjar',room:'stars',name:'Shooting star in a jar',gift:true,vb:'26 176 26 22',svg:`<rect x="30" y="180" width="16" height="15" rx="4" fill="#DDF2FF" fill-opacity=".45" stroke="#B8DCF0" stroke-width="1.1"/><rect x="29" y="177" width="18" height="4" rx="1.5" fill="#B9A2FF"/>${STAR(38,188,5,'#FFE27A',' stroke="#FFB92E" stroke-width=".8"')}<path d="M33 185 l-3 -3" stroke="#FFE27A" stroke-width="1" stroke-linecap="round"/>`},
+  {id:'owl',room:'stars',name:'Sleepy owl',cost:60,vb:'263 73 52 41',svg:`<path d="M312 109 Q292 104 268 111" stroke="#8A5A44" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M276 109 q-4 -6 -10 -5 q4 6 10 5Z M300 106 q2 -7 8 -8 q-1 7 -8 8Z" fill="#6BC99A"/><path d="M280 88 l2 -7.6 4.6 5.2Z M296 88 l-2 -7.6 -4.6 5.2Z" fill="#B9A2FF"/><ellipse cx="288" cy="96" rx="9.6" ry="11" fill="#B9A2FF"/><ellipse cx="288" cy="100" rx="6" ry="6.6" fill="#E3D8FF"/><path d="M281.6 92 q2.6 2.2 5.2 0 M289.2 92 q2.6 2.2 5.2 0" stroke="#3A1431" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M286.8 95 h2.4 l-1.2 2.6Z" fill="#FFB347"/><circle cx="282" cy="96" r="1.4" fill="#FF9CC9" opacity=".7"/><circle cx="294" cy="96" r="1.4" fill="#FF9CC9" opacity=".7"/><path d="M284.6 106.4 v2.4 M287 106.6 v2.4 M289.4 106.6 v2.4 M291.8 106.4 v2.4" stroke="#FFB347" stroke-width="1.3" stroke-linecap="round"/><path d="M298 82 h4 l-4 4 h4 M303.6 76 h3 l-3 3 h3" stroke="#FFFFFF" stroke-width=".9" fill="none" stroke-linejoin="round" opacity=".9"/>`},
+  {id:'ukulele',room:'stars',name:'Ukulele',cost:75,vb:'101 170 54 32',svg:`${DSH(132,196.5,20,2.2,'.16')}<g transform="translate(132 188) rotate(-72) scale(.82)"><rect x="-1.8" y="-26" width="3.6" height="22" rx="1" fill="#C98B6B"/><rect x="-3" y="-33" width="6" height="8" rx="1.4" fill="#8A5A44"/><circle cx="-4" cy="-30.4" r="1" fill="#FFD76A"/><circle cx="4" cy="-30.4" r="1" fill="#FFD76A"/><circle cx="0" cy="0" r="6.6" fill="#FF9CC9" stroke="#E8508F" stroke-width="1"/><circle cx="0" cy="10" r="8.6" fill="#FF9CC9" stroke="#E8508F" stroke-width="1"/><path d="M-5.6 3.6 Q0 5.6 5.6 3.6" fill="#FF9CC9"/><circle cx="0" cy="5" r="2.8" fill="#7A2E5C"/><rect x="-3.4" y="12" width="6.8" height="1.8" rx=".6" fill="#7A2E5C"/><path d="M-1 -26 V12 M1 -26 V12" stroke="#FFFFFF" stroke-width=".4" opacity=".8"/>${''}</g>`},
 ];
 const DECOR_BY=byId(DECOR);
 
@@ -1440,6 +1516,8 @@ const ICONS={
   edit:'<path d="M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   star:'<path d="M12 2l3 6.5 7 .9-5.2 4.8 1.4 7L12 17.6 5.8 21.2l1.4-7L2 9.4l7-.9z" fill="currentColor"/>',
   trash:'<path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  move:'<path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  down:'<path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
   left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
@@ -1496,7 +1574,27 @@ const skillLvl=n=>n>=10?3:n>=5?2:n>=2?1:0;
 const roomOf=d=>d.room||'room';
 const roomDecor=id=>DECOR.filter(d=>roomOf(d)===id);
 const roomDone=id=>roomDecor(id).every(d=>S.decor.includes(d.id));
-const decorSVG=()=>DECOR.filter(d=>roomOf(d)===S.scene&&(S.decor||[]).includes(d.id)).map(d=>`<g filter="url(#dstk)">${d.svg}</g>`).join('')+(roomDone(S.scene)?spark(40,30,4)+spark(282,120,3.4,'#FF9CC9')+spark(200,24,3,'#fff'):'');
+/* Room layouts (3 Nov 2026): S.rooms[room][id]=[dx,dy] moves an owned item from its drawn spot. One item can sit in
+   several rooms, each with its own spot; an item missing from a room isn't shown there. Hanging items never move. */
+const vbOf=d=>d.vb.split(' ').map(Number);
+const ROOM_X=[10,310],ROOM_Y=[0,200]; // the part of the 320x200 room that the 3:2 frame shows
+function clampOff(d,dx,dy){
+  if(d.hang)return [0,0];
+  const [x,y,w,h]=vbOf(d),r=v=>Math.round(v*10)/10;
+  const lo=(a,b,c)=>b>c?(b+c)/2:Math.min(Math.max(a,b),c);
+  return [r(lo(+dx||0,ROOM_X[0]-x,ROOM_X[1]-x-w)),r(lo(+dy||0,ROOM_Y[0]-y,ROOM_Y[1]-y-h))];
+}
+function placeDecor(id){const d=DECOR_BY[id];if(!d)return;const r=roomOf(d);S.rooms[r]=S.rooms[r]||{};if(!S.rooms[r][id])S.rooms[r][id]=[0,0]}
+function homeLayout(room){const L={};DECOR.forEach(d=>{if(roomOf(d)===room&&S.decor.includes(d.id))L[d.id]=[0,0]});return L}
+// Items in a room, back to front: flat floor things (rugs, towels) first, then in layout order. Moving or adding an
+// item puts it last, so the thing you just touched is on top.
+function roomItems(room){
+  const L=(S.rooms||{})[room]||{};
+  return Object.keys(L).filter(id=>DECOR_BY[id]&&S.decor.includes(id)).map(id=>({d:DECOR_BY[id],x:L[id][0],y:L[id][1]}))
+    .sort((a,b)=>(b.d.flat?1:0)-(a.d.flat?1:0));
+}
+const decorLayer=(room,filter)=>roomItems(room).map(({d,x,y})=>`<g transform="translate(${x} ${y})">${filter?`<g filter="url(#${filter})">${d.svg}</g>`:d.svg}</g>`).join('');
+const decorSVG=()=>decorLayer(S.scene,'dstk')+(roomDone(S.scene)?spark(40,30,4)+spark(282,120,3.4,'#FF9CC9')+spark(200,24,3,'#fff'):'');
 /* A sticker on its own: drawn on Tigrr's coordinates, cropped to the item, with the sticker edge. The crop is measured once. */
 const STK_VB={};
 function stickerVB(id,inner){
@@ -1549,7 +1647,7 @@ function applySettings(){
 window.__sysTheme=()=>applySettings();
 function setCfg(k,v){S.cfg=Object.assign({},S.cfg||{},{[k]:v});save();applySettings()}
 applySettings();
-function fresh(){return{started:false,hearts:0,coins:0,tasks:[],pets:[],active:0,wardrobe:[],scene:'room',scenes:['room'],day:dayKey(),dayHearts:0,dayEnergy:0,energy:ENERGY_START,fast:DEMO,nextId:1,last:null,decor:[],lastDone:null,focus:null,threeDay:null}}
+function fresh(){return{started:false,hearts:0,coins:0,tasks:[],pets:[],active:0,wardrobe:[],scene:'room',scenes:['room'],day:dayKey(),dayHearts:0,dayEnergy:0,energy:ENERGY_START,fast:DEMO,nextId:1,last:null,decor:[],rooms:{},lastDone:null,focus:null,threeDay:null}}
 /* Rebuild the state from scratch, keeping only fields we know, with the right types.
    Used for every load and every restore, so a damaged or hostile save can never break or inject into the page. */
 function cleanState(o){
@@ -1580,6 +1678,11 @@ function cleanState(o){
   if(!s.pets.length)s.started=false;
   s.active=intOr(o.active,0,0,Math.max(0,s.pets.length-1));
   s.wardrobe=uniqIn(o.wardrobe,OUTFIT_BY);s.decor=uniqIn(o.decor,DECOR_BY);
+  // Room layouts: saves from before 3 Nov have none, so every owned item sits in its own room at its drawn spot.
+  s.rooms={};
+  if(o.rooms&&typeof o.rooms==='object'&&!Array.isArray(o.rooms)){for(const r in SCENE_BY){const L=o.rooms[r];if(!L||typeof L!=='object'||Array.isArray(L))continue;
+    const q={};for(const id of Object.keys(L)){if(!s.decor.includes(id))continue;const v=L[id];if(Array.isArray(v)&&v.length===2)q[id]=clampOff(DECOR_BY[id],numOr(v[0],0,-400,400),numOr(v[1],0,-400,400))}s.rooms[r]=q}}
+  else for(const id of s.decor){const r=roomOf(DECOR_BY[id]);(s.rooms[r]=s.rooms[r]||{})[id]=[0,0]}
   s.scenes=uniqIn(o.scenes,SCENE_BY);if(!s.scenes.includes('room'))s.scenes.unshift('room');
   s.scene=SCENE_BY[o.scene]&&s.scenes.includes(o.scene)?o.scene:'room';
   const ids=new Set();
@@ -1990,12 +2093,13 @@ function renderDevice(){
   const state=visit===S.pets.indexOf(p)?'':p.job&&!isReady(p.job)?'out on an errand':p.trip&&!isReady(p.trip)?'on holiday':'';
   const label=`${p.name}, ${FORM_LABELS[shownStage(p)].toLowerCase()}${Object.values(wearOf(p)).length?', with '+Object.values(wearOf(p)).map(x=>OUTFIT_BY[x].name).join(', ')+' stuck on':''}${state?', '+state:''}`;
   $('#device').innerHTML=`<div class="device">
-    ${S.pets.length>1?`<div class="palrow" role="group" aria-label="Your pals">${S.pets.map((q,i)=>`<button class="palchip" type="button" data-act="pick" data-i="${i}" aria-pressed="${i===S.active}"><span class="mini">${petSVG(q.sp,q,stageOf(q),'sm')}</span>${esc(q.name)}</button>`).join('')}</div>`:''}
-    <div class="screen${fx?' night':''}" role="img" aria-label="${esc(label)}">
+    ${S.pets.length>1?(()=>{const back=awayRows().filter(r=>isReady(r.x)).length;
+      return `<button class="palbtn" type="button" data-zoom="pals" aria-haspopup="dialog" aria-label="${esc(p.name)}. Switch pal${back?`, ${back} back`:''}"${fx||fxHold?' disabled':''}><span class="mini">${petSVG(p.sp,p,shownStage(p),'sm')}</span><span class="palbtn-n">${esc(p.name)}</span>${back?`<span class="palbtn-b">${back} back</span>`:''}${ic('down',18)}</button>`})():''}
+    <div class="screenwrap"><div class="screen${fx?' night':''}" role="img" aria-label="${esc(label)}">
       <svg class="scene" data-s="${sc.id}" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>${STICKER('dstk',1.3,.8,.2)}</defs><g class="base">${sc.svg}</g>${decorSVG()}</svg>
       ${state?`<div class="awaymsg"><span>${esc(p.name)} is ${state}</span></div>`:`<div class="petwrap${fx?(fx.phase==='charge'?' charging':' pop'):''}" id="petwrap">${petSVG(p.sp,p,shownStage(p))}</div>`}
       <div class="bubble${fx?' show':''}" id="bubble">${fx&&fx.msg?esc(fx.msg):''}</div><div class="flash" id="flash"></div><canvas class="fxc" id="fxc"></canvas>
-    </div>
+    </div>${fx||fxHold?'':`<button class="arr-btn" type="button" data-zoom="arrange" aria-label="Arrange ${esc(sc.name)}">${ic('move',20)}</button>`}</div>
     ${collectStrip()}
     <div class="palhead">
       <div class="palname"><h1>${esc(p.name)}</h1><p class="fine">${FORM_LABELS[shownStage(p)]} · Bond ${bondLevel(p)} · Loves ${JOB_BY[P.talent].name.toLowerCase()}</p></div>
@@ -2062,6 +2166,7 @@ function renderAway(){
 }
 function tickAway(){
   const now=Date.now();
+  $$('.prow[data-end]').forEach(r=>{const e=+r.dataset.end,s0=+r.dataset.start,b=$('.bar>i',r),l=$('.left',r);if(b)b.style.width=Math.min(100,Math.max(3,(now-s0)/(e-s0)*100))+'%';if(l&&e>now)l.textContent=` · ${fmt(e-now)} left`});
   $$('.awayrow').forEach(r=>{
     const s=+r.dataset.start,e=+r.dataset.end,bar=$('.bar>i',r),left=$('.left',r);
     if(!bar)return;
@@ -2181,9 +2286,13 @@ const zoomIsOpen=()=>!$('#zoom').hidden;
 function renderZoom(){
   const box=$('#zoom-card');if(!zoom||!box)return;
   const af=document.activeElement,fk=af&&box.contains(af)?{z:af.dataset.zoom,i:af.dataset.i,a:af.dataset.act}:null;
-  box.classList.toggle('stick-card',zoom.k==='stick');box.classList.toggle('buy-card',zoom.k==='buy'||zoom.k==='buyd');
+  box.classList.toggle('stick-card',zoom.k==='stick'||zoom.k==='arrange');box.classList.toggle('arrange-card',zoom.k==='arrange');box.classList.toggle('buy-card',zoom.k==='buy'||zoom.k==='buyd');box.classList.toggle('pals-card',zoom.k==='pals');
+  if(zoom.k==='pals'){box.innerHTML=palsHTML();restoreZoomFocus(box,fk);return}
+  if(zoom.k==='arrange'){box.innerHTML=arrangeHTML();restoreZoomFocus(box,fk);return}
   if(zoom.k==='stick'){box.innerHTML=stickHTML();restoreZoomFocus(box,fk);return}
-  if(zoom.k==='buy'||zoom.k==='buyd'){box.innerHTML=buyHTML();restoreZoomFocus(box,fk);return}
+  // A re-draw while the pal slides are showing only refreshes the words under them, so a swipe is never cut short.
+  if(zoom.k==='buy'&&box.dataset.for===zoom.id&&$('#buy-slides')&&OUTFIT_BY[zoom.id]){const bi=$('#buy-info');if(bi)bi.innerHTML=buyInfo(OUTFIT_BY[zoom.id],S.pets[buyPal()]);restoreZoomFocus(box,fk);return}
+  if(zoom.k==='buy'||zoom.k==='buyd'){box.innerHTML=buyHTML();box.dataset.for=zoom.k==='buy'?zoom.id:'';restoreZoomFocus(box,fk);const el=$('#buy-slides');if(el)el.scrollLeft=(zoom.pi||0)*el.clientWidth;return}
   let name,pic,label,sub,act;
   if(zoom.k==='pal'){
     const P=PET_BY[zoom.id];if(!P){closeZoom();return}
@@ -2240,28 +2349,150 @@ function buyHTML(){
       :`<p class="buy-price">${coinsTxt(d.cost)}<span class="fine">· you'll have ${S.coins-d.cost} left</span></p>
       <div class="buy-acts"><button class="btn big" type="button" data-act="buydecor" data-id="${d.id}">Buy for the ${room.name}</button><button class="txtbtn" type="button" data-zoom="close">Not now</button></div>`}`;
   }
-  const o=OUTFIT_BY[zoom.id],lab=SLOTS.find(s=>s[0]===o.at)[1].toLowerCase(),fp=fitOf(p.sp,st),shows=o.at!=='back'||(fp.b&&!(o.wings&&fp.noWings)),short=o.cost-S.coins,set=setOf(o.id);
-  const why=backWhy(o,p.sp,st,p.name),fit=fitsAll(o)?'Fits every pal, at every age.':shows?`Fits ${esc(p.name)} now. Some pals tuck it away in some forms.`:esc(why);
-  return `<span class="grab" aria-hidden="true"></span>
-    ${shows?`<div class="buy-try" role="img" aria-label="${esc(p.name)} trying the ${esc(o.name)}">${petSVG(p.sp,Object.assign({},wearOf(p),{[o.at]:o.id}),st)}<span class="stick-tag">Trying it on</span></div>`
-      :`<div class="buy-try apart" role="img" aria-label="${esc(p.name)} and the ${esc(o.name)}, which stays tucked away in this form">${petSVG(p.sp,wearOf(p),st)}<span class="buy-stk">${stickerSVG(o.id)}</span><span class="stick-tag">Tucked away</span></div>`}
-    <div class="buy-t"><h2 id="zoom-h">${esc(o.name)}</h2><p class="fine m0">A ${lab} sticker. ${fit}${set?` Part of the ${set.name} set.`:''}</p></div>
+  const o=OUTFIT_BY[zoom.id],n=S.pets.length,pi=buyPal();
+  const slide=(q,i)=>{const qs=stageOf(q),f=fitOf(q.sp,qs),sh=o.at!=='back'||(f.b&&!(o.wings&&f.noWings)),tag=n>1?esc(q.name):sh?'Trying it on':'Tucked away';
+    return sh?`<div class="buy-try" role="img" aria-label="${esc(q.name)} trying the ${esc(o.name)}">${petSVG(q.sp,Object.assign({},wearOf(q),{[o.at]:o.id}),qs)}<span class="stick-tag">${tag}</span></div>`
+      :`<div class="buy-try apart" role="img" aria-label="${esc(q.name)} and the ${esc(o.name)}, which stays tucked away in this form">${petSVG(q.sp,wearOf(q),qs)}<span class="buy-stk">${stickerSVG(o.id)}</span><span class="stick-tag">${tag}</span></div>`};
+  const pics=n>1?`<div class="buy-car" role="group" aria-roledescription="carousel" aria-label="Your pals trying the ${esc(o.name)}">
+      <div class="buy-slides" id="buy-slides">${S.pets.map(slide).join('')}</div>
+      <button class="slide-arrow prev" type="button" data-zoom="slide" data-i="-1" aria-label="Previous pal"${pi===0?' hidden':''}>${ic('left',18)}</button>
+      <button class="slide-arrow next" type="button" data-zoom="slide" data-i="1" aria-label="Next pal"${pi===n-1?' hidden':''}>${ic('right',18)}</button>
+    </div>
+    <div class="buy-dots" role="group" aria-label="Pick a pal">${S.pets.map((q,i)=>`<button class="dot" type="button" data-zoom="slideto" data-i="${i}" aria-label="${esc(q.name)}" aria-pressed="${i===pi}"></button>`).join('')}</div>`
+    :slide(p,0);
+  return `<span class="grab" aria-hidden="true"></span>${pics}<div class="buy-info" id="buy-info">${buyInfo(o,S.pets[pi])}</div>`;
+}
+/* The pal shown in a sticker's buy sheet (it starts on the pal you're with). Its fit note and the buy button follow it. */
+const buyPal=()=>{if(!zoom||zoom.pi==null||zoom.pi>=S.pets.length)zoom.pi=S.active;return zoom.pi};
+function buyInfo(o,q){
+  const st=stageOf(q),lab=SLOTS.find(s=>s[0]===o.at)[1].toLowerCase(),fp=fitOf(q.sp,st),shows=o.at!=='back'||(fp.b&&!(o.wings&&fp.noWings)),short=o.cost-S.coins,set=setOf(o.id);
+  const why=backWhy(o,q.sp,st,q.name),fit=fitsAll(o)?'Fits every pal, at every age.':shows?`Fits ${esc(q.name)} now. Some pals tuck it away in some forms.`:esc(why);
+  return `<div class="buy-t"><h2 id="zoom-h">${esc(o.name)}</h2><p class="fine m0">A ${lab} sticker. ${fit}${set?` Part of the ${set.name} set.`:''}</p></div>
     ${short>0?`<p class="buy-price">${coinsTxt(o.cost)}<span class="fine">· ${short} more coins to go. Errands bring them in.</span></p><div class="buy-acts"><button class="btn big" type="button" data-zoom="close">OK</button></div>`
     :`<p class="buy-price">${coinsTxt(o.cost)}<span class="fine">· you'll have ${S.coins-o.cost} left</span></p>
-    <div class="buy-acts"><button class="btn big" type="button" data-act="buyoutfit" data-id="${o.id}">Buy and stick on ${esc(p.name)}</button><button class="btn ghost big" type="button" data-act="buysave" data-id="${o.id}">Buy, save for later</button><button class="txtbtn" type="button" data-zoom="close">Not now</button></div>`}`;
+    <div class="buy-acts"><button class="btn big" type="button" data-act="buyoutfit" data-id="${o.id}" data-pal="${S.pets.indexOf(q)}">Buy and stick on ${esc(q.name)}</button><button class="btn ghost big" type="button" data-act="buysave" data-id="${o.id}">Buy, save for later</button><button class="txtbtn" type="button" data-zoom="close">Not now</button></div>`}`;
+}
+/* Arrange [room]: drag items around a big view of the room (the pal shows faintly where it stands), and stick any
+   room sticker you own into this room or take it off. Each room keeps its own layout. */
+function arrangeHTML(){
+  const sc=SCENE_BY[S.scene]||SCENES[0],L=S.rooms[sc.id]||{},p=cur(),f=zoom.f==='here'?'here':'all';
+  const items=roomItems(sc.id).map(({d,x,y})=>{const [vx,vy,vw,vh]=vbOf(d),w=Math.max(vw,36),h=Math.max(vh,36);
+    return `<g class="arr-it${d.hang?' fixed':''}" data-id="${d.id}" transform="translate(${x} ${y})"${d.hang?'':` tabindex="0" role="button" aria-label="${esc(d.name)}. Drag, or use the arrow keys, to move it"`}><rect class="hit" x="${vx-(w-vw)/2}" y="${vy-(h-vh)/2}" width="${w}" height="${h}" rx="6" fill="transparent"/><g filter="url(#astk)">${d.svg}</g></g>`}).join('');
+  const ghost=p?petSVG(p.sp,p,stageOf(p)).replace('<svg ','<svg x="70" y="16" width="180" height="180" '):'';
+  const own=DECOR.filter(d=>S.decor.includes(d.id)),shown=own.filter(d=>f==='all'||L[d.id]);
+  const groups=SCENES.map(r=>{const list=shown.filter(d=>roomOf(d)===r.id);if(!list.length)return '';
+    return `<h4 class="alb-group">${r.name}</h4><div class="album-grid">${list.map((d,i)=>{const on=!!L[d.id];
+      return `<button class="alb${on?' on':''}" type="button" data-zoom="place" data-i="${d.id}" aria-pressed="${on}" aria-label="${esc(d.name)}${on?', in this room. Tap to take it off':''}"><span class="${ROT[i%4]}">${decorSticker(d)}</span>${on?`<span class="tick">${ic('check',12)}</span>`:''}<small>${esc(d.name)}</small></button>`}).join('')}</div>`}).join('');
+  return `<div class="stick-top"><button class="zoom-back" type="button" data-zoom="close" aria-label="Back">${ic('back',22)}</button><h2 id="zoom-h">Arrange ${sc.name}</h2></div>
+    <div class="arr-main">
+    <div class="arr-stage"><svg class="scene arr-scene" data-s="${sc.id}" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice"><defs>${STICKER('astk',1.3,.8,.2)}</defs><g class="base">${sc.svg}</g><g class="arr-items">${items}</g><g class="arr-ghost" aria-hidden="true">${ghost}</g></svg></div>
+    <div class="arr-tools"><p class="fine m0">Drag things to move them.</p><button class="linkbtn" type="button" data-zoom="reset">Put things back</button></div>
+    </div>
+    <div class="album">
+      <div class="row spread base"><h3>Room stickers</h3><button class="linkbtn" type="button" data-zoom="getdecor">Get more</button></div>
+      ${own.length?`<div class="chips" role="group" aria-label="Show">${[['all','All'],['here','In this room']].map(([k,l])=>`<button class="fchip" type="button" data-zoom="arrf" data-i="${k}" aria-pressed="${f===k}">${l}</button>`).join('')}</div>
+      ${groups||'<p class="fine m0">Nothing in this room yet.</p>'}
+      <p class="fine m0">Tap a sticker to add it to this room. Tap it again to take it off.</p>`
+      :'<p class="fine m0">No room stickers yet. The shop has plenty.</p>'}
+    </div>
+    <button class="btn big stick-done" type="button" data-zoom="close">Done</button>`;
+}
+function placeToggle(id){
+  const d=DECOR_BY[id];if(!d||!S.decor.includes(id))return;
+  const r=S.scene,L=S.rooms[r]=S.rooms[r]||{};
+  if(L[id]){delete L[id];sfx('wear',{rate:.84,vol:.7})}else{L[id]=[0,0];sfx('wear')}
+  save();renderDevice();renderShop();renderZoom();
+}
+function roomReset(){
+  const r=S.scene,was=JSON.parse(JSON.stringify(S.rooms[r]||{}));
+  S.rooms[r]=homeLayout(r);save();renderDevice();renderShop();renderZoom();
+  undoFn=()=>{S.rooms[r]=was;save();renderDevice();renderShop();if(zoom&&zoom.k==='arrange')renderZoom()};
+  toast(`${SCENE_BY[r].name} is back how it started.`,true);
+}
+// Dragging: the item follows the finger in room units and is kept inside the room. Saved when let go.
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  const g=e.target.closest&&e.target.closest('.arr-it:not(.fixed)');if(!g||!zoom||zoom.k!=='arrange')return;
+  const svg=g.ownerSVGElement,m=svg.getScreenCTM();if(!m)return;
+  const id=g.dataset.id,L=S.rooms[S.scene]||{};if(!L[id])return;
+  e.preventDefault();try{g.setPointerCapture(e.pointerId)}catch(x){}
+  g.parentNode.appendChild(g);g.classList.add('lift');
+  drag={g,id,k:m.a,x0:e.clientX,y0:e.clientY,ox:L[id][0],oy:L[id][1],moved:false,pid:e.pointerId};
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.pid)return;e.preventDefault();
+  const dx=(e.clientX-drag.x0)/drag.k,dy=(e.clientY-drag.y0)/drag.k;if(Math.abs(dx)+Math.abs(dy)>1)drag.moved=true;
+  const [x,y]=clampOff(DECOR_BY[drag.id],drag.ox+dx,drag.oy+dy);drag.x=x;drag.y=y;drag.g.setAttribute('transform',`translate(${x} ${y})`);
+});
+function dragEnd(e){
+  if(!drag||(e&&e.pointerId!==drag.pid))return;const d=drag;drag=null;d.g.classList.remove('lift');
+  if(d.moved&&d.x!=null){const L=S.rooms[S.scene]||{};if(L[d.id]){delete L[d.id];L[d.id]=[d.x,d.y];save();renderDevice();renderShop()}}
+}
+document.addEventListener('pointerup',dragEnd);document.addEventListener('pointercancel',dragEnd);
+document.addEventListener('keydown',e=>{
+  const g=e.target.closest&&e.target.closest('.arr-it:not(.fixed)');if(!g||!zoom||zoom.k!=='arrange')return;
+  const v={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!v)return;
+  e.preventDefault();const L=S.rooms[S.scene]||{},id=g.dataset.id;if(!L[id])return;const st=e.shiftKey?16:4;
+  L[id]=clampOff(DECOR_BY[id],L[id][0]+v[0]*st,L[id][1]+v[1]*st);g.setAttribute('transform',`translate(${L[id][0]} ${L[id][1]})`);save();renderDevice();
+});
+// Swiping the pals in a buy sheet: when the strip settles, the note and button follow the pal in view.
+function slideTo(i,smooth){const el=$('#buy-slides');if(!el)return;i=Math.max(0,Math.min(S.pets.length-1,i));slideShown(i);el.scrollTo({left:i*el.clientWidth,behavior:smooth&&!calmMotion()?'smooth':'auto'})}
+function slideShown(i){
+  if(!zoom||zoom.k!=='buy'||i===zoom.pi)return;zoom.pi=i;const o=OUTFIT_BY[zoom.id],box=$('#buy-info');if(!o||!box)return;
+  const fk=document.activeElement&&box.contains(document.activeElement);box.innerHTML=buyInfo(o,S.pets[i]);
+  $$('#zoom-card .buy-dots .dot').forEach((d,k)=>d.setAttribute('aria-pressed',k===i));
+  const pv=$('#zoom-card .slide-arrow.prev'),nx=$('#zoom-card .slide-arrow.next');if(pv)pv.hidden=i===0;if(nx)nx.hidden=i===S.pets.length-1;
+  if(fk){const b=box.querySelector('.btn');if(b)b.focus({preventScroll:true})}
+}
+let slideT=null;
+document.addEventListener('scroll',e=>{if(e.target.id!=='buy-slides')return;clearTimeout(slideT);
+  slideT=setTimeout(()=>{const el=$('#buy-slides');if(el&&el.clientWidth)slideShown(Math.round(el.scrollLeft/el.clientWidth))},90)},true);
+/* Your pals (3 Nov 2026, Lily's feedback): every pal with what it's doing. Tap a pal to switch to it; Collect and Send
+   work from the list, so sending several pals out needs no switching or scrolling. */
+function palState(q){
+  if(q.job)return isReady(q.job)?{k:'ready',kind:'job',t:`Back with ${q.job.coins} coins`,btn:'Collect'}:{k:'away',x:q.job,t:JOB_BY[q.job.id].name};
+  if(q.trip)return isReady(q.trip)?{k:'ready',kind:'trip',t:'Back from holiday',btn:'Open postcard'}:{k:'away',x:q.trip,t:'On holiday'};
+  return {k:'home',t:'At home'};
+}
+function palsHTML(){
+  const back=S.pets.filter(q=>palState(q).k==='ready').length,now=Date.now();
+  const rows=S.pets.map((q,i)=>{const st=palState(q),me=i===S.active,open=zoom.open===i&&st.k==='home';
+    const left=st.x?` · ${fmt(st.x.end-now)} left`:'';
+    const errands=open?`<div class="prow-jobs" role="group" aria-label="Errands for ${esc(q.name)}">${JOBS.map(j=>{const short=S.energy<j.energy,loved=PET_BY[q.sp].talent===j.id;
+      return `<div class="pjob"><div><b>${j.name}</b>${loved?` <span class="chip">Loves this</span>`:''}<p class="fine m0">${fmt(dur(jobSec(q,j)))} · <span class="bolt">${ic('bolt',13)}</span>${j.energy}</p></div>
+        <span class="earn" aria-label="Earns ${jobCoins(q,j)} coins">+${coinsTxt(jobCoins(q,j))}</span><button class="btn ghost sm" type="button" data-act="job" data-id="${j.id}" data-i="${i}" aria-disabled="${short}">${short?'Needs '+ic('bolt',14)+j.energy:'Send'}</button></div>`}).join('')}</div>`:'';
+    return `<div class="prow${me?' cur':''}${open?' open':''}"${st.x?` data-start="${st.x.start}" data-end="${st.x.end}"`:''}>
+      <button class="prow-main" type="button" data-zoom="pickpal" data-i="${i}" aria-label="${esc(q.name)}, ${esc(st.t)}${me?', with you':'. Switch to '+esc(q.name)}"><span class="face">${petSVG(q.sp,q,stageOf(q),'sm')}</span>
+        <span class="prow-t"><b>${esc(q.name)}${me?' <span class="chip">With you</span>':''}</b><span class="fine"><span>${esc(st.t)}</span><span class="left">${left}</span></span>${st.x?`<span class="bar"><i style="width:${Math.min(100,Math.max(3,(now-st.x.start)/(st.x.end-st.x.start)*100))}%"></i></span>`:''}</span></button>
+      <span class="prow-acts">${st.k==='ready'?`<button class="btn sm" type="button" data-act="collect" data-i="${i}" data-k="${st.kind}">${st.btn}</button>`
+        :st.k==='home'?`<button class="btn ghost sm" type="button" data-zoom="palsend" data-i="${i}" aria-expanded="${open}">${open?'Close':'Send'}</button>`:''}</span>
+      ${errands}</div>`}).join('');
+  return `<span class="grab" aria-hidden="true"></span>
+    <div class="pals-top"><h2 id="zoom-h">Your pals</h2><button class="zoom-x" type="button" data-zoom="close" aria-label="Close">&times;</button></div>
+    <p class="fine m0 pals-hint">Tap a pal to switch to them. ${S.energy} of ${ENERGY_MAX} energy for errands.</p>
+    ${back>1?(()=>{const c=S.pets.reduce((a,q)=>a+(q.job&&isReady(q.job)?q.job.coins:0),0);return `<button class="btn big pals-all" type="button" data-zoom="collectall">Collect all${c?` +${coinsTxt(c)}`:''}</button>`})():''}
+    <div class="plist">${rows}</div>`;
+}
+function pickPal(i){if(fx||fxHold||!S.pets[i])return;S.active=i;save();closeZoom();renderDevice();renderTools();renderJobs();renderShop();toTop()}
+function collectAll(){
+  const ready=awayRows().filter(r=>isReady(r.x));if(!ready.length)return;
+  const c0=S.coins,msgs=ready.map(r=>collect(r.i,r.kind,true)).filter(Boolean),got=S.coins-c0;
+  const extra=msgs.filter(m=>/Surprise|reached level|backdrop/.test(m));
+  toast(`${got?`Collected ${got} coins`:'Collected'} from ${ready.length} pals.${extra.length?' '+extra.map(m=>m.replace(/^[^.]*brought back \d+ coins\. ?/,'')).join(' '):''}`,false,extra.length?7500:0);
 }
 function openZoom(z,from){
   zoom=z;zoomFrom=from||document.activeElement;renderZoom();
   $('#zoom').hidden=false;document.body.style.overflow='hidden';document.body.classList.add('zoom-open');
+  {const el=$('#buy-slides');if(el)el.scrollLeft=(zoom.pi||0)*el.clientWidth}
   setTimeout(()=>{const x=$('#zoom-card .zoom-x')||$('#zoom-card .zoom-back')||$('#zoom-card .buy-acts .btn');if(x)x.focus()},30);
 }
 function closeZoom(){
-  $('#zoom').hidden=true;document.body.style.overflow='';document.body.classList.remove('zoom-open');zoom=null;
+  $('#zoom').hidden=true;$('#zoom-card').dataset.for='';document.body.style.overflow='';document.body.classList.remove('zoom-open');zoom=null;
   if(zoomFrom&&zoomFrom.focus&&document.contains(zoomFrom))zoomFrom.focus();zoomFrom=null;
 }
 function renderShop(){
   $('#subtabs').innerHTML=[['pals','Pals'],['outfits','Stickers'],['decor','Room'],['trips','Holidays'],['treats','Treats'],['book','Book']].map(([id,l])=>`<button class="fchip" type="button" data-act="subtab" data-t="${id}" aria-pressed="${shopTab===id}">${l}</button>`).join('');
-  const p=cur();let h='';$('#shop-for').textContent=p?'For '+p.name:'';
+  const p=cur();let h='';
   if(shopTab==='pals'){
     h=`<div><h2>Rare pals</h2></div><div class="grid">${PETS.filter(x=>!x.starter).map(palCard).join('')}</div>
        <div><h2>Starter pals</h2></div><div class="grid">${PETS.filter(x=>x.starter).map(palCard).join('')}</div>`;
@@ -2277,9 +2508,9 @@ function renderShop(){
   }else if(shopTab==='decor'){
     h=SCENES.map(sc=>{
       const open=S.scenes.includes(sc.id),list=roomDecor(sc.id),got=list.filter(d=>S.decor.includes(d.id)).length,trip=TRIP_BY[sc.id];
-      return `<section class="sheet" aria-label="${sc.name}"><div class="sheet-head"><span class="sheet-scene"><svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sc.svg}${list.filter(d=>S.decor.includes(d.id)).map(d=>d.svg).join('')}</svg></span><div><h3>${sc.name}</h3><span class="fine">${open?`${got} of ${list.length} stuck in your room`:`Unlocks with the ${trip?trip.name:sc.name} holiday`}</span></div></div>
+      return `<section class="sheet" aria-label="${sc.name}"><div class="sheet-head"><span class="sheet-scene"><svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${sc.svg}${decorLayer(sc.id)}</svg></span><div><h3>${sc.name}</h3><span class="fine">${open?`${got} of ${list.length} collected`:`Unlocks with the ${trip?trip.name:sc.name} holiday`}</span></div></div>
         <div class="sheet-grid">${list.map((d,i)=>{const own=S.decor.includes(d.id);
-          return own?`<div class="stk own" role="img" aria-label="${esc(d.name)}, in your room"><span class="cut"><span>In your room</span></span><b>${d.name}</b></div>`
+          return own?`<div class="stk own" role="img" aria-label="${esc(d.name)}, owned"><span class="cut"><span>Owned</span></span><b>${d.name}</b></div>`
             :d.gift?`<div class="stk gift" role="img" aria-label="A secret item, found on errands"><span class="cut sil">${decorSticker(d)}</span><b>???</b><small>Found on errands</small></div>`
             :`<button class="stk${open?'':' locked'}" type="button" data-zoom="buyd" data-i="${d.id}" aria-label="${esc(d.name)}, ${d.cost} coins${open?'':', locked'}"><span class="cut ${ROT[i%4]}">${decorSticker(d)}</span><b>${d.name}</b><span class="price">${coinsTxt(d.cost)}</span></button>`}).join('')}</div></section>`}).join('');
   }else if(shopTab==='book'){
@@ -2448,19 +2679,19 @@ function adopt(id){
   if(S.hearts<P.price){toast(`You need ${P.price-S.hearts} more heart${P.price-S.hearts>1?'s':''}.`);return}
   S.hearts-=P.price;
   S.pets.push({sp:id,name:P.name.split(' ')[0],wear:{},bond:0,loved:0,job:null,trip:null});
-  S.active=S.pets.length-1;save();renderAll();
-  sfx('buy');chirp(cur(),.45);toast(`${P.name} moved in!`);
+  if(!growing())S.active=S.pets.length-1;save();renderAll();
+  sfx('buy');chirp(S.pets[S.pets.length-1],.45);toast(`${P.name} moved in!`);
 }
-function buyOutfit(id,stick=true){
-  const o=OUTFIT_BY[id];if(!o||S.wardrobe.includes(id))return false;
+function buyOutfit(id,stick=true,pal){
+  const o=OUTFIT_BY[id],q=S.pets[pal]||cur();if(!o||S.wardrobe.includes(id))return false;
   if(S.coins<o.cost){toast(`You need ${o.cost-S.coins} more coins.`);return false}
-  S.coins-=o.cost;S.wardrobe.push(id);if(stick)cur().wear=Object.assign({},wearOf(cur()),{[o.at]:id});save();renderAll();sfx('buy');if(stick)sfx('wear',{at:.3});
-  toast(stick?`${o.name} stuck on ${cur().name}.`:`${o.name} is in your album.`);return true;
+  S.coins-=o.cost;S.wardrobe.push(id);if(stick)q.wear=Object.assign({},wearOf(q),{[o.at]:id});save();renderAll();sfx('buy');if(stick)sfx('wear',{at:.3});
+  toast(stick?`${o.name} stuck on ${q.name}.`:`${o.name} is in your album.`);return true;
 }
 function wear(id){const p=cur(),o=OUTFIT_BY[id];if(!o)return;const w=Object.assign({},wearOf(p));if(w[o.at]===id){delete w[o.at];sfx('wear',{rate:.84,vol:.7})}else{w[o.at]=id;sfx('wear')}p.wear=w;save();renderDevice();renderTools();renderShop();if(zoom&&zoomIsOpen()&&zoom.k==='stick')renderZoom()}
 
-function startJob(id){
-  const p=cur(),j=JOB_BY[id];
+function startJob(id,pi){
+  const p=S.pets[pi]||cur(),j=JOB_BY[id];
   if(isBusy(p)){toast(`${p.name} is away right now.`);return}
   const now=Date.now();
   if(S.energy<j.energy){toast(`Needs ${j.energy} energy. Finish a task to earn more.`);return}
@@ -2481,17 +2712,17 @@ function rollGift(c){
   const r=Math.random(),left=DECOR.filter(d=>d.gift&&!S.decor.includes(d.id)&&S.scenes.includes(roomOf(d)));
   if(r<.4||(r>=.75&&!left.length)){const b=Math.max(3,Math.round(c*.5));S.coins+=b;return `${b} extra coins were tucked in the basket!`}
   if(r<.75){const n=1+(Math.random()<.3?1:0);S.hearts+=n;return `a shiny heart gem worth ${n} heart${n>1?'s':''}!`}
-  const d=pick(left);S.decor.push(d.id);S.scene=roomOf(d);return `a keepsake, the ${d.name.toLowerCase()}. It is in the ${SCENE_BY[roomOf(d)].name} now!`+(roomDone(roomOf(d))?` That finishes the ${SCENE_BY[roomOf(d)].name}!`:'');
+  const d=pick(left);S.decor.push(d.id);placeDecor(d.id);S.scene=roomOf(d);return `a keepsake, the ${d.name.toLowerCase()}. It is in the ${SCENE_BY[roomOf(d)].name} now!`+(roomDone(roomOf(d))?` That finishes the ${SCENE_BY[roomOf(d)].name}!`:'');
 }
 function buyDecor(id){
   const d=DECOR_BY[id];if(!d||d.gift||S.decor.includes(id))return false;
   if(S.coins<d.cost){toast(`You need ${d.cost-S.coins} more coins.`);return false}
   if(!S.scenes.includes(roomOf(d))){toast(`Unlock the ${SCENE_BY[roomOf(d)].name} with a holiday first.`);return false}
-  S.coins-=d.cost;S.decor.push(id);S.scene=roomOf(d);save();renderAll();sfx('buy');
+  S.coins-=d.cost;S.decor.push(id);placeDecor(id);S.scene=roomOf(d);save();renderAll();sfx('buy');
   if(roomDone(roomOf(d))){sfx('room_done',{at:.35});toast(`${SCENE_BY[roomOf(d)].name} complete! It sparkles now.`,false,6000);say('I love it here!')}else toast(`${d.name} added to the ${SCENE_BY[roomOf(d)].name}.`);
   return true;
 }
-function collect(i,kind){
+function collect(i,kind,quiet){
   const p=S.pets[i];if(!p)return;
   if(kind==='job'&&p.job&&isReady(p.job)){
     const jid=p.job.id,c=p.job.coins;S.coins+=c;p.job=null;
@@ -2502,12 +2733,12 @@ function collect(i,kind){
     let m=`${p.name} brought back ${c} coins.`;
     if(after>before)m+=` ${p.name} reached level ${after} at ${JOB_BY[jid].name.toLowerCase()} and is ${after*10}% faster.`;
     if(gift){m+=` Surprise: ${gift}`;say('I found something for you!')}
-    toast(m,false,gift||after>before?7500:0);
+    if(quiet)return m;toast(m,false,gift||after>before?7500:0);
   }else if(kind==='trip'&&p.trip&&isReady(p.trip)){
     const t=TRIP_BY[p.trip.id],isNew=!S.scenes.includes(t.id);
     if(isNew)S.scenes.push(t.id);
     p.bond+=2;p.trip=null;save();lastSig='';renderAll();sfx('postcard');if(S.pets[S.active]===p)chirp(p,.8);
-    toast(isNew?`Postcard from ${t.name}. New backdrop unlocked.`:`${p.name} loved ${t.name}. Bond went up.`);
+    const m=isNew?`Postcard from ${t.name}. New backdrop unlocked.`:`${p.name} loved ${t.name}. Bond went up.`;if(quiet)return m;toast(m);
   }
 }
 function treat(id){
@@ -2520,6 +2751,8 @@ function treat(id){
 }
 /* ---------- growth show ---------- */
 let fx=null,fxHold=null,visit=null; // visit: index of an away pal popped home for its growing-up show
+// While a pal grows up (hearts flying in, then the show), the other pals can't be picked, so the show stays on the right pal.
+const growing=()=>!!(fx||fxHold);
 const TAU=Math.PI*2;
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const GLIT=['#FFFFFF','#FFD76A','#FF9CC9','#D9C8FF','#9FF0F0'];
@@ -2723,7 +2956,7 @@ function giveHearts(n){
   }
 }
 
-function move(d){S.active=(S.active+d+S.pets.length)%S.pets.length;save();renderDevice();renderTools();renderJobs();renderShop()}
+function move(d){if(growing())return;S.active=(S.active+d+S.pets.length)%S.pets.length;save();renderDevice();renderTools();renderJobs();renderShop()}
 
 /* ---------- events ---------- */
 function focusKeyOf(b){return b&&b.dataset?{act:b.dataset.act,id:b.dataset.id,i:b.dataset.i,k:b.dataset.k,v:b.dataset.v,t:b.dataset.t}:null}
@@ -2772,14 +3005,14 @@ document.addEventListener('click',e=>{
     case'step':toggleStep(+id,+b.dataset.i);break;
     case'buydecor':if(buyDecor(id)&&zoom&&zoom.k==='buyd')closeZoom();break;
     case'adopt':adopt(id);if(zoomIsOpen()&&S.pets.some(p=>p.sp===id))closeZoom();break;
-    case'buyoutfit':if(buyOutfit(id)&&zoom&&zoom.k==='buy')closeZoom();break;
+    case'buyoutfit':if(buyOutfit(id,true,b.dataset.pal!=null?+b.dataset.pal:undefined)&&zoom&&zoom.k==='buy')closeZoom();break;
     case'buysave':if(buyOutfit(id,false)&&zoom&&zoom.k==='buy')closeZoom();break;
     case'wear':wear(id);break;
-    case'job':startJob(id);break;
+    case'job':startJob(id,b.dataset.i!=null?+b.dataset.i:undefined);if(zoom&&zoom.k==='pals'){zoom.open=null;renderZoom()}break;
     case'trip':startTrip(id);break;
     case'collect':collect(+b.dataset.i,b.dataset.k);break;
     case'treat':treat(id);break;
-    case'pick':S.active=+b.dataset.i;save();renderDevice();renderTools();renderJobs();renderShop();break;
+    case'pick':if(growing())break;S.active=+b.dataset.i;save();renderDevice();renderTools();renderJobs();renderShop();break;
     case'prev':move(-1);break;
     case'next':move(1);break;
     case'pat':sfx('pat');chirp(cur(),.12);say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
@@ -3207,7 +3440,18 @@ document.addEventListener('click',e=>{
   else if(z==='filter'){if(zoom){zoom.f=zoom.f===b.dataset.i&&b.classList.contains('spot')?'all':b.dataset.i;renderZoom()}}
   else if(z==='toggle'){if(zoom){const id=b.dataset.i,was=wearOf(cur())[OUTFIT_BY[id].at]===id;zoom.trying=was?null:id;wear(id)}}
   else if(z==='getmore'){closeZoom();shopTab='outfits';setTab('shop');renderShop()}
+  else if(z==='arrange'){if(zoomIsOpen())closeZoom();openZoom({k:'arrange',f:'all'},b)}
+  else if(z==='arrf'){if(zoom){zoom.f=b.dataset.i;renderZoom()}}
+  else if(z==='place')placeToggle(b.dataset.i);
+  else if(z==='reset')roomReset();
+  else if(z==='getdecor'){closeZoom();shopTab='decor';setTab('shop');renderShop()}
   else if(z==='buy')openZoom({k:'buy',id:b.dataset.i},b);
+  else if(z==='slide'){if(zoom)slideTo((zoom.pi||0)+ +b.dataset.i,true)}
+  else if(z==='slideto')slideTo(+b.dataset.i,true);
+  else if(z==='pals'){if(!fx&&!fxHold)openZoom({k:'pals',open:null},b)}
+  else if(z==='pickpal')pickPal(+b.dataset.i);
+  else if(z==='palsend'){if(zoom){const i=+b.dataset.i;zoom.open=zoom.open===i?null:i;renderZoom()}}
+  else if(z==='collectall')collectAll();
   else if(z==='buyd')openZoom({k:'buyd',id:b.dataset.i},b);
 });
 document.addEventListener('keydown',e=>{
