@@ -1544,9 +1544,9 @@ const SIZES=[
 ];
 const SIZE_BY=byId(SIZES);
 const JOBS=[
-  {id:'berry',name:'Berry picking',sec:900,coins:10,energy:2,desc:'A basket of sweet berries for the market.'},
-  {id:'mail',name:'Cloud mail route',sec:3600,coins:22,energy:4,desc:'Deliver letters across the sky.'},
-  {id:'gem',name:'Crystal digging',sec:10800,coins:36,energy:6,desc:'Dig deep for pink crystals.'}
+  {id:'berry',name:'Berry picking',sec:900,coins:5,energy:1,desc:'A basket of sweet berries for the market.'},
+  {id:'mail',name:'Cloud mail route',sec:3600,coins:11,energy:2,desc:'Deliver letters across the sky.'},
+  {id:'gem',name:'Crystal digging',sec:10800,coins:18,energy:3,desc:'Dig deep for pink crystals.'}
 ];
 const JOB_BY=byId(JOBS);
 const TRIPS=[
@@ -1572,7 +1572,7 @@ const VOICE={
   uni:{cheer:['Sparkle time!','Magic! You did it!','Glitter for you!'],hi:['Hello, sparkle!','What a lovely day!']}
 };
 const FOCUS_SEC=300;
-const skillLvl=n=>n>=10?3:n>=5?2:n>=2?1:0;
+const skillLvl=n=>n>=20?3:n>=10?2:n>=4?1:0;
 const roomOf=d=>d.room||'room';
 const roomDecor=id=>DECOR.filter(d=>roomOf(d)===id);
 const roomDone=id=>roomDecor(id).every(d=>S.decor.includes(d.id));
@@ -2723,9 +2723,9 @@ function startTrip(id){
   save();lastSig='';renderAll();sfx('send');toast(`${p.name} is off to ${t.name}.`);
 }
 function rollGift(c){
-  if(Math.random()>.4)return '';
+  if(Math.random()>.2)return '';
   const r=Math.random(),left=DECOR.filter(d=>d.gift&&!S.decor.includes(d.id)&&S.scenes.includes(roomOf(d)));
-  if(r<.4||(r>=.75&&!left.length)){const b=Math.max(3,Math.round(c*.5));S.coins+=b;return `${b} extra coins were tucked in the basket!`}
+  if(r<.4||(r>=.75&&!left.length)){const b=Math.max(2,Math.round(c*.5));S.coins+=b;return `${b} extra coins were tucked in the basket!`}
   if(r<.75){const n=1+(Math.random()<.3?1:0);S.hearts+=n;return `a shiny heart gem worth ${n} heart${n>1?'s':''}!`}
   const d=pick(left);S.decor.push(d.id);placeDecor(d.id);S.scene=roomOf(d);return `a keepsake, the ${d.name.toLowerCase()}. It is in the ${SCENE_BY[roomOf(d)].name} now!`+(roomDone(roomOf(d))?` That finishes the ${SCENE_BY[roomOf(d)].name}!`:'');
 }
@@ -2744,7 +2744,7 @@ function collect(i,kind,quiet){
     p.skill=p.skill||{};const before=skillLvl(p.skill[jid]||0);p.skill[jid]=(p.skill[jid]||0)+1;const after=skillLvl(p.skill[jid]);
     const gift=rollGift(c);
     save();lastSig='';renderAll();
-    sfx(c<30?'coins_few':'coins_many');if(gift)sfx('surprise',{at:.55});if(S.pets[S.active]===p)chirp(p,gift?1.2:.5);
+    sfx(c<15?'coins_few':'coins_many');if(gift)sfx('surprise',{at:.55});if(S.pets[S.active]===p)chirp(p,gift?1.2:.5);
     let m=`${p.name} brought back ${c} coins.`;
     if(after>before)m+=` ${p.name} reached level ${after} at ${JOB_BY[jid].name.toLowerCase()} and is ${after*10}% faster.`;
     if(gift){m+=` Surprise: ${gift}`;say('I found something for you!')}
