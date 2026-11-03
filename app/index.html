@@ -107,7 +107,6 @@ p{margin:0}
 .screen{position:relative;border-radius:22px;overflow:hidden;aspect-ratio:3/2;background:#FFE3EF;isolation:isolate}
 .palhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px}
 .palname{display:grid;min-width:0;flex:1 1 150px}
-.palname .fine{font-size:.94rem}
 .palbtns{display:flex;gap:8px;flex:none}
 .palbtns .btn{min-height:46px;padding-inline:14px}
 .btn.iconbtn{width:46px;padding:0}
@@ -1558,13 +1557,6 @@ const TRIPS=[
   {id:'stars',name:'Starry Campout',cost:200,sec:300}
 ];
 const TRIP_BY=byId(TRIPS);
-const TREATS=[
-  {id:'milk',name:'Strawberry milk',cost:10,bond:1,desc:'A small sip of happiness.'},
-  {id:'cake',name:'Cake slice',cost:28,bond:3,desc:'Pink icing with a tiny star on top.'},
-  {id:'tea',name:'Tea party for two',cost:70,bond:8,desc:'Tiny cups, tiny sandwiches, big bonding.'}
-];
-const TREAT_BY=byId(TREATS);
-const BOND_STEP=5, BOND_MAX=5;
 const SAMPLE_TASKS=[['Drink a glass of water','tiny',{days:[0,1,2,3,4,5,6]},'morning'],['Reply to one message','small'],['Put a load of laundry on','medium']];
 const TASK_LINES=['Yay, you did it!','I am so proud of you.','That counts. Nice work.','Tiny steps add up.','You are doing great.','Look at you go!'];
 const VOICE={
@@ -1679,7 +1671,7 @@ function cleanState(o){
   s.pets=(Array.isArray(o.pets)?o.pets:[]).map(p=>{
     if(!p||typeof p!=='object')return null;
     const sp=PET_BY[p.sp]?p.sp:(Object.prototype.hasOwnProperty.call(MIG,p.sp)?MIG[p.sp]:'cat');if(seen.has(sp))return null;seen.add(sp);
-    const q={sp,name:strOr(p.name,14).trim()||PET_BY[sp].name.split(' ')[0],wear:(()=>{const src=p.wear&&typeof p.wear==='object'?p.wear:(OUTFIT_BY[p.outfit]?{[OUTFIT_BY[p.outfit].at]:p.outfit}:{}),w={};for(const [sl] of SLOTS){const x=src[sl];if(OUTFIT_BY[x]&&OUTFIT_BY[x].at===sl)w[sl]=x}if(src.face==='sleepmask'&&!w.head)w.head='sleepmask';return w})(),bond:intOr(p.bond,0,0,1e6),loved:intOr(p.loved,0,0,1e6),job:null,trip:null};
+    const q={sp,name:strOr(p.name,14).trim()||PET_BY[sp].name.split(' ')[0],wear:(()=>{const src=p.wear&&typeof p.wear==='object'?p.wear:(OUTFIT_BY[p.outfit]?{[OUTFIT_BY[p.outfit].at]:p.outfit}:{}),w={};for(const [sl] of SLOTS){const x=src[sl];if(OUTFIT_BY[x]&&OUTFIT_BY[x].at===sl)w[sl]=x}if(src.face==='sleepmask'&&!w.head)w.head='sleepmask';return w})(),loved:intOr(p.loved,0,0,1e6),job:null,trip:null};
     if(p.job&&typeof p.job==='object'&&JOB_BY[p.job.id])q.job={id:p.job.id,start:numOr(p.job.start,T,0,9e15),end:numOr(p.job.end,T,0,9e15),coins:intOr(p.job.coins,0,0,1e5)};
     if(p.trip&&typeof p.trip==='object'&&TRIP_BY[p.trip.id])q.trip={id:p.trip.id,start:numOr(p.trip.start,T,0,9e15),end:numOr(p.trip.end,T,0,9e15)};
     if(p.skill&&typeof p.skill==='object'){q.skill={};for(const k in JOB_BY)if(p.skill[k]!=null)q.skill[k]=intOr(p.skill[k],0,0,1e6)}
@@ -1950,7 +1942,6 @@ const repDays=v=>v==='daily'?[0,1,2,3,4,5,6]:v==='weekdays'?[1,2,3,4,5]:v==='wee
 const cur=()=>S.pets[S.active];
 const speed=()=>(DEMO||TEST)&&S.fast?12:1;
 const dur=sec=>sec*1000/speed();
-const bondLevel=p=>Math.min(BOND_MAX,Math.floor(p.bond/BOND_STEP));
 const EVO=[0,15,45], STAGE_BONUS=[1,1.15,1.3];
 function stageOf(p){const l=p.loved||0;return l>=EVO[2]?2:l>=EVO[1]?1:0}
 const formName=p=>PET_BY[p.sp].forms[stageOf(p)];
@@ -1958,8 +1949,8 @@ const shownStage=p=>(fxHold&&S.pets[fxHold.i]===p)?fxHold.stage:stageOf(p);
 /* zoom=true makes each form icon a button that opens the big picture (shop cards only) */
 const evoStrip=(sp,reached=2,label='',zoom=false)=>`<div class="evo"${zoom?` role="group" aria-label="Forms of ${esc(PET_BY[sp].name)}"`:label?` role="img" aria-label="${esc(label)}"`:' aria-hidden="true"'}>${[0,1,2].map(i=>zoom?`<button class="mini" type="button" data-zoom="pal" data-id="${sp}" data-i="${i}" aria-label="See ${esc(PET_BY[sp].name)}, ${FORM_LABELS[i].toLowerCase()}, bigger">${petSVG(sp,null,i,'sm')}</button>`:`<span class="mini${i>reached?' unreached':''}">${petSVG(sp,null,i,'sm')}</span>`).join('<span class="arrow" aria-hidden="true">›</span>')}</div>`;
 const jobSec=(p,j)=>j.sec*(1-.1*skillLvl((p.skill||{})[j.id]||0));
-const TALENT_BONUS=1.25,BOND_BONUS=.06;
-const jobCoins=(p,j)=>Math.round(j.coins*(PET_BY[p.sp].talent===j.id?TALENT_BONUS:1)*(1+BOND_BONUS*bondLevel(p))*STAGE_BONUS[stageOf(p)]);
+const TALENT_BONUS=1.25;
+const jobCoins=(p,j)=>Math.round(j.coins*(PET_BY[p.sp].talent===j.id?TALENT_BONUS:1)*STAGE_BONUS[stageOf(p)]);
 const isBusy=p=>!!(p.job||p.trip);
 const isReady=x=>x&&x.end<=Date.now();
 function fmt(ms){const s=Math.max(1,Math.ceil(ms/1000));if(s<60)return s+' sec';const m=Math.ceil(s/60);if(m<60)return m+' min';const hh=Math.floor(m/60),mm=m%60;return hh+(hh>1?' hours':' hour')+(mm?' '+mm+' min':'')}
@@ -2112,7 +2103,7 @@ function renderDevice(){
     </div></div>
     ${collectStrip()}
     <div class="palhead">
-      <div class="palname"><h1>${esc(p.name)}</h1><p class="fine">${FORM_LABELS[shownStage(p)]} · Bond ${bondLevel(p)} · Loves ${JOB_BY[P.talent].name.toLowerCase()}</p></div>
+      <div class="palname"><h1>${esc(p.name)}</h1></div>
       <div class="palbtns"><button class="btn ghost iconbtn" type="button" data-act="pat" aria-label="Pat ${esc(p.name)}"><span class="heart">${ic('heart',22)}</span></button><button class="btn ghost iconbtn" type="button" data-zoom="rooms" aria-label="Rooms"${fx||fxHold?' disabled':''}>${ic('home',22)}</button><button class="btn ghost iconbtn" type="button" data-zoom="stick" aria-label="Stickers">${ic('sticker',22)}</button></div>
     </div>
   </div>`;
@@ -2515,7 +2506,7 @@ function closeZoom(){
   if(zoomFrom&&zoomFrom.focus&&document.contains(zoomFrom))zoomFrom.focus();zoomFrom=null;
 }
 function renderShop(){
-  $('#subtabs').innerHTML=[['pals','Pals'],['outfits','Stickers'],['decor','Room'],['trips','Holidays'],['treats','Treats'],['book','Book']].map(([id,l])=>`<button class="fchip" type="button" data-act="subtab" data-t="${id}" aria-pressed="${shopTab===id}">${l}</button>`).join('');
+  $('#subtabs').innerHTML=[['pals','Pals'],['outfits','Stickers'],['decor','Room'],['trips','Holidays'],['book','Book']].map(([id,l])=>`<button class="fchip" type="button" data-act="subtab" data-t="${id}" aria-pressed="${shopTab===id}">${l}</button>`).join('');
   const p=cur();let h='';
   if(shopTab==='pals'){
     h=`<div><h2>Rare pals</h2></div><div class="grid">${PETS.filter(x=>!x.starter).map(palCard).join('')}</div>
@@ -2553,8 +2544,6 @@ function renderShop(){
       const own=S.scenes.includes(t.id);
       return `<div class="item"><div class="art wide"><svg viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${SCENE_BY[t.id].svg}</svg></div><div class="row spread"><b>${t.name}</b>${own?'<span class="chip ok">Visited</span>':''}</div><p class="fine">Takes ${fmt(dur(t.sec))}</p>
         <button class="btn sm" type="button" data-act="trip" data-id="${t.id}" aria-disabled="${isBusy(p)}">${isBusy(p)?esc(p.name)+' is away':'Send '+esc(p.name)+' '+coinsTxt(t.cost)}</button></div>`}).join('')}</div>`;
-  }else{
-    h=`<div><h2>Treats</h2></div><div class="grid">${TREATS.map(t=>`<div class="item"><b>${t.name}</b><span class="chip">+${t.bond} bond</span><button class="btn sm" type="button" data-act="treat" data-id="${t.id}"${bondLevel(p)>=BOND_MAX?' aria-disabled="true"':''}>${bondLevel(p)>=BOND_MAX?'Bond is at maximum':`Give to ${esc(p.name)} ${coinsTxt(t.cost)}`}</button></div>`).join('')}</div>`;
   }
   $('#shop-body').innerHTML=h;
   if(zoom&&zoomIsOpen())renderZoom();
@@ -2620,7 +2609,7 @@ function renderGuide(){
       <li><span class="n">1</span><p><b>Do a real task.</b> Add it, pick a size, tick it off. Bigger tasks pay more hearts and more energy.</p></li>
       <li><span class="n">2</span><p><b>Spend hearts on pals.</b> Adopt new pals, or give hearts to the pal you love so it grows into a new form. Hearts only come from tasks.</p></li>
       <li><span class="n">3</span><p><b>Pals work for coins.</b> Errands use energy, which finished tasks give you. Send a pal on an errand and carry on with your day. Errands never cost coins, they earn them.</p></li>
-      <li><span class="n">4</span><p><b>Coins buy the fun stuff.</b> Stickers, decor, treats and holidays that unlock new backdrops.</p></li>
+      <li><span class="n">4</span><p><b>Coins buy the fun stuff.</b> Stickers, decor and holidays that unlock new backdrops.</p></li>
     </ol></details>
   <details class="card addwrap"><summary><h2>Growing up</h2></summary>
     <p>Every pal has three forms. Give hearts to a pal on the Home tab to help it grow.</p>
@@ -2704,7 +2693,7 @@ function adopt(id){
   if(S.pets.some(p=>p.sp===id))return;
   if(S.hearts<P.price){toast(`You need ${P.price-S.hearts} more heart${P.price-S.hearts>1?'s':''}.`);return}
   S.hearts-=P.price;
-  S.pets.push({sp:id,name:P.name.split(' ')[0],wear:{},bond:0,loved:0,job:null,trip:null});
+  S.pets.push({sp:id,name:P.name.split(' ')[0],wear:{},loved:0,job:null,trip:null});
   if(!growing())S.active=S.pets.length-1;save();renderAll();
   sfx('buy');chirp(S.pets[S.pets.length-1],.45);toast(`${P.name} moved in!`);
 }
@@ -2763,17 +2752,9 @@ function collect(i,kind,quiet){
   }else if(kind==='trip'&&p.trip&&isReady(p.trip)){
     const t=TRIP_BY[p.trip.id],isNew=!S.scenes.includes(t.id);
     if(isNew)S.scenes.push(t.id);
-    p.bond+=2;p.trip=null;save();lastSig='';renderAll();sfx('postcard');if(S.pets[S.active]===p)chirp(p,.8);
-    const m=isNew?`Postcard from ${t.name}. New backdrop unlocked.`:`${p.name} loved ${t.name}. Bond went up.`;if(quiet)return m;toast(m);
+    p.trip=null;save();lastSig='';renderAll();sfx('postcard');if(S.pets[S.active]===p)chirp(p,.8);
+    const m=isNew?`Postcard from ${t.name}. New backdrop unlocked.`:`${p.name} loved ${t.name}.`;if(quiet)return m;toast(m);
   }
-}
-function treat(id){
-  const t=TREAT_BY[id],p=cur();
-  if(bondLevel(p)>=BOND_MAX){toast(`${p.name} is already at the highest bond level.`);return}
-  if(S.coins<t.cost){toast(`You need ${t.cost-S.coins} more coins.`);return}
-  const before=bondLevel(p);S.coins-=t.cost;p.bond+=t.bond;save();renderAll();sfx('buy');chirp(p,.4);
-  toast(bondLevel(p)>before?`${p.name} reached bond level ${bondLevel(p)}.`:`${p.name} loved the ${t.name.toLowerCase()}.`);
-  say('Yum!');
 }
 /* ---------- growth show ---------- */
 let fx=null,fxHold=null,visit=null; // visit: index of an away pal popped home for its growing-up show
@@ -3037,7 +3018,6 @@ document.addEventListener('click',e=>{
     case'job':startJob(id,b.dataset.i!=null?+b.dataset.i:undefined);if(zoom&&zoom.k==='pals'){zoom.open=null;renderZoom()}break;
     case'trip':startTrip(id);break;
     case'collect':collect(+b.dataset.i,b.dataset.k);break;
-    case'treat':treat(id);break;
     case'pick':if(growing())break;S.active=+b.dataset.i;save();renderDevice();renderTools();renderJobs();renderShop();break;
     case'prev':move(-1);break;
     case'next':move(1);break;
@@ -3130,7 +3110,7 @@ function showWelcome(){
     const name=(nameBox.value.trim()||PET_BY[sp].name.split(' ')[0]).slice(0,14);
     S=fresh();
     S.started=true;S.hearts=10;S.coins=25;S.wardrobe=['bow'];
-    S.pets=[{sp,name,wear:{head:'bow'},bond:0,loved:0,job:null,trip:null}];
+    S.pets=[{sp,name,wear:{head:'bow'},loved:0,job:null,trip:null}];
     addWelcomeTasks();
     S.askedNotif=true;save();showApp();
     toast(`Say hi to ${name}!`);chirp(S.pets[0],.5);
