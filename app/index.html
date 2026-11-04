@@ -1773,7 +1773,7 @@ function cleanState(o){
     ['morning','evening'].forEach(k=>{if(r[k]&&typeof r[k]==='object'){R[k]={on:r[k].on!==false};tm(r[k],R[k],'t')}});
     if(r.brief&&typeof r.brief==='object'){R.brief={on:r.brief.on!==false};tm(r.brief,R.brief,'am');tm(r.brief,R.brief,'pm')}
     ['nag','defMin'].forEach(k=>{if(Number.isFinite(r[k]))R[k]=r[k]});
-    ['quick','errands','focus','tasks'].forEach(k=>{if(typeof r[k]==='boolean')R[k]=r[k]});
+    ['quick','errands','focus','tasks','exact'].forEach(k=>{if(typeof r[k]==='boolean')R[k]=r[k]});
     s.rem=R}
   return s;
 }
@@ -1790,11 +1790,11 @@ function load(){
 let saveWarnAt=0;
 const NATIVE=window.PawgressNative||null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){saveFailed()}queueSync()}
-const REM_DEFAULT={morning:{on:true,t:'09:00'},evening:{on:true,t:'19:30'},brief:{on:true,am:'07:30',pm:'20:30'},nag:0,quick:false,defMin:0,errands:true,focus:true,tasks:true};
+const REM_DEFAULT={morning:{on:true,t:'09:00'},evening:{on:true,t:'19:30'},brief:{on:true,am:'07:30',pm:'20:30'},nag:0,quick:false,defMin:0,errands:true,focus:true,tasks:true,exact:false};
 function remCfg(){
   const r=S.rem||{},okT=/^([01]\d|2[0-3]):[0-5]\d$/;
   ['morning','evening'].forEach(k=>{if(r[k]&&!okT.test(r[k].t))delete r[k].t});if(r.brief){if(!okT.test(r.brief.am))delete r.brief.am;if(!okT.test(r.brief.pm))delete r.brief.pm}
-  S.rem={morning:Object.assign({},REM_DEFAULT.morning,r.morning),evening:Object.assign({},REM_DEFAULT.evening,r.evening),brief:Object.assign({},REM_DEFAULT.brief,r.brief),nag:r.nag===60?120:[0,120,240].includes(r.nag)?r.nag:0,quick:r.quick===true,defMin:[0,10,30,60,120,1440].includes(r.defMin)?r.defMin:0,errands:r.errands!==false,focus:r.focus!==false,tasks:r.tasks!==false};
+  S.rem={morning:Object.assign({},REM_DEFAULT.morning,r.morning),evening:Object.assign({},REM_DEFAULT.evening,r.evening),brief:Object.assign({},REM_DEFAULT.brief,r.brief),nag:r.nag===60?120:[0,120,240].includes(r.nag)?r.nag:0,quick:r.quick===true,defMin:[0,10,30,60,120,1440].includes(r.defMin)?r.defMin:0,errands:r.errands!==false,focus:r.focus!==false,tasks:r.tasks!==false,exact:r.exact===true};
   return S.rem;
 }
 const REM_OPTS=[[0,'At that time'],[10,'10 min before'],[30,'30 min before'],[60,'1 hour before'],[120,'2 hours before'],[1440,'1 day before']];
@@ -1861,6 +1861,8 @@ function buildPlan(){
       plan.push({id:planId('t'+t.id+'-'+diso),at,ch:'reminders',title:mins?`Coming up: ${t.text}`:`Time for: ${t.text}`,body:mins===1440?`Tomorrow at ${fmtTime(t.remind)}. ${pet.name} is cheering you on.`:mins?`At ${fmtTime(t.remind)}. ${pet.name} is cheering you on.`:`Just start counts. ${pet.name} is right here with you.`});
     });
   }
+  // Reminders on the minute: everything the person set a time for, plus the Just start timer. Pals coming home stay as they are.
+  if(r.exact){const f=planId('focus');plan.forEach(e=>{if(e.ch==='reminders'||e.id===f)e.x=1})}
   return plan.sort((a,b)=>a.at-b.at).slice(0,PLAN_MAX);
 }
 let planSig='',syncT=null;
@@ -2706,7 +2708,12 @@ function remindersCard(){if(!NATIVE)return '';return `<div class="card"><h2>Remi
     <label class="remrow"><span><input type="checkbox" data-rem="errands"${remCfg().errands?' checked':''}> Pals coming home</span></label>
     <label class="remrow"><span><input type="checkbox" data-rem="focus"${remCfg().focus?' checked':''}> Just start timer</span></label>
     <label class="remrow"><span><input type="checkbox" data-rem="tasks"${remCfg().tasks?' checked':''}> Task reminders</span></label>
+    ${exactHTML()}
     <div><button class="btn ghost sm" type="button" data-act="notif-settings">Open phone notification settings</button></div></div>`}
+// Reminders on the minute: Android 12+ only allows it with "Alarms and reminders" access, which the person grants.
+const canExact=()=>{try{return !!(NATIVE&&NATIVE.canExact&&NATIVE.canExact())}catch(e){return false}};
+function exactHTML(){if(!NATIVE||!NATIVE.canExact)return '';const on=remCfg().exact;return `<label class="remrow"><span><input type="checkbox" data-rem="exact"${on?' checked':''}> Reminders on the minute</span></label>
+    ${on&&!canExact()?`<p class="fine">Pawgress needs Alarms and reminders access for this.</p><div><button class="btn sm" type="button" data-act="allow-exact">Allow</button></div>`:''}`}
 function listsHTML(){const ls=allLists();return `<h3 class="subhd">Lists</h3>
     ${ls.length?`<ul class="lman">${ls.map(l=>`<li><input class="input" type="text" maxlength="20" value="${esc(listName(l))}" data-listname="${esc(l)}" aria-label="Rename ${esc(listName(l))}"><button class="linkbtn" type="button" data-act="list-del" data-v="${esc(l)}" aria-label="Remove ${esc(listName(l))}">Remove</button></li>`).join('')}</ul>`:''}
     <form class="lnew" data-listform="settings"><input id="list-in2" class="input" type="text" maxlength="20" autocomplete="off" placeholder="New list" aria-label="New list name"><button class="btn ghost sm" type="submit">Add</button></form>`}
@@ -3161,6 +3168,7 @@ document.addEventListener('click',e=>{
     case'undo':undo();break;
     case'notif-settings':if(NATIVE)NATIVE.openNotificationSettings();break;
     case'voice':if(NATIVE&&NATIVE.speak)NATIVE.speak();break;
+    case'allow-exact':if(NATIVE&&NATIVE.requestExact)NATIVE.requestExact();break;
     case'allow-notify':if(NATIVE){NATIVE.requestPermission();setTimeout(renderGuide,1500)}break;
     case'open':openTask=openTask===+id?null:+id;renderTasks();break;
     case'list':taskList=b.dataset.v||'';openTask=null;renderTasks();break;
@@ -3208,7 +3216,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
   else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
   else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
-  else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='brief')renderGuide()}
+  else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='exact'&&t.checked&&!canExact()&&NATIVE.requestExact)NATIVE.requestExact();if(k==='brief'||k==='exact')renderGuide()}
   else if(t.dataset.listname!=null){const from=t.dataset.listname,to=listKey(t.value);if(!to){t.value=listName(from);return}if(renameList(from,to)){save();renderTasks();renderGuide();toast('Renamed to '+listName(to)+'.')}}
   else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||'09:00';save();syncReminders()}
   else if(t.dataset.remb){remCfg().brief[t.dataset.remb]=t.value||(t.dataset.remb==='am'?'07:30':'20:30');save();syncReminders()}
