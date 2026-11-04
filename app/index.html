@@ -1734,13 +1734,13 @@ const REM_DEFAULT={morning:{on:true,t:'09:00'},evening:{on:true,t:'19:30'},brief
 function remCfg(){
   const r=S.rem||{},okT=/^([01]\d|2[0-3]):[0-5]\d$/;
   ['morning','evening'].forEach(k=>{if(r[k]&&!okT.test(r[k].t))delete r[k].t});if(r.brief){if(!okT.test(r.brief.am))delete r.brief.am;if(!okT.test(r.brief.pm))delete r.brief.pm}
-  S.rem={morning:Object.assign({},REM_DEFAULT.morning,r.morning),evening:Object.assign({},REM_DEFAULT.evening,r.evening),brief:Object.assign({},REM_DEFAULT.brief,r.brief),nag:[0,60,120,240].includes(r.nag)?r.nag:0,quick:r.quick===true,defMin:[0,10,30,60,120,1440].includes(r.defMin)?r.defMin:0,errands:r.errands!==false,focus:r.focus!==false,tasks:r.tasks!==false};
+  S.rem={morning:Object.assign({},REM_DEFAULT.morning,r.morning),evening:Object.assign({},REM_DEFAULT.evening,r.evening),brief:Object.assign({},REM_DEFAULT.brief,r.brief),nag:r.nag===60?120:[0,120,240].includes(r.nag)?r.nag:0,quick:r.quick===true,defMin:[0,10,30,60,120,1440].includes(r.defMin)?r.defMin:0,errands:r.errands!==false,focus:r.focus!==false,tasks:r.tasks!==false};
   return S.rem;
 }
 const REM_OPTS=[[0,'At that time'],[10,'10 min before'],[30,'30 min before'],[60,'1 hour before'],[120,'2 hours before'],[1440,'1 day before']];
 const atTime=(d,hhmm)=>{const[p,q]=String(hhmm||'09:00').split(':').map(Number);const x=new Date(d);x.setHours(p||0,q||0,0,0);return x.getTime()};
 const PLAN_DAYS=14,PLAN_MAX=400;
-// A pal home after the day's last reminder (evening prompt, tomorrow's briefing or the last overdue nudge) and before the
+// A pal home after the day's last reminder (evening prompt, tomorrow's briefing or the last still-to-do note) and before the
 // first morning one is shown silently. With no reminders on, that is 9pm to 8am.
 function palCh(at,r){
   const m=t=>{const[h,mi]=String(t).split(':').map(Number);return h*60+(mi||0)},on=[];
@@ -2563,7 +2563,7 @@ function remindersCard(){if(!NATIVE)return '';return `<div class="card"><h2>Remi
     <label class="remrow"><span><input type="checkbox" data-rem="brief"${remCfg().brief.on?' checked':''}> Daily briefing</span></label>
     ${remCfg().brief.on?`<div class="remrow"><label for="rem-am" class="fine">Today's list at</label><input id="rem-am" class="input remt" type="time" data-remb="am" value="${remCfg().brief.am}"></div>
     <div class="remrow"><label for="rem-pm" class="fine">Tomorrow's list at</label><input id="rem-pm" class="input remt" type="time" data-remb="pm" value="${remCfg().brief.pm}"></div>`:''}
-    <label class="remrow"><span>Overdue nudges</span><select class="input remt" data-remsel="nag" aria-label="Overdue nudges">${[[0,'Off'],[60,'Every hour'],[120,'Every 2 hours'],[240,'Every 4 hours']].map(([v,l])=>`<option value="${v}"${remCfg().nag===v?' selected':''}>${l}</option>`).join('')}</select></label>
+    <label class="remrow"><span>Still to do</span><select class="input remt" data-remsel="nag" aria-label="Still to do">${[[0,'Off'],[120,'Every 2 hours'],[240,'Every 4 hours']].map(([v,l])=>`<option value="${v}"${remCfg().nag===v?' selected':''}>${l}</option>`).join('')}</select></label>
     <label class="remrow"><span>Default reminder</span><select class="input remt" data-remsel="defMin" aria-label="Default reminder">${REM_OPTS.map(([v,l])=>`<option value="${v}"${remCfg().defMin===v?' selected':''}>${l}</option>`).join('')}</select></label>
     <label class="remrow"><span><input type="checkbox" data-rem="quick"${remCfg().quick?' checked':''}> Quick-add notification</span></label>
     <label class="remrow"><span><input type="checkbox" data-rem="errands"${remCfg().errands?' checked':''}> Pals coming home</span></label>
