@@ -684,6 +684,20 @@ li.task.picked{background:var(--pink-soft);border-radius:16px;padding-inline:10p
 body.selecting .offload-btn{visibility:hidden}
 .selbar .btn:disabled{opacity:.5}
 @media (min-width:1000px){.selbar{bottom:16px}}
+/* Lists you make yourself, and drag to reorder (4 Nov 2026) */
+.lchip.add{display:inline-grid;place-items:center;padding:4px 12px;border-style:dashed}
+.lnew{display:flex;gap:6px;align-items:center}
+.lnew .input{min-height:38px;padding:6px 12px;width:11rem;max-width:100%}
+.subhd{font-size:1rem;margin:14px 0 6px}
+.lman{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
+.lman li{display:flex;gap:8px;align-items:center}
+.lman .input{flex:1;min-width:0;min-height:40px;padding:6px 12px}
+.grip{flex:none;width:24px;height:40px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:grab;touch-action:none;padding:0;margin:0 -4px 0 -2px}
+ul.tasks li.task:only-child .grip{display:none}
+ul.tasks li.task.dragging{position:relative;z-index:6;background:var(--surface);border-radius:16px;box-shadow:0 6px 18px rgba(74,27,60,.18);transition:none}
+ul.tasks li.task{transition:transform .15s}
+body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
+.sr-f:not(:focus){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;padding:0;border:0;min-height:0}
 </style>
 </head>
 <body>
@@ -1568,6 +1582,7 @@ const ICONS={
   down:'<path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
   left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  grip:'<g fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></g>',
   pin:'<path d="M9 3h6l-.8 5.5L17 12v2h-4v6l-1 1.5-1-1.5v-6H7v-2l2.8-3.5z" fill="currentColor"/>',
   note:'<path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
@@ -1690,7 +1705,7 @@ function applySettings(){
 window.__sysTheme=()=>applySettings();
 function setCfg(k,v){S.cfg=Object.assign({},S.cfg||{},{[k]:v});save();applySettings()}
 applySettings();
-function fresh(){return{started:false,hearts:0,coins:0,tasks:[],pets:[],active:0,wardrobe:[],scene:'room',scenes:['room'],day:dayKey(),dayHearts:0,dayEnergy:0,energy:ENERGY_START,fast:DEMO,nextId:1,last:null,decor:[],rooms:{},lastDone:null,focus:null,threeDay:null}}
+function fresh(){return{started:false,hearts:0,coins:0,tasks:[],pets:[],active:0,wardrobe:[],scene:'room',scenes:['room'],day:dayKey(),dayHearts:0,dayEnergy:0,energy:ENERGY_START,fast:DEMO,nextId:1,last:null,decor:[],rooms:{},lastDone:null,focus:null,threeDay:null,lists:[]}}
 /* Rebuild the state from scratch, keeping only fields we know, with the right types.
    Used for every load and every restore, so a damaged or hostile save can never break or inject into the page. */
 function cleanState(o){
@@ -1746,8 +1761,11 @@ function cleanState(o){
     if(!q.done&&t.pin)q.pin=true;
     {const l=strOr(t.list,20).trim().toLowerCase();if(l)q.list=l}
     {const n=strOr(t.note,500).trim();if(n)q.note=n}
+    if(Number.isFinite(t.ord))q.ord=intOr(t.ord,0,0,1e6);
     return q;
   }).filter(Boolean);
+  // Lists are kept on their own (so an empty list stays), plus any list a task still uses.
+  s.lists=[...new Set([...(Array.isArray(o.lists)?o.lists:[]).map(x=>strOr(x,20).trim().toLowerCase()),...s.tasks.map(t=>t.list||'')].filter(Boolean))].slice(0,40);
   s.nextId=Math.max(intOr(o.nextId,1,1,1e9),...[...ids].map(x=>x+1),1);
   if(o.focus&&typeof o.focus==='object'&&ids.has(o.focus.id))s.focus={id:o.focus.id,start:numOr(o.focus.start,T,0,9e15),end:numOr(o.focus.end,T,0,9e15),rung:!!o.focus.rung};
   if(o.last&&typeof o.last==='object'&&ids.has(o.last.id))s.last={id:o.last.id,earn:intOr(o.last.earn,0,0,100),en:intOr(o.last.en,0,0,ENERGY_MAX)};
@@ -1929,7 +1947,7 @@ document.addEventListener('visibilitychange',()=>{
 function damagedSave(){try{return localStorage.getItem(KEY+'.damaged')}catch(e){return null}}
 function saveFailed(){const n=Date.now();if(n-saveWarnAt<60000)return;saveWarnAt=n;setTimeout(()=>toast('Couldn\'t save. Your phone may be low on space.'),50)}
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],DOW_LONG=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],WHENS={morning:'Morning',afternoon:'Afternoon',evening:'Evening',any:'Any time'};
-let editId=null,openTask=null,taskQ='',taskList='',undoFn=null,bkArmed=false,laterOpen=false,sel=null;
+let listNew=false,editId=null,openTask=null,taskQ='',taskList='',undoFn=null,bkArmed=false,laterOpen=false,sel=null;
 function rollDay(){
   if(S.day!==dayKey()){
     S.day=dayKey();S.dayHearts=0;S.dayEnergy=0;
@@ -1977,7 +1995,8 @@ function dueLabel(t){
   if(t.due>td)return t.due===tm?'Due tomorrow':'Due '+fmtDay(t.due);
   return 'From '+fmtDay(t.due);
 }
-const taskCmp=(a,b)=>{if(!a.pin!==!b.pin)return a.pin?-1:1;const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
+/* Order: pinned first, then the order you dragged them into (newer tasks after those), then by date and size */
+const taskCmp=(a,b)=>{if(!a.pin!==!b.pin)return a.pin?-1:1;{const oa=a.ord!=null,ob=b.ord!=null;if(oa&&ob&&a.ord!==b.ord)return a.ord-b.ord;if(oa!==ob)return oa?-1:1}const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
 const soonCmp=(a,b)=>{const da=a.hideUntil||a.due||'9999',db=b.hideUntil||b.due||'9999';return da<db?-1:da>db?1:a.id-b.id};
 const ordinal=n=>n+([11,12,13].includes(n%100)?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'));
 const weekText=d=>{d=d.slice().sort();const k=d.join();return k==='0,1,2,3,4,5,6'?'Every day':k==='1,2,3,4,5'?'Weekdays':k==='0,6'?'Weekends':d.map(i=>DOW[i]).join(' ')};
@@ -2229,13 +2248,15 @@ function renderTasks(){
   if(!$('#task-dom').options.length)$('#task-dom').innerHTML=Array.from({length:30},(_,i)=>`<option value="${i+1}">${ordinal(i+1)}</option>`).join('')+'<option value="31">Last day</option>';
   if(!$('#daygrid').children.length)$('#daygrid').innerHTML=[1,2,3,4,5,6,0].map(i=>`<label><input class="sr" type="checkbox" name="day" value="${i}"><span aria-label="${DOW_LONG[i]}">${DOW[i]}</span></label>`).join('');
   $('#today-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-  const lists=[...new Set(S.tasks.filter(t=>t.list&&(!t.done||t.rep)).map(t=>t.list))].sort();
+  const lists=allLists();
   if(taskList&&!lists.includes(taskList))taskList='';
   const qs=taskQ.trim().toLowerCase(),mt=t=>(!qs||t.text.toLowerCase().includes(qs)||(t.note||'').toLowerCase().includes(qs))&&(!taskList||t.list===taskList);
   $('#tsearch').hidden=S.tasks.length<6&&!qs;
   $('#tlists').hidden=!lists.length;
-  $('#tlists').innerHTML=lists.length?[['','All'],...lists.map(l=>[l,listName(l)])].map(([v,n])=>`<button type="button" class="lchip" data-act="list" data-v="${esc(v)}" aria-pressed="${taskList===v}">${esc(n)}</button>`).join(''):'';
-  const due=S.tasks.filter(t=>!t.done&&isDue(t)&&mt(t)).sort(taskCmp),soon=S.tasks.filter(t=>!t.done&&!t.later&&!isDue(t)&&mt(t)).sort(soonCmp),later=S.tasks.filter(t=>!t.done&&t.later&&mt(t)).sort((a,b)=>(!a.pin!==!b.pin?(a.pin?-1:1):a.id-b.id)),done=S.tasks.filter(t=>t.done&&mt(t)&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).sort((a,b)=>b.doneAt-a.doneAt).slice(0,10);
+  if(!$('#list-in')||!listNew)$('#tlists').innerHTML=lists.length?[['','All'],...lists.map(l=>[l,listName(l)])].map(([v,n])=>`<button type="button" class="lchip" data-act="list" data-v="${esc(v)}" aria-pressed="${taskList===v}">${esc(n)}</button>`).join('')
+    +(listNew?`<form class="lnew" data-listform="chip"><input id="list-in" class="input" type="text" maxlength="20" autocomplete="off" placeholder="New list" aria-label="New list name"><button class="btn ghost sm" type="submit">Add</button></form>`
+      :`<button type="button" class="lchip add" data-act="list-new" aria-label="New list">${ic('plus',16)}</button>`):'';
+  const due=S.tasks.filter(t=>!t.done&&isDue(t)&&mt(t)).sort(taskCmp),soon=S.tasks.filter(t=>!t.done&&!t.later&&!isDue(t)&&mt(t)).sort(soonCmp),later=S.tasks.filter(t=>!t.done&&t.later&&mt(t)).sort((a,b)=>taskCmp(Object.assign({},a,{due:''}),Object.assign({},b,{due:''}))||a.id-b.id),done=S.tasks.filter(t=>t.done&&mt(t)&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).sort((a,b)=>b.doneAt-a.doneAt).slice(0,10);
   const open=S.tasks.filter(t=>!t.done);
   if(sel){sel.forEach(id=>{if(!open.some(t=>t.id===id))sel.delete(id)});if(open.length<1)sel=null}
   $('#tsel').hidden=open.length<2&&!sel;$('#tsel').textContent=sel?'Done':'Select';$('#tsel').setAttribute('aria-pressed',!!sel);
@@ -2263,10 +2284,11 @@ function renderTasks(){
     const inner=`<span class="ttl">${t.pin&&!t.done?`<span class="pinned">${ic('pin',14)}<span class="sr">Pinned: </span></span>`:''}${esc(t.text)}</span>${meta?`<span class="meta">${meta}</span>`:''}`;
     const check=picking?`<button class="check pick" type="button" data-act="sel" data-id="${t.id}" aria-label="Select: ${esc(t.text)}" aria-pressed="${on}">${on?ic('check',20):''}</button>`
       :`<button class="check" type="button" data-act="toggle" data-id="${t.id}" aria-label="${t.done?'Done: ':'Mark done: '}${esc(t.text)}" aria-pressed="${t.done}" ${t.done||dim?'aria-disabled="true"':''}>${t.done?ic('check',20):''}</button>`;
-    return `<li class="task${t.done?' done':''}${dim?' dim':''}${open?' open':''}${on?' picked':''}">
+    const canMove=!picking&&!t.done&&(!dim||t.later),mv=canMove?`<button class="grip" type="button" tabindex="-1" aria-hidden="true" data-id="${t.id}">${ic('grip',18)}</button><button class="sr-f btn ghost sm" type="button" data-act="move" data-id="${t.id}" data-v="-1">Move up<span class="sr">: ${esc(t.text)}</span></button><button class="sr-f btn ghost sm" type="button" data-act="move" data-id="${t.id}" data-v="1">Move down<span class="sr">: ${esc(t.text)}</span></button>`:'';
+    return `<li class="task${t.done?' done':''}${dim?' dim':''}${open?' open':''}${on?' picked':''}" data-id="${t.id}">
       ${check}
       <button class="txt more" type="button" data-act="${picking?'sel':'open'}" data-id="${t.id}" ${picking?`aria-pressed="${on}"`:`aria-expanded="${open}"`}>${inner}${picking?'':'<span class="sr">, options</span>'}</button>
-      ${picking?'':rewardChip(t,dim)}${acts}${note}${picking?'':steps}</li>`;
+      ${picking?'':rewardChip(t,dim)}${mv}${acts}${note}${picking?'':steps}</li>`;
   };
   let main;
   if(!due.length)main=`<p class="empty">${(qs||taskList)&&!soon.length&&!later.length?'Nothing matches that.':!qs&&done.length?'All done for today. Well done!':soon.length||later.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
@@ -2275,13 +2297,13 @@ function renderTasks(){
     const order=['morning','afternoon','evening','any'],grp=w=>rest.filter(t=>(t.when||'any')===w);
     const used=order.filter(w=>grp(w).length);
     // Morning / Afternoon / Evening headings only help once the list is long. Pinned tasks always come first.
-    main=(pins.length?`<ul class="tasks">${pins.map(t=>li(t)).join('')}</ul>`:'')+(rest.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
-      :`<ul class="tasks">${used.flatMap(grp).map(t=>li(t)).join('')}</ul>`);
+    main=(pins.length?`<ul class="tasks" data-sec="due">${pins.map(t=>li(t)).join('')}</ul>`:'')+(rest.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks" data-sec="due">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
+      :`<ul class="tasks" data-sec="due">${used.flatMap(grp).map(t=>li(t)).join('')}</ul>`);
   }
   const lOpen=laterOpen||!!qs||!!sel;
   $('#tasklist').innerHTML=main
     +(soon.length?`<h3 class="sec-title">Coming up</h3><ul class="tasks">${soon.map(t=>li(t,true)).join('')}</ul>`:'')
-    +(later.length?`<h3 class="sec-title"><button type="button" class="fold" data-act="later-fold" aria-expanded="${lOpen}">Later <span class="n">${later.length}</span>${ic('down',16)}</button></h3>${lOpen?`<ul class="tasks">${later.map(t=>li(t,true)).join('')}</ul>`:''}`:'')
+    +(later.length?`<h3 class="sec-title"><button type="button" class="fold" data-act="later-fold" aria-expanded="${lOpen}">Later <span class="n">${later.length}</span>${ic('down',16)}</button></h3>${lOpen?`<ul class="tasks" data-sec="later">${later.map(t=>li(t,true)).join('')}</ul>`:''}`:'')
     +(done.length?`<h3 class="sec-title">Done today</h3><ul class="tasks">${done.map(t=>li(t)).join('')}</ul>`:'')
     +(sel?'':`<div class="row didrow"><button class="linkbtn did" type="button" data-act="did">${ic('plus',16)}Add something you did</button>${done.some(t=>!t.rep)?'<button class="btn ghost sm" type="button" data-act="clear">Clear finished</button>':''}</div>`);
   const n=sel?sel.size:0,ps=sel?S.tasks.filter(t=>sel.has(t.id)):[];
@@ -2289,7 +2311,7 @@ function renderTasks(){
   if(sel)$('#selbar').innerHTML=`<b>${n?n+' selected':'Tap tasks to select'}</b><div class="row">${ps.some(t=>!isDue(t)&&!(t.rep&&!repOn(t.rep,new Date())))?`<button class="btn ghost sm" type="button" data-act="bulk" data-v="today"${n?'':' disabled'}>Do today</button>`:''}${ps.some(t=>isDue(t))||!n?`<button class="btn ghost sm" type="button" data-act="bulk" data-v="snooze"${n?'':' disabled'}>Not today</button>`:''}<button class="btn ghost sm" type="button" data-act="bulk" data-v="later"${n&&ps.some(t=>!t.rep&&!t.later)?'':' disabled'}>Later</button><button class="btn ghost sm" type="button" data-act="bulk" data-v="del"${n?'':' disabled'}>Delete</button></div>`;
 }
 /* Undo for changes to several tasks at once: put the whole list back as it was */
-const tasksSnap=()=>JSON.stringify(S.tasks);
+function tasksSnap(){return JSON.stringify(S.tasks)}
 function tasksBack(snap){S.tasks=JSON.parse(snap);save();renderTasks()}
 function bulk(v){
   if(!sel||!sel.size)return;
@@ -2304,8 +2326,37 @@ function bulk(v){
   sel=null;undoFn=()=>tasksBack(snap);save();renderTasks();
   toast(v==='del'?'Deleted '+w+'.':v==='today'?'Moved '+w+' to today.':v==='later'?'Saved '+w+' for later.':'Not today. '+(n===1?'It comes':'They come')+' back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true);
 }
+/* Drag to reorder: the grip on each row of Today and Later. The new order is saved as each task's `ord`
+   (every task in that section, in the order shown), so pinned tasks still come first and new tasks go below. */
+function saveOrder(sec){const ids=$$(`#tasklist ul[data-sec="${sec}"] li.task`).map(li=>+li.dataset.id);
+  ids.forEach((id,i)=>{const t=S.tasks.find(x=>x.id===id);if(t)t.ord=i});save();renderTasks();sfx('step')}
+let tdrag=null;
+document.addEventListener('pointerdown',e=>{
+  const g=e.target.closest&&e.target.closest('.grip');if(!g||tdrag||(e.button&&e.button!==0))return;
+  const li=g.closest('li.task'),ul=li.parentElement,items=[...ul.children];if(items.length<2)return;
+  e.preventDefault();try{g.setPointerCapture(e.pointerId)}catch(_){}
+  const sy=window.scrollY,mids=items.map(x=>{const r=x.getBoundingClientRect();return r.top+sy+r.height/2}),h=li.getBoundingClientRect().height;
+  tdrag={g,li,ul,items,mids,h,from:items.indexOf(li),to:items.indexOf(li),y0:e.clientY+sy,id:e.pointerId};
+  li.classList.add('dragging');document.body.classList.add('dragging-task');
+});
+function dragMove(e){
+  if(!tdrag||e.pointerId!==tdrag.id)return;e.preventDefault();
+  if(e.clientY<90)window.scrollBy(0,-10);else if(e.clientY>window.innerHeight-130)window.scrollBy(0,10);
+  const y=e.clientY+window.scrollY,dy=y-tdrag.y0,c=tdrag.mids[tdrag.from]+dy;let to=tdrag.from;
+  tdrag.mids.forEach((m,i)=>{if(i<tdrag.from&&c<m)to=Math.min(to,i);if(i>tdrag.from&&c>m)to=Math.max(to,i)});
+  tdrag.to=to;tdrag.li.style.transform=`translateY(${dy}px)`;
+  tdrag.items.forEach((x,i)=>{if(x===tdrag.li)return;x.style.transform=i>tdrag.from&&i<=to?`translateY(${-tdrag.h}px)`:i<tdrag.from&&i>=to?`translateY(${tdrag.h}px)`:''});
+}
+function dragEndTask(e){
+  if(!tdrag||(e&&e.pointerId!==tdrag.id))return;const d=tdrag;tdrag=null;
+  d.items.forEach(x=>x.style.transform='');d.li.classList.remove('dragging');document.body.classList.remove('dragging-task');
+  if(d.to===d.from)return;
+  const ref=d.items[d.to];if(d.to>d.from)ref.after(d.li);else ref.before(d.li);saveOrder(d.ul.dataset.sec);
+}
+document.addEventListener('pointermove',dragMove,{passive:false});
+document.addEventListener('pointerup',dragEndTask);document.addEventListener('pointercancel',dragEndTask);
 /* notes: plain text, with web links you can tap */
-const linkify=t=>esc(t).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)'"]/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').slice(0,40)}</a>`).replace(/\n/g,'<br>');
+function linkify(t){return esc(t).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)'"]/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').slice(0,40)}</a>`).replace(/\n/g,'<br>')}
 
 const fmtTime=hm=>{let[a,b]=String(hm).split(':').map(Number);const ap=a<12?'am':'pm';a=a%12||12;return a+(b?':'+String(b).padStart(2,'0'):'')+ap};
 const remShort=n=>n===1440?'the day before':n>=60&&n%60===0?(n/60)+(n===60?' hour':' hours')+' before':n+' min before';
@@ -2340,7 +2391,7 @@ function setTaskForm(t){
   $('#task-due').value=t&&t.due||'';
   $('#task-note').value=t&&t.note||'';$('#task-later').checked=!!(t&&t.later);
   $('#task-list').value=t?listName(t.list||''):listName(taskList);
-  $('#task-lists').innerHTML=[...new Set(S.tasks.filter(x=>x.list).map(x=>x.list))].sort().map(l=>`<option value="${esc(listName(l))}">`).join('');
+  $('#task-lists').innerHTML=allLists().map(l=>`<option value="${esc(listName(l))}">`).join('');
   $('#task-steps').value=t&&t.steps?t.steps.map(s=>s.t).join('\n'):'';
   const r=$(`input[name="size"][value="${t?t.size:'small'}"]`);if(r)r.checked=true;
   let v='none';
@@ -2661,9 +2712,13 @@ function remindersCard(){if(!NATIVE)return '';return `<div class="card"><h2>Remi
     <label class="remrow"><span><input type="checkbox" data-rem="focus"${remCfg().focus?' checked':''}> Just start timer</span></label>
     <label class="remrow"><span><input type="checkbox" data-rem="tasks"${remCfg().tasks?' checked':''}> Task reminders</span></label>
     <div><button class="btn ghost sm" type="button" data-act="notif-settings">Open phone notification settings</button></div></div>`}
+function listsHTML(){const ls=allLists();return `<h3 class="subhd">Lists</h3>
+    ${ls.length?`<ul class="lman">${ls.map(l=>`<li><input class="input" type="text" maxlength="20" value="${esc(listName(l))}" data-listname="${esc(l)}" aria-label="Rename ${esc(listName(l))}"><button class="linkbtn" type="button" data-act="list-del" data-v="${esc(l)}" aria-label="Remove ${esc(listName(l))}">Remove</button></li>`).join('')}</ul>`:''}
+    <form class="lnew" data-listform="settings"><input id="list-in2" class="input" type="text" maxlength="20" autocomplete="off" placeholder="New list" aria-label="New list name"><button class="btn ghost sm" type="submit">Add</button></form>`}
 function tasksCard(){return `<div class="card"><h2>Tasks and Offload</h2>
     <label class="remrow"><span>Default size</span>${cfgSel('defSize',[['tiny','Tiny'],['small','Small'],['medium','Medium'],['big','Big']],'Default size')}</label>
-    <label class="remrow"><span>Not today returns</span>${cfgSel('snooze',[[1,'Tomorrow'],[2,'In 2 days'],[7,'Next week']],'Not today returns')}</label></div>`}
+    <label class="remrow"><span>Not today returns</span>${cfgSel('snooze',[[1,'Tomorrow'],[2,'In 2 days'],[7,'Next week']],'Not today returns')}</label>
+    ${listsHTML()}</div>`}
 function palsCard(){return `<div class="card"><h2>Pals</h2>
     <label class="remrow"><span><input type="checkbox" data-cfg="chat"${cfg().chat?' checked':''}> Speech bubbles</span></label></div>`}
 function soundCard(){return `<div class="card"><h2>Sound</h2>
@@ -2739,11 +2794,11 @@ function addTask(){
   else if(rv==='monthly')rep={dom:+$('#task-dom').value||1};
   else if(rv!=='none')rep={days:repDays(rv)};
   const note=$('#task-note').value.trim().slice(0,500),list=$('#task-list').value.trim().replace(/^#/,'').toLowerCase().slice(0,20),later=!rep&&$('#task-later').checked;
-  const extra=t=>{if(note)t.note=note;else delete t.note;if(list)t.list=list;else delete t.list;if(later){t.later=true;t.due='';delete t.hideUntil}else delete t.later};
+  const extra=t=>{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list;if(later){t.later=true;t.due='';delete t.hideUntil}else delete t.later};
   const lines=$('#task-steps').value.split('\n').map(s=>s.trim().slice(0,60)).filter(Boolean).slice(0,8);
   if(editId!=null){
     const t=S.tasks.find(x=>x.id===editId);
-    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=list;else delete t.list}}
+    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list}}
     setTaskForm(null);save();renderTasks();toast('Saved.');return;
   }
   const nt={id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0};
@@ -3114,6 +3169,11 @@ document.addEventListener('click',e=>{
     case'allow-notify':if(NATIVE){NATIVE.requestPermission();setTimeout(renderGuide,1500)}break;
     case'open':openTask=openTask===+id?null:+id;renderTasks();break;
     case'list':taskList=b.dataset.v||'';openTask=null;renderTasks();break;
+    case'list-new':listNew=true;renderTasks();setTimeout(()=>{const i=$('#list-in');if(i)i.focus()},20);break;
+    case'list-del':removeList(b.dataset.v);break;
+    case'move':{const li=b.closest('li.task'),ul=li&&li.parentElement,sib=li&&(b.dataset.v==='-1'?li.previousElementSibling:li.nextElementSibling);
+      if(!sib){toast(b.dataset.v==='-1'?'Already at the top.':'Already at the bottom.');break}
+      if(b.dataset.v==='-1')ul.insertBefore(li,sib);else ul.insertBefore(sib,li);saveOrder(ul.dataset.sec);break}
     case'later-fold':laterOpen=!laterOpen;renderTasks();break;
     case'pin':{const t=S.tasks.find(x=>x.id===+id);if(t){if(t.pin)delete t.pin;else t.pin=true;save();renderTasks();toast(t.pin?'Pinned to the top.':'Unpinned.')}break}
     case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();t.later=true;t.due='';delete t.hideUntil;openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
@@ -3155,6 +3215,7 @@ document.addEventListener('change',e=>{
   else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
   else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
   else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='brief')renderGuide()}
+  else if(t.dataset.listname!=null){const from=t.dataset.listname,to=listKey(t.value);if(!to){t.value=listName(from);return}if(renameList(from,to)){save();renderTasks();renderGuide();toast('Renamed to '+listName(to)+'.')}}
   else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||'09:00';save();syncReminders()}
   else if(t.dataset.remb){remCfg().brief[t.dataset.remb]=t.value||(t.dataset.remb==='am'?'07:30':'20:30');save();syncReminders()}
   else if(t.dataset.remsel){remCfg()[t.dataset.remsel]=+t.value||0;save();syncReminders()}
@@ -3410,7 +3471,7 @@ function qaParse(raw){
 /* the welcome screens only add tasks, so a line that reads as done stays a task there */
 const qaTask=l=>{const p=qaParse(l);return p.done?qaParse('to do: '+String(l).trim()):p};
 function qaMake(p){const t={id:S.nextId++,text:p.text,size:p.size||p.guess||'small',done:false,rep:p.rep,when:p.when||'any',due:p.due||'',remind:p.remind||'',remindMin:p.remindMin||0,steps:(p.steps||[]).map(x=>({t:x,done:false})),paid:0};
-  if(p.later)t.later=true;if(p.list)t.list=p.list;return t}
+  if(p.later)t.later=true;if(p.list)t.list=addList(p.list);return t}
 function qaNote(p){
   const a=[];
   if(p.list)a.push(listName(p.list));
@@ -3510,9 +3571,18 @@ function qaSpoken(raw){
 window.__voice=function(t){window.__share(qaSpoken(t))};
 const qaKey=p=>qaNorm(p.text)+'|'+(p.remind||'')+'|'+(p.remind?'':(p.when||''));
 const qaNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
-const listName=l=>l?l.charAt(0).toUpperCase()+l.slice(1):'';
+function listName(l){return l?l.charAt(0).toUpperCase()+l.slice(1):''}
+function listKey(v){return String(v||'').trim().replace(/^#/,'').replace(/\s+/g,' ').toLowerCase().slice(0,20)}
+function allLists(){return [...new Set([...(S.lists||[]),...S.tasks.map(t=>t.list||'')].filter(Boolean))].sort()}
+function addList(l){l=listKey(l);if(!l)return '';S.lists=S.lists||[];if(!S.lists.includes(l)&&S.lists.length<40)S.lists.push(l);return l}
+function renameList(from,to){to=listKey(to);if(!to||to===from)return false;
+  S.lists=[...new Set((S.lists||[]).map(x=>x===from?to:x).concat(to))];S.tasks.forEach(t=>{if(t.list===from)t.list=to});if(taskList===from)taskList=to;return true}
+function removeList(l){const snap={t:tasksSnap(),l:JSON.stringify(S.lists||[])},n=S.tasks.filter(t=>t.list===l).length;
+  S.lists=(S.lists||[]).filter(x=>x!==l);S.tasks.forEach(t=>{if(t.list===l)delete t.list});if(taskList===l)taskList='';
+  undoFn=()=>{S.lists=JSON.parse(snap.l);tasksBack(snap.t);renderGuide()};save();renderTasks();renderGuide();
+  toast(`Removed ${listName(l)}.${n?' Its tasks are still on your list.':''}`,true)}
 /* While a list chip is picked, new tasks go into that list (so they don't vanish from view). */
-const qaInList=p=>{if(!p.list&&taskList)p.list=taskList;return p};
+function qaInList(p){if(!p.list&&taskList)p.list=taskList;return p}
 /* Adds parsed lines: tasks go on the list; done things are ticked off straight away (an open task with the same words
    is ticked instead of adding a copy). Returns the tasks added and the ones ticked off. */
 function qaCommit(ps){
@@ -3530,7 +3600,7 @@ function qaCommit(ps){
     old.forEach(t=>{if(S.hearts>=(t.earned||0)&&S.energy>=(t.en||0)){S.hearts-=t.earned||0;S.dayHearts=Math.max(0,S.dayHearts-(t.earned||0));S.energy-=t.en||0;S.dayEnergy=Math.max(0,(S.dayEnergy||0)-(t.en||0))}t.done=false;delete t.doneAt;delete t.earned;delete t.en});
     save();renderTop();renderTasks();renderShop()}};
 }
-const gotText=g=>g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e} energy`:''} for ${cur().name}.`:'';
+function gotText(g){return g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e} energy`:''} for ${cur().name}.`:''}
 function qaAdd(raw){
   const t=String(raw).trim();if(!t)return false;
   if(/^(?:did|done|finished)\s*:?$/i.test(t)){toast('Type what you did, then Add.');return false}
@@ -3608,6 +3678,16 @@ window.__share=function(t){
 document.addEventListener('click',e=>{
   if(e.target&&e.target.id==='start')setTimeout(()=>{const t=window.__pendingShare;if(t){window.__pendingShare=null;window.__share(t)}},900);
 });
+document.addEventListener('submit',e=>{
+  const f=e.target.dataset&&e.target.dataset.listform;if(!f)return;e.preventDefault();
+  const i=f==='chip'?$('#list-in'):$('#list-in2'),l=listKey(i.value);
+  if(!l){i.focus();return}
+  const had=allLists().includes(l);addList(l);save();
+  if(f==='chip'){listNew=false;taskList=l;renderTasks();const c=$(`#tlists [data-v="${CSS.escape(l)}"]`);if(c)c.focus()}else{renderTasks();renderGuide();const n=$('#list-in2');if(n)n.focus()}
+  toast(had?listName(l)+' is already a list.':'Added '+listName(l)+'.'+(f==='chip'?' New tasks go into it while it is picked.':''));
+});
+document.addEventListener('focusout',e=>{if(e.target.id==='list-in'&&listNew)setTimeout(()=>{const f=document.activeElement;if(listNew&&!(f&&f.closest&&f.closest('.lnew'))){listNew=false;renderTasks()}},120)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&e.target.id==='list-in'){listNew=false;renderTasks();const a=$('#tlists [data-act="list-new"]');if(a)a.focus()}});
 document.addEventListener('submit',e=>{
   if(e.target.id!=='qa')return;
   e.preventDefault();const i=$('#qa-in');if(qaAdd(i.value))i.value='';i.focus();
