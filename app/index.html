@@ -415,6 +415,14 @@ li.task:last-child{border-bottom:0}
 .dl-n{grid-column:1;justify-self:start;font-size:.86rem;color:var(--muted)}
 .dl-x{grid-column:2;grid-row:1/span 2;width:40px;height:40px;border-radius:12px;border:0;background:none;color:var(--ink);font-size:1.3rem;line-height:1;cursor:pointer}
 #dump-add:disabled{opacity:.55;box-shadow:none}
+/* lines that read as done: a tick to turn them back into tasks */
+.dump-list li.can{grid-template-columns:auto minmax(0,1fr) auto}
+.dump-list li.can .dl-t,.dump-list li.can .dl-n{grid-column:2}
+.dump-list li.can .dl-x{grid-column:3}
+.dl-d{grid-column:1;grid-row:1/span 2;width:40px;height:40px;display:grid;place-items:center;border:0;background:none;padding:0;cursor:pointer;color:var(--btn-ink)}
+.dl-d::before{content:'';grid-area:1/1;width:24px;height:24px;border-radius:50%;border:2px solid var(--btn-bg)}
+.dl-d[aria-pressed="true"]::before{background:var(--btn-bg)}
+.dl-d svg{grid-area:1/1;position:relative}
 .welcome-logo{width:88px;height:88px;border-radius:22px;display:block;margin:0 0 10px}
 /* hearts flying from the counter into the pal (giveHearts) */
 .flyheart{position:fixed;left:0;top:0;width:22px;height:22px;color:var(--pink);pointer-events:none;z-index:45;will-change:transform,opacity;filter:drop-shadow(0 2px 2px rgba(74,27,60,.25))}
@@ -653,6 +661,29 @@ details.addwrap>summary h2{font-size:1.06rem}
   .toast{bottom:28px}
 }
 @media(min-width:700px){.room-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* Tasks: lists, Later, pins, notes, done things and select (4 Nov 2026) */
+.lchips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.lchip{min-height:36px;padding:4px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:.9rem;cursor:pointer}
+.lchip[aria-pressed="true"]{background:var(--pink-soft);border-color:var(--outline)}
+.fold{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 0;min-height:40px;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+.fold .n{color:var(--muted);font-weight:400}
+.fold svg{transition:transform .15s}
+.fold[aria-expanded="true"] svg{transform:rotate(180deg)}
+.pinned{color:var(--pink-text);margin-right:4px;vertical-align:-1px}
+.btn.ico{padding:6px 9px}
+.btn.ico[aria-pressed="true"]{background:var(--pink-soft);color:var(--pink-text)}
+.tnote{flex:1 1 100%;margin:2px 0 0 50px;font-size:.9rem;color:var(--muted);overflow-wrap:anywhere;white-space:normal}
+.tnote a{color:var(--pink-text);font-weight:700}
+.didrow{justify-content:space-between;align-items:center;margin-top:10px}
+.did{display:inline-flex;align-items:center;gap:4px;color:var(--pink-text)}
+.check.pick{border-style:dashed}
+.check.pick[aria-pressed="true"]{background:var(--btn-bg);border:2px solid var(--btn-bg)}
+li.task.picked{background:var(--pink-soft);border-radius:16px;padding-inline:10px}
+.selbar{position:sticky;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;padding:10px 12px;background:var(--surface);border:1.5px solid var(--outline);border-radius:16px}
+.selbar .row{gap:6px;flex-wrap:wrap}
+body.selecting .offload-btn{visibility:hidden}
+.selbar .btn:disabled{opacity:.5}
+@media (min-width:1000px){.selbar{bottom:16px}}
 </style>
 </head>
 <body>
@@ -733,14 +764,16 @@ details.addwrap>summary h2{font-size:1.06rem}
     <section id="p-tasks" class="panel" role="tabpanel" aria-label="Tasks" hidden>
       <div class="tasks-grid">
         <div class="sec">
-          <div class="ptitle"><h1>Today</h1><span class="fine" id="today-date"></span></div>
+          <div class="ptitle"><h1>Today</h1><span class="fine"><span id="today-date"></span> <button class="linkbtn" type="button" id="tsel" data-act="select" aria-pressed="false" hidden>Select</button></span></div>
           <form id="qa" class="qa-inline" autocomplete="off">
             <input id="qa-in" class="input" type="text" maxlength="120" enterkeyhint="done" placeholder="Add a task" aria-label="Add a task">
             <button class="btn ghost" type="submit">Add</button>
             <button class="btn ghost qa-d" type="button" data-qa="full" aria-label="Add with more options: steps, repeats and due date"><span data-ic="edit" data-size="20"></span></button>
           </form>
           <div id="tsearch" hidden><input id="task-q" class="input" type="search" maxlength="60" placeholder="Search your list" aria-label="Search your list"></div>
+          <div id="tlists" class="lchips" role="group" aria-label="Lists" hidden></div>
           <div id="tasklist"></div>
+          <div id="selbar" class="selbar" hidden></div>
           <div id="meter"></div>
         </div>
       </div>
@@ -767,7 +800,7 @@ details.addwrap>summary h2{font-size:1.06rem}
       <span class="grab" aria-hidden="true"></span>
       <div><h2 id="dump-h">Offload</h2>
       <p class="fine m0">Everything on your mind. One thing per line.</p></div>
-      <textarea id="dump-text" class="input" rows="6" maxlength="4000" aria-label="Your tasks, one per line" placeholder="Book the dentist&#10;Bins every Fri at 6pm, remind me 30 mins before, tiny&#10;Reply to Sam&#10;Stretch every morning"></textarea>
+      <textarea id="dump-text" class="input" rows="6" maxlength="4000" aria-label="Your tasks, one per line" placeholder="Book the dentist&#10;Bins every Fri at 6pm, remind me 30 mins before, tiny&#10;Clean kitchen: dishes, sides, floor&#10;Did the washing up&#10;Learn guitar someday"></textarea>
       <ul id="dump-list" class="dump-list" aria-live="polite"></ul>
       <p class="fine m0" id="dump-note" hidden>Only the first 50 lines are added.</p>
       <p class="fine m0" id="dump-voice-tip" hidden>Speaking? Just list your tasks, or say "next" between them.</p>
@@ -791,6 +824,12 @@ details.addwrap>summary h2{font-size:1.06rem}
       <fieldset class="seg" id="size-seg"></fieldset>
       <p class="fine" id="size-hint"></p>
       <details id="task-more" class="more"><summary>More options</summary><div class="stack more-body">
+      <label class="remrow"><span><input id="task-later" type="checkbox"> Keep for later</span></label>
+      <div><label for="task-list" class="lbl">List</label><input id="task-list" class="input" type="text" maxlength="20" list="task-lists" autocomplete="off" placeholder="Home"><datalist id="task-lists"></datalist></div>
+      <div>
+        <label for="task-note" class="lbl">Notes</label>
+        <textarea id="task-note" class="input" rows="2" maxlength="500" placeholder="Bin bags are under the sink"></textarea>
+      </div>
       <div>
         <label for="task-due" class="lbl">Due date</label>
         <input id="task-due" class="input" type="date">
@@ -1529,6 +1568,8 @@ const ICONS={
   down:'<path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
   left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  pin:'<path d="M9 3h6l-.8 5.5L17 12v2h-4v6l-1 1.5-1-1.5v-6H7v-2l2.8-3.5z" fill="currentColor"/>',
+  note:'<path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
 };
 const ic=(n,s=20)=>`<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
@@ -1701,6 +1742,10 @@ function cleanState(o){
     if(q.done){q.doneAt=numOr(t.doneAt,T,0,9e15);q.earned=intOr(t.earned,0,0,100);if(t.en!=null)q.en=intOr(t.en,0,0,20)}
     if(t.startPaid)q.startPaid=intOr(t.startPaid,0,0,10);
     if(t.ex)q.ex=true;
+    if(!q.done&&!q.rep&&t.later)q.later=true;
+    if(!q.done&&t.pin)q.pin=true;
+    {const l=strOr(t.list,20).trim().toLowerCase();if(l)q.list=l}
+    {const n=strOr(t.note,500).trim();if(n)q.note=n}
     return q;
   }).filter(Boolean);
   s.nextId=Math.max(intOr(o.nextId,1,1,1e9),...[...ids].map(x=>x+1),1);
@@ -1763,6 +1808,7 @@ function buildPlan(){
   const t0=new Date(),once={},sizeOrder=t=>t;
   const onDay=(t,d,k)=>{
     const diso=isoDay(d);
+    if(t.later)return false;
     if(t.hideUntil&&diso<t.hideUntil)return false;
     if(t.due&&diso<t.due)return false;
     if(t.rep){if(!repOn(t.rep,d))return false;if(k===0&&t.done)return false;return true}
@@ -1815,6 +1861,7 @@ function widgetData(){
   for(let k=0;k<7;k++){
     const d=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+k),diso=isoDay(d);
     const list=S.tasks.filter(t=>{
+      if(t.later)return false;
       if(t.hideUntil&&diso<t.hideUntil)return false;
       if(t.due&&diso<t.due)return false;
       if(t.rep)return repOn(t.rep,d)&&!(k===0&&t.done);
@@ -1882,7 +1929,7 @@ document.addEventListener('visibilitychange',()=>{
 function damagedSave(){try{return localStorage.getItem(KEY+'.damaged')}catch(e){return null}}
 function saveFailed(){const n=Date.now();if(n-saveWarnAt<60000)return;saveWarnAt=n;setTimeout(()=>toast('Couldn\'t save. Your phone may be low on space.'),50)}
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],DOW_LONG=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],WHENS={morning:'Morning',afternoon:'Afternoon',evening:'Evening',any:'Any time'};
-let editId=null,openTask=null,taskQ='',undoFn=null,bkArmed=false;
+let editId=null,openTask=null,taskQ='',taskList='',undoFn=null,bkArmed=false,laterOpen=false,sel=null;
 function rollDay(){
   if(S.day!==dayKey()){
     S.day=dayKey();S.dayHearts=0;S.dayEnergy=0;
@@ -1921,7 +1968,7 @@ function repStartOpts(from){
   sel.value=pick;
 }
 function updRepUI(v){$('#task-days').hidden=v!=='custom'&&v!=='fortnight';$('#task-start-wrap').hidden=v!=='fortnight';$('#task-dom-wrap').hidden=v!=='monthly'}
-const isDue=t=>{const td=isoDay();if(t.hideUntil&&t.hideUntil>td)return false;if(t.due&&t.due>td)return false;return !t.rep||repOn(t.rep,new Date())};
+const isDue=t=>{if(t.later)return false;const td=isoDay();if(t.hideUntil&&t.hideUntil>td)return false;if(t.due&&t.due>td)return false;return !t.rep||repOn(t.rep,new Date())};
 function dueLabel(t){
   const td=isoDay(),tm=isoDay(addDays(1));
   if(t.hideUntil&&t.hideUntil>td&&(!t.due||t.hideUntil>=t.due))return t.hideUntil===tm?'Back tomorrow':'Back '+fmtDay(t.hideUntil);
@@ -1930,7 +1977,7 @@ function dueLabel(t){
   if(t.due>td)return t.due===tm?'Due tomorrow':'Due '+fmtDay(t.due);
   return 'From '+fmtDay(t.due);
 }
-const taskCmp=(a,b)=>{const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
+const taskCmp=(a,b)=>{if(!a.pin!==!b.pin)return a.pin?-1:1;const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
 const soonCmp=(a,b)=>{const da=a.hideUntil||a.due||'9999',db=b.hideUntil||b.due||'9999';return da<db?-1:da>db?1:a.id-b.id};
 const ordinal=n=>n+([11,12,13].includes(n%100)?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'));
 const weekText=d=>{d=d.slice().sort();const k=d.join();return k==='0,1,2,3,4,5,6'?'Every day':k==='1,2,3,4,5'?'Weekdays':k==='0,6'?'Weekends':d.map(i=>DOW[i]).join(' ')};
@@ -2182,9 +2229,16 @@ function renderTasks(){
   if(!$('#task-dom').options.length)$('#task-dom').innerHTML=Array.from({length:30},(_,i)=>`<option value="${i+1}">${ordinal(i+1)}</option>`).join('')+'<option value="31">Last day</option>';
   if(!$('#daygrid').children.length)$('#daygrid').innerHTML=[1,2,3,4,5,6,0].map(i=>`<label><input class="sr" type="checkbox" name="day" value="${i}"><span aria-label="${DOW_LONG[i]}">${DOW[i]}</span></label>`).join('');
   $('#today-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
-  const qs=taskQ.trim().toLowerCase(),mt=t=>!qs||t.text.toLowerCase().includes(qs);
+  const lists=[...new Set(S.tasks.filter(t=>t.list&&(!t.done||t.rep)).map(t=>t.list))].sort();
+  if(taskList&&!lists.includes(taskList))taskList='';
+  const qs=taskQ.trim().toLowerCase(),mt=t=>(!qs||t.text.toLowerCase().includes(qs)||(t.note||'').toLowerCase().includes(qs))&&(!taskList||t.list===taskList);
   $('#tsearch').hidden=S.tasks.length<6&&!qs;
-  const due=S.tasks.filter(t=>!t.done&&isDue(t)&&mt(t)).sort(taskCmp),soon=S.tasks.filter(t=>!t.done&&!isDue(t)&&mt(t)).sort(soonCmp),done=S.tasks.filter(t=>t.done&&mt(t)&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).sort((a,b)=>b.doneAt-a.doneAt).slice(0,10);
+  $('#tlists').hidden=!lists.length;
+  $('#tlists').innerHTML=lists.length?[['','All'],...lists.map(l=>[l,listName(l)])].map(([v,n])=>`<button type="button" class="lchip" data-act="list" data-v="${esc(v)}" aria-pressed="${taskList===v}">${esc(n)}</button>`).join(''):'';
+  const due=S.tasks.filter(t=>!t.done&&isDue(t)&&mt(t)).sort(taskCmp),soon=S.tasks.filter(t=>!t.done&&!t.later&&!isDue(t)&&mt(t)).sort(soonCmp),later=S.tasks.filter(t=>!t.done&&t.later&&mt(t)).sort((a,b)=>(!a.pin!==!b.pin?(a.pin?-1:1):a.id-b.id)),done=S.tasks.filter(t=>t.done&&mt(t)&&(t.rep||new Date(t.doneAt||0).toDateString()===dayKey())).sort((a,b)=>b.doneAt-a.doneAt).slice(0,10);
+  const open=S.tasks.filter(t=>!t.done);
+  if(sel){sel.forEach(id=>{if(!open.some(t=>t.id===id))sel.delete(id)});if(open.length<1)sel=null}
+  $('#tsel').hidden=open.length<2&&!sel;$('#tsel').textContent=sel?'Done':'Select';$('#tsel').setAttribute('aria-pressed',!!sel);
   /* hearts and energy for a task: what it pays, or for a done task what it actually earned (older saves only kept hearts) */
   /* today's tasks show 0 energy once no more can be earned today (day's energy used, bank full, or hearts full) */
   const noEn=eDay||hFull||S.energy>=ENERGY_MAX;
@@ -2193,33 +2247,65 @@ function renderTasks(){
     return `<span class="chip rw" aria-label="${t.done?'Earned':'Earns'} ${label}"><span>${ic('heart',14)}${h}</span>${e!=null?`<span class="bolt">${ic('bolt',14)}<i>${e}</i></span>`:''}</span>`};
   const li=(t,dim)=>{
     const sn=(t.steps||[]).length,sd=(t.steps||[]).filter(s=>s.done).length;
-    const open=t.done?openTask===t.id:(openTask===t.id||(!dim&&S.focus&&S.focus.id===t.id));
+    const picking=!!sel&&!t.done,on=picking&&sel.has(t.id);
+    const open=!picking&&(t.done?openTask===t.id:(openTask===t.id||(!dim&&S.focus&&S.focus.id===t.id)));
     const meta=taskMeta(t,dim,sn,sd);
-    // Coming-up tasks can be pulled into today (unless they only repeat on other days), edited or deleted.
+    const pinB=`<button class="btn ghost sm ico" type="button" data-act="pin" data-id="${t.id}" aria-pressed="${!!t.pin}" aria-label="${t.pin?'Unpin':'Pin to top'}">${ic('pin',18)}</button>`;
+    const laterB=t.rep?'':`<button class="btn ghost sm" type="button" data-act="later" data-id="${t.id}">Later</button>`;
+    const edB=`<button class="btn ghost sm" type="button" data-act="edit" data-id="${t.id}">Edit</button><button class="linkbtn" type="button" data-act="del" data-id="${t.id}">Delete</button>`;
+    // Coming-up and Later tasks can be pulled into today (unless they only repeat on other days), edited or deleted.
     // Done tasks (repeating ones stay until tomorrow) can still be edited or deleted.
-    const acts=open&&t.done?`<div class="acts"><button class="btn ghost sm" type="button" data-act="edit" data-id="${t.id}">Edit</button><button class="linkbtn" type="button" data-act="del" data-id="${t.id}">Delete</button></div>`
-      :open&&dim?`<div class="acts">${t.rep&&!repOn(t.rep,new Date())?'':`<button class="btn sm" type="button" data-act="today" data-id="${t.id}">Do it today</button>`}<button class="btn ghost sm" type="button" data-act="edit" data-id="${t.id}">Edit</button><button class="linkbtn" type="button" data-act="del" data-id="${t.id}">Delete</button></div>`
-      :open?`<div class="acts"><button class="btn sm" type="button" data-act="focus" data-id="${t.id}">${S.focus&&S.focus.id===t.id?'Sitting with you':'Just start<span class="sr"> for 5 minutes</span>'}</button><button class="btn ghost sm" type="button" data-act="snooze" data-id="${t.id}">Not today</button><button class="btn ghost sm" type="button" data-act="edit" data-id="${t.id}">Edit</button><button class="linkbtn" type="button" data-act="del" data-id="${t.id}">Delete</button></div>`:'';
+    const acts=!open?'':t.done?`<div class="acts">${edB}</div>`
+      :dim?`<div class="acts">${t.rep&&!repOn(t.rep,new Date())?'':`<button class="btn sm" type="button" data-act="today" data-id="${t.id}">Do it today</button>`}${t.later?pinB:''}${edB}</div>`
+      :`<div class="acts"><button class="btn sm" type="button" data-act="focus" data-id="${t.id}">${S.focus&&S.focus.id===t.id?'Sitting with you':'Just start<span class="sr"> for 5 minutes</span>'}</button><button class="btn ghost sm" type="button" data-act="snooze" data-id="${t.id}">Not today</button>${laterB}${pinB}${edB}</div>`;
+    const note=open&&t.note?`<p class="tnote">${linkify(t.note)}</p>`:'';
     const steps=sn&&(open||t.done)?`<ul class="substeps">${t.steps.map((s,i)=>`<li><button type="button" data-act="step" data-id="${t.id}" data-i="${i}" aria-pressed="${!!s.done}"><span class="box">${s.done?ic('check',14):''}</span><span class="${s.done?'sdone':''}">${esc(s.t)}</span></button></li>`).join('')}</ul>`:'';
-    const inner=`<span class="ttl">${esc(t.text)}</span>${meta?`<span class="meta">${meta}</span>`:''}`;
-    return `<li class="task${t.done?' done':''}${dim?' dim':''}${open?' open':''}">
-      <button class="check" type="button" data-act="toggle" data-id="${t.id}" aria-label="${t.done?'Done: ':'Mark done: '}${esc(t.text)}" aria-pressed="${t.done}" ${t.done||dim?'aria-disabled="true"':''}>${t.done?ic('check',20):''}</button>
-      ${`<button class="txt more" type="button" data-act="open" data-id="${t.id}" aria-expanded="${open}">${inner}<span class="sr">, options</span></button>`}
-      ${rewardChip(t,dim)}${acts}${steps}</li>`;
+    const inner=`<span class="ttl">${t.pin&&!t.done?`<span class="pinned">${ic('pin',14)}<span class="sr">Pinned: </span></span>`:''}${esc(t.text)}</span>${meta?`<span class="meta">${meta}</span>`:''}`;
+    const check=picking?`<button class="check pick" type="button" data-act="sel" data-id="${t.id}" aria-label="Select: ${esc(t.text)}" aria-pressed="${on}">${on?ic('check',20):''}</button>`
+      :`<button class="check" type="button" data-act="toggle" data-id="${t.id}" aria-label="${t.done?'Done: ':'Mark done: '}${esc(t.text)}" aria-pressed="${t.done}" ${t.done||dim?'aria-disabled="true"':''}>${t.done?ic('check',20):''}</button>`;
+    return `<li class="task${t.done?' done':''}${dim?' dim':''}${open?' open':''}${on?' picked':''}">
+      ${check}
+      <button class="txt more" type="button" data-act="${picking?'sel':'open'}" data-id="${t.id}" ${picking?`aria-pressed="${on}"`:`aria-expanded="${open}"`}>${inner}${picking?'':'<span class="sr">, options</span>'}</button>
+      ${picking?'':rewardChip(t,dim)}${acts}${note}${picking?'':steps}</li>`;
   };
   let main;
-  if(!due.length)main=`<p class="empty">${qs&&!soon.length?'Nothing matches that search.':!qs&&done.length?'All done for today. Well done!':soon.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
+  if(!due.length)main=`<p class="empty">${(qs||taskList)&&!soon.length&&!later.length?'Nothing matches that.':!qs&&done.length?'All done for today. Well done!':soon.length||later.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
   else{
-    const order=['morning','afternoon','evening','any'],grp=w=>due.filter(t=>(t.when||'any')===w);
+    const pins=due.filter(t=>t.pin),rest=due.filter(t=>!t.pin);
+    const order=['morning','afternoon','evening','any'],grp=w=>rest.filter(t=>(t.when||'any')===w);
     const used=order.filter(w=>grp(w).length);
-    // Morning / Afternoon / Evening headings only help once the list is long.
-    main=due.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
-      :`<ul class="tasks">${used.flatMap(grp).map(t=>li(t)).join('')}</ul>`;
+    // Morning / Afternoon / Evening headings only help once the list is long. Pinned tasks always come first.
+    main=(pins.length?`<ul class="tasks">${pins.map(t=>li(t)).join('')}</ul>`:'')+(rest.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
+      :`<ul class="tasks">${used.flatMap(grp).map(t=>li(t)).join('')}</ul>`);
   }
+  const lOpen=laterOpen||!!qs||!!sel;
   $('#tasklist').innerHTML=main
     +(soon.length?`<h3 class="sec-title">Coming up</h3><ul class="tasks">${soon.map(t=>li(t,true)).join('')}</ul>`:'')
-    +(done.length?`<h3 class="sec-title">Done today</h3><ul class="tasks">${done.map(t=>li(t)).join('')}</ul>${done.some(t=>!t.rep)?'<div><button class="btn ghost sm" type="button" data-act="clear">Clear finished</button></div>':''}`:'');
+    +(later.length?`<h3 class="sec-title"><button type="button" class="fold" data-act="later-fold" aria-expanded="${lOpen}">Later <span class="n">${later.length}</span>${ic('down',16)}</button></h3>${lOpen?`<ul class="tasks">${later.map(t=>li(t,true)).join('')}</ul>`:''}`:'')
+    +(done.length?`<h3 class="sec-title">Done today</h3><ul class="tasks">${done.map(t=>li(t)).join('')}</ul>`:'')
+    +(sel?'':`<div class="row didrow"><button class="linkbtn did" type="button" data-act="did">${ic('plus',16)}Add something you did</button>${done.some(t=>!t.rep)?'<button class="btn ghost sm" type="button" data-act="clear">Clear finished</button>':''}</div>`);
+  const n=sel?sel.size:0,ps=sel?S.tasks.filter(t=>sel.has(t.id)):[];
+  $('#selbar').hidden=!sel;document.body.classList.toggle('selecting',!!sel);
+  if(sel)$('#selbar').innerHTML=`<b>${n?n+' selected':'Tap tasks to select'}</b><div class="row">${ps.some(t=>!isDue(t)&&!(t.rep&&!repOn(t.rep,new Date())))?`<button class="btn ghost sm" type="button" data-act="bulk" data-v="today"${n?'':' disabled'}>Do today</button>`:''}${ps.some(t=>isDue(t))||!n?`<button class="btn ghost sm" type="button" data-act="bulk" data-v="snooze"${n?'':' disabled'}>Not today</button>`:''}<button class="btn ghost sm" type="button" data-act="bulk" data-v="later"${n&&ps.some(t=>!t.rep&&!t.later)?'':' disabled'}>Later</button><button class="btn ghost sm" type="button" data-act="bulk" data-v="del"${n?'':' disabled'}>Delete</button></div>`;
 }
+/* Undo for changes to several tasks at once: put the whole list back as it was */
+const tasksSnap=()=>JSON.stringify(S.tasks);
+function tasksBack(snap){S.tasks=JSON.parse(snap);save();renderTasks()}
+function bulk(v){
+  if(!sel||!sel.size)return;
+  const ps=S.tasks.filter(t=>sel.has(t.id)),snap=tasksSnap(),td=isoDay();let n=0;
+  if(v==='del'){S.tasks=S.tasks.filter(t=>!sel.has(t.id));n=ps.length;if(S.focus&&sel.has(S.focus.id)){S.focus=null;renderFocus()}}
+  else ps.forEach(t=>{
+    if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;if(t.due&&t.due>td)t.due=td;n++}
+    else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));n++}
+    else if(v==='later'){if(t.rep||t.later)return;t.later=true;t.due='';delete t.hideUntil;n++}});
+  if(!n){toast('Nothing to change there.');return}
+  const w=n===1?'1 task':n+' tasks';
+  sel=null;undoFn=()=>tasksBack(snap);save();renderTasks();
+  toast(v==='del'?'Deleted '+w+'.':v==='today'?'Moved '+w+' to today.':v==='later'?'Saved '+w+' for later.':'Not today. '+(n===1?'It comes':'They come')+' back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true);
+}
+/* notes: plain text, with web links you can tap */
+const linkify=t=>esc(t).replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)'"]/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').slice(0,40)}</a>`).replace(/\n/g,'<br>');
 
 const fmtTime=hm=>{let[a,b]=String(hm).split(':').map(Number);const ap=a<12?'am':'pm';a=a%12||12;return a+(b?':'+String(b).padStart(2,'0'):'')+ap};
 const remShort=n=>n===1440?'the day before':n>=60&&n%60===0?(n/60)+(n===60?' hour':' hours')+' before':n+' min before';
@@ -2233,6 +2319,8 @@ function taskMeta(t,soon,sn,sd){
   if(!t.rep&&!dl&&tm)parts.push(esc(tm));
   if(!tm&&t.when&&t.when!=='any')parts.push(WHENS[t.when]);
   if(sn)parts.push(`${sd}/${sn} steps`);
+  if(t.list&&!taskList)parts.push(esc(listName(t.list)));
+  if(t.note)parts.push(`<span class="bell">${ic('note',13)}<span class="sr">Has a note</span></span>`);
   if(tm&&remOn())parts.push(`<span class="bell">${ic('bell',13)}<span class="sr">Reminder</span>${t.remindMin?' '+esc(remShort(t.remindMin)):''}</span>`);
   return parts.join(' · ');
 }
@@ -2250,6 +2338,9 @@ function setTaskForm(t){
   $('#task-remind').value=t&&t.remind||'';
   {const rm=String(t&&t.remindMin!=null?t.remindMin:remCfg().defMin),sel=$('#task-rmin');[...sel.querySelectorAll('option[data-x]')].forEach(o=>o.remove());if(![...sel.options].some(o=>o.value===rm)){const o=document.createElement('option');o.value=rm;o.dataset.x='1';o.textContent=rm+' min before';sel.appendChild(o)}sel.value=rm}
   $('#task-due').value=t&&t.due||'';
+  $('#task-note').value=t&&t.note||'';$('#task-later').checked=!!(t&&t.later);
+  $('#task-list').value=t?listName(t.list||''):listName(taskList);
+  $('#task-lists').innerHTML=[...new Set(S.tasks.filter(x=>x.list).map(x=>x.list))].sort().map(l=>`<option value="${esc(listName(l))}">`).join('');
   $('#task-steps').value=t&&t.steps?t.steps.map(s=>s.t).join('\n'):'';
   const r=$(`input[name="size"][value="${t?t.size:'small'}"]`);if(r)r.checked=true;
   let v='none';
@@ -2260,7 +2351,7 @@ function setTaskForm(t){
   $('#task-dom').value=String(t&&t.rep&&t.rep.dom||Math.min(new Date().getDate(),31));
   repStartOpts(t&&t.rep&&t.rep.every===2?t.rep.from:null);
   updRepUI(v);
-  $('#task-more').open=!!(t&&((t.steps&&t.steps.length)||t.rep||t.remind||(t.when&&t.when!=='any')));
+  $('#task-more').open=!!(t&&((t.steps&&t.steps.length)||t.rep||t.remind||(t.when&&t.when!=='any')||t.note||t.list||t.later));
   if(t&&t.due)$('#task-more').open=true;
   updSizeHint();
   $('#task-submit-t').textContent=t?'Save changes':'Add task';
@@ -2631,7 +2722,7 @@ function renderGuide(){
 function renderAll(){applySettings();renderFocus();renderTop();renderDevice();renderTools();renderJobs();renderAway();renderTasks();renderShop();renderGuide()}
 
 /* ---------- actions ---------- */
-function setTab(t){
+function setTab(t){if(sel&&t!=='tasks'){sel=null;document.body.classList.remove('selecting')}
   tab=t;
   $$('.panel').forEach(p=>{p.hidden=p.id!=='p-'+t});
   $$('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===t)));
@@ -2647,27 +2738,42 @@ function addTask(){
   if(rv==='custom'||rv==='fortnight'){const days=$$('input[name="day"]:checked').map(c=>+c.value);if(!days.length){toast('Pick at least one day, or choose Just once.');return}rep={days};if(rv==='fortnight'){rep.every=2;rep.from=$('#task-start').value||mondayIso(new Date())}}
   else if(rv==='monthly')rep={dom:+$('#task-dom').value||1};
   else if(rv!=='none')rep={days:repDays(rv)};
+  const note=$('#task-note').value.trim().slice(0,500),list=$('#task-list').value.trim().replace(/^#/,'').toLowerCase().slice(0,20),later=!rep&&$('#task-later').checked;
+  const extra=t=>{if(note)t.note=note;else delete t.note;if(list)t.list=list;else delete t.list;if(later){t.later=true;t.due='';delete t.hideUntil}else delete t.later};
   const lines=$('#task-steps').value.split('\n').map(s=>s.trim().slice(0,60)).filter(Boolean).slice(0,8);
   if(editId!=null){
     const t=S.tasks.find(x=>x.id===editId);
-    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex}
+    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=list;else delete t.list}}
     setTaskForm(null);save();renderTasks();toast('Saved.');return;
   }
-  S.tasks.push({id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0});
+  const nt={id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0};
+  extra(nt);S.tasks.push(nt);
   setTaskForm(null);save();renderTasks();sfx('offload');
-  toast(rep?'Added. It comes back '+repPhrase(rep)+'.':'Added. It will pay '+SIZE_BY[size].hearts+' heart'+(SIZE_BY[size].hearts>1?'s':'')+'.');
+  toast(later?'Saved for later.':rep?'Added. It comes back '+repPhrase(rep)+'.':'Added. It will pay '+SIZE_BY[size].hearts+' heart'+(SIZE_BY[size].hearts>1?'s':'')+'.');
 }
 
+/* Marks a task done and pays it: hearts up to the daily cap, energy up to the day's and the bank's limits. */
+function finish(t){
+  const earn=Math.max(0,Math.min(SIZE_BY[t.size].hearts-(t.paid||0),DAILY_CAP-S.dayHearts));
+  t.done=true;t.doneAt=Date.now();t.earned=earn+(t.paid||0);delete t.later;delete t.pin;
+  const enLeft=DAILY_ENERGY-(S.dayEnergy||0),en=t.earned>0?Math.max(0,Math.min(SIZE_BY[t.size].energy,ENERGY_MAX-S.energy,enLeft)):0,enFull=t.earned>0&&S.energy>=ENERGY_MAX,enDay=t.earned>0&&!enFull&&enLeft<=0;
+  S.hearts+=earn;S.dayHearts+=earn;S.energy+=en;S.dayEnergy=(S.dayEnergy||0)+en;t.en=en;
+  if(S.focus&&S.focus.id===t.id)S.focus=null;
+  S.lastDone=dayKey();
+  return{earn,en,enFull,enDay,enLeft};
+}
+/* Takes back done things that were just added (Undo), refunding what they paid while it is still unspent. */
+function unlog(ts){
+  const h=ts.reduce((a,t)=>a+(t.earned||0),0),e=ts.reduce((a,t)=>a+(t.en||0),0),ok=S.hearts>=h&&S.energy>=e;
+  if(ok){S.hearts-=h;S.dayHearts=Math.max(0,S.dayHearts-h);S.energy-=e;S.dayEnergy=Math.max(0,(S.dayEnergy||0)-e)}
+  S.tasks=S.tasks.filter(t=>!ts.includes(t));return ok;
+}
 function complete(id){
   rollDay();
   const t=S.tasks.find(x=>x.id===id);
   if(!t||t.done)return;
-  const earn=Math.max(0,Math.min(SIZE_BY[t.size].hearts-(t.paid||0),DAILY_CAP-S.dayHearts));
-  undoFn=null;t.done=true;t.doneAt=Date.now();t.earned=earn+(t.paid||0);
-  const enLeft=DAILY_ENERGY-(S.dayEnergy||0),en=t.earned>0?Math.max(0,Math.min(SIZE_BY[t.size].energy,ENERGY_MAX-S.energy,enLeft)):0,enFull=t.earned>0&&S.energy>=ENERGY_MAX,enDay=t.earned>0&&!enFull&&enLeft<=0;
-  S.hearts+=earn;S.dayHearts+=earn;S.energy+=en;S.dayEnergy=(S.dayEnergy||0)+en;t.en=en;S.last={id:t.id,earn,en};
-  if(S.focus&&S.focus.id===id)S.focus=null;
-  S.lastDone=dayKey();
+  undoFn=null;
+  const {earn,en,enFull,enDay}=finish(t);S.last={id:t.id,earn,en};
   save();renderTop();renderTasks();renderShop();renderFocus();
   // Say when energy stops: on the task that uses the last of today's energy, and on every task after it.
   const enLast=en>0&&S.dayEnergy>=DAILY_ENERGY;
@@ -2989,7 +3095,7 @@ document.addEventListener('click',e=>{
     case'toggle':complete(+id);break;
     case'del':{const ix=S.tasks.findIndex(t=>t.id===+id),gone=S.tasks[ix];if(!gone)break;S.tasks.splice(ix,1);if(S.focus&&S.focus.id===+id){S.focus=null;renderFocus()}if(editId===+id)setTaskForm(null);undoFn=()=>{S.tasks.splice(Math.min(ix,S.tasks.length),0,gone);save();renderTasks()};save();renderTasks();toast('Deleted.',true);break}
     case'clear':{const gone=S.tasks.filter(t=>t.done&&!t.rep);S.tasks=S.tasks.filter(t=>!t.done||t.rep);undoFn=()=>{S.tasks.push(...gone);save();renderTasks()};save();renderTasks();toast('Cleared '+gone.length+' finished task'+(gone.length===1?'':'s')+'.',true);break}
-    case'today':{const t=S.tasks.find(x=>x.id===+id);if(t){const was={due:t.due,hideUntil:t.hideUntil};delete t.hideUntil;if(t.due&&t.due>isoDay())t.due=isoDay();openTask=null;undoFn=()=>{['due','hideUntil'].forEach(k=>{if(was[k])t[k]=was[k];else delete t[k]});save();renderTasks()};save();renderTasks();toast('Moved to today.',true)}break}
+    case'today':{const t=S.tasks.find(x=>x.id===+id);if(t){const was={due:t.due,hideUntil:t.hideUntil,later:t.later};delete t.hideUntil;delete t.later;if(t.due&&t.due>isoDay())t.due=isoDay();openTask=null;undoFn=()=>{['due','hideUntil','later'].forEach(k=>{if(was[k])t[k]=was[k];else delete t[k]});save();renderTasks()};save();renderTasks();toast('Moved to today.',true)}break}
     case'snooze':{const t=S.tasks.find(x=>x.id===+id);if(t){const was=t.hideUntil;t.hideUntil=isoDay(addDays(cfg().snooze));openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>{if(was)t.hideUntil=was;else delete t.hideUntil;save();renderTasks()};save();renderTasks();toast('Not today. It comes back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true)}break}
     case'bk-copy':{const code='PAWGRESS1.'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));const box=$('#bk-box'),ta=$('#bk-text'),msg=$('#bk-msg');
       const fallback=()=>{box.hidden=false;ta.value=code;ta.focus();ta.select();msg.textContent='Copying did not work here. Select the code above and copy it yourself.'};
@@ -3007,6 +3113,15 @@ document.addEventListener('click',e=>{
     case'voice':if(NATIVE&&NATIVE.speak)NATIVE.speak();break;
     case'allow-notify':if(NATIVE){NATIVE.requestPermission();setTimeout(renderGuide,1500)}break;
     case'open':openTask=openTask===+id?null:+id;renderTasks();break;
+    case'list':taskList=b.dataset.v||'';openTask=null;renderTasks();break;
+    case'later-fold':laterOpen=!laterOpen;renderTasks();break;
+    case'pin':{const t=S.tasks.find(x=>x.id===+id);if(t){if(t.pin)delete t.pin;else t.pin=true;save();renderTasks();toast(t.pin?'Pinned to the top.':'Unpinned.')}break}
+    case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();t.later=true;t.due='';delete t.hideUntil;openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
+    case'did':{if(sel)break;const i=$('#qa-in');i.value='Did ';i.focus();i.setSelectionRange(4,4);i.scrollIntoView({block:'center'});break}
+    case'select':sel=sel?null:new Set();openTask=null;renderTasks();break;
+    case'sel-off':sel=null;renderTasks();break;
+    case'sel':{if(!sel)break;const n=+id;if(sel.has(n))sel.delete(n);else sel.add(n);renderTasks();break}
+    case'bulk':bulk(b.dataset.v);break;
     case'focus':startFocus(+id);break;
     case'focus-stop':stopFocus();break;
     case'step':toggleStep(+id,+b.dataset.i);break;
@@ -3073,7 +3188,7 @@ function wPreview(){
   try{
     const seen=new Set();
     ul.innerHTML=$('#w-dump').value.split(/\r?\n/).filter(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).slice(0,20).flatMap(qaExpand).map(l=>{
-      const p=qaParse(l),k=qaKey(p),dup=seen.has(k);seen.add(k);const n=dup?'same as the line above':qaNote(p);
+      const p=qaTask(l),k=qaKey(p),dup=seen.has(k);seen.add(k);const n=dup?'same as the line above':qaNote(p);
       return `<li${dup?' class="dim"':''}><span class="dl-t">${esc(p.text)}</span>${n?`<span class="dl-n">${esc(n)}</span>`:''}</li>`}).join('');
   }catch(e){ul.innerHTML=''}
 }
@@ -3081,7 +3196,7 @@ function addWelcomeTasks(){
   if(typeof qaParse==='function'){
     const seen=new Set();
     $('#w-dump').value.split(/\r?\n/).filter(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).slice(0,20).flatMap(qaExpand).forEach(l=>{
-      const p=qaParse(l),k=qaKey(p);if(seen.has(k))return;seen.add(k);S.tasks.push(qaMake(p))});
+      const p=qaTask(l),k=qaKey(p);if(seen.has(k))return;seen.add(k);S.tasks.push(qaMake(p))});
   }else{
     if(DEMO)SAMPLE_TASKS.forEach(([text,size,rep,when])=>S.tasks.push({id:S.nextId++,text,size,done:false,ex:true,rep:rep||null,when:when||'any'}));
   }
@@ -3180,8 +3295,30 @@ function qaBare(x,due,rep,now=new Date()){
     return due?{time:f(h+12),due}:{time:f(h),due:isoDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1))}}
   return{time:f(h<=6?h+12:h),due};
 }
+/* Done things: a line in the past tense ("did the washing up", "called the GP", "I've paid the bill") or marked done
+   ("done: laundry", "laundry (done)") goes straight to Done today. "to do:" in front keeps a line as a task. */
+const QA_PAST=new Set(('did done went made took got gave sent paid bought ate drank wrote ran rang fed swept slept spoke sold found brought '+
+  'caught taught met left kept hung held built spent won threw drew drove rode flew wore sang swam began came saw told said thought had shook woke').split(' '));
+const QA_NOT_PAST=new Set('need feed weed seed speed shred bleed breed heed embed proceed succeed exceed bed red shed sled wed deed reed steed fred ahmed mohammed'.split(' '));
+const QA_LEAD=/^(?:(?:i|i've|ive|i have|we|we've)\s+)?(?:(?:just|already|finally|also)\s+)?/i;
+function qaPast(t){const w=(String(t).replace(QA_LEAD,'').match(/^[a-z']+/i)||[''])[0].toLowerCase();return QA_PAST.has(w)||(/^[a-z]{2,}ed$/.test(w)&&!QA_NOT_PAST.has(w))}
+/* a past-tense line, with its first word also in the present, so the size guess still works ("called" -> "call") */
+const QA_BASE={did:'do',done:'do',went:'go',made:'make',took:'take',got:'get',gave:'give',sent:'send',paid:'pay',bought:'buy',ate:'eat',drank:'drink',wrote:'write',ran:'run',rang:'ring',fed:'feed',swept:'sweep',sold:'sell',found:'find',brought:'bring',hung:'hang',built:'build',spent:'spend',wore:'wear'};
+function qaPresent(t){return t.replace(/^([a-z']+)/i,w=>{const l=w.toLowerCase();if(QA_BASE[l])return QA_BASE[l];if(!/ed$/.test(l))return w;
+  const a=l.replace(/ied$/,'y').replace(/([^aeiou])\1ed$/,'$1').replace(/ed$/,'');return a+' '+a+'e '+l.replace(/d$/,'')})}
+/* Later: no day yet, kept off Today until you pick it up */
+const QA_LATER=/[\s,;]*\b(?:some\s?day|one\s+day|at\s+some\s+point|some\s?time(?!\s+(?:today|tomorrow|tonight|this|next|on|in))|eventually|when\s+i\s+(?:can|get\s+(?:a\s+)?(?:chance|time|round\s+to\s+it))|no\s+rush|for\s+later|(?:#|hashtag\s+)later)\b/i;
 function qaParse(raw){
   let s=' '+String(raw).replace(/^\s*(?:[-*•]|\d+[.)])\s+/,'').trim()+' ';
+  let done=false,later=false,list='';
+  {const r=s.trim();let m;
+    if((m=r.match(/^(?:to\s?-?do|task)\s*:\s*(.+)$/i)))s=' '+m[1]+' ';
+    else if((m=r.match(/^(?:done|did it|finished)\s*[:\-]\s*(.+)$/i))){done=true;s=' '+m[1]+' '}
+    else if((m=r.match(/^(.+?)\s*(?:\(done\)|[-–]\s*done|[✓✔]+)\s*$/i))){done=true;s=' '+m[1]+' '}
+    else if(qaPast(r)){done=true;s=' '+r.replace(QA_LEAD,'')+' '}}
+  s=s.replace(/\ssome\s?time(?=\s+(?:today|tomorrow|tonight|this|next|on|in)\b)/i,' ');
+  if(QA_LATER.test(s)){later=true;s=s.replace(QA_LATER,' ')}
+  s=s.replace(/\s(?:#|hashtag\s+)(?!(?:tiny|small|medium|big)\b)(\p{L}[\p{L}\p{N}_-]{0,19})/giu,(m,w)=>{if(!list)list=w.toLowerCase();return ' '});
   let rep=null,when=null,size=null,every=false,due=null,time=null,remindAt=null,remindMin=null,wantsRemind=false;
   const ctx=qaCtx(raw),ISH='(?:\\s*-?\\s*ish)?';
   const cut=(re,fn)=>{s=s.replace(re,(...m)=>{fn(...m);return ' '})};
@@ -3252,6 +3389,13 @@ function qaParse(raw){
   s=s.replace(/\s*,(?:\s*,)+/g,',').replace(/\s+,/g,',').replace(/\s+/g,' ').trim().replace(/(?:\s+(?:and|on|at|in|for|every|each|the|this|by|due|before|next))+$/i,'').replace(/[\s,;:\-]+$/,'').replace(/^[\s,;:\-]+/,'');
   if(wantsRemind)s=s.replace(/^to\s+/i,'');
   let text=s||String(raw).trim();
+  // Steps after a colon: "clean kitchen: dishes, sides and floor" (two or more; one part after a colon stays as it is)
+  let steps=[];
+  {const m=text.match(/^(.*?[^\d\s:]):\s*(.+)$/);
+    if(m){const parts=m[2].split(/\s*(?:,|;|\s\+\s|\bthen\b)\s*/i).filter(Boolean),last=parts.length>1?parts.pop():null;
+      if(last)parts.push(...last.split(/\s+(?:and|&)\s+/i));
+      const st=parts.map(x=>x.trim().replace(/[.!]+$/,'')).filter(Boolean);
+      if(st.length>1){text=m[1].trim();steps=st.slice(0,8).map(x=>(x.charAt(0).toUpperCase()+x.slice(1)).slice(0,60))}}}
   text=text.charAt(0).toUpperCase()+text.slice(1);
   {const a=qaBare(time,due,rep);time=a.time;due=a.due;const b=qaBare(remindAt,due,rep);remindAt=b.time;due=b.due}
   const remind=remindAt||time;
@@ -3259,11 +3403,20 @@ function qaParse(raw){
   if(!when)when=qaGuessWhen(text);
   let rmin=null;
   if(remind)rmin=remindMin!=null?remindMin:(typeof remCfg==='function'?remCfg().defMin:0);
-  return{text:text.slice(0,80),size,guess:size?null:qaGuess(text),rep,when,due,remind:remind||'',remindMin:rmin||0,needTime:!remind&&(wantsRemind||remindMin!=null)};
+  if(done){rep=null;due=null;later=false}
+  if(rep||due||remind)later=false;
+  return{text:text.slice(0,80),size,guess:size?null:qaGuess(done?qaPresent(text):text),rep,when,due,remind:done?'':remind||'',remindMin:done?0:rmin||0,needTime:!done&&!remind&&(wantsRemind||remindMin!=null),steps,done,later,list};
 }
-function qaMake(p){return{id:S.nextId++,text:p.text,size:p.size||p.guess||'small',done:false,rep:p.rep,when:p.when||'any',due:p.due||'',remind:p.remind||'',remindMin:p.remindMin||0,steps:[],paid:0}}
+/* the welcome screens only add tasks, so a line that reads as done stays a task there */
+const qaTask=l=>{const p=qaParse(l);return p.done?qaParse('to do: '+String(l).trim()):p};
+function qaMake(p){const t={id:S.nextId++,text:p.text,size:p.size||p.guess||'small',done:false,rep:p.rep,when:p.when||'any',due:p.due||'',remind:p.remind||'',remindMin:p.remindMin||0,steps:(p.steps||[]).map(x=>({t:x,done:false})),paid:0};
+  if(p.later)t.later=true;if(p.list)t.list=p.list;return t}
 function qaNote(p){
   const a=[];
+  if(p.list)a.push(listName(p.list));
+  if(p.done)return a.concat(['already done']).join(', ');
+  if(p.later)a.push('later');
+  if(p.steps&&p.steps.length)a.push(p.steps.length+' steps: '+p.steps.join(', '));
   if(p.rep)a.push(repPhrase(p.rep))
   if(p.due)a.push(dueLabel({due:p.due}).toLowerCase());
   if(p.when&&p.when!=='any'&&!p.remind)a.push(WHENS[p.when].toLowerCase());
@@ -3323,7 +3476,7 @@ function spTimes(s){
   return s.replace(/\s+/g,' ').trim();
 }
 function qaSpoken(raw){
-  let s=spTimes(String(raw).replace(/[’]/g,"'"));
+  let s=spTimes(String(raw).replace(/[’]/g,"'").replace(/\bhash\s?tag\s+/gi,'#'));
   // 1) joining words and sentence ends become line breaks
   s=s.replace(/\s*[.!?;]+(?=\s|$)/g,'\n');
   s=s.replace(/\s*\b(?:and then|after that|and also|next task|new task|next one|then|also|plus)\b[\s,]*/gi,'\n');
@@ -3357,10 +3510,35 @@ function qaSpoken(raw){
 window.__voice=function(t){window.__share(qaSpoken(t))};
 const qaKey=p=>qaNorm(p.text)+'|'+(p.remind||'')+'|'+(p.remind?'':(p.when||''));
 const qaNorm=t=>String(t).toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+const listName=l=>l?l.charAt(0).toUpperCase()+l.slice(1):'';
+/* While a list chip is picked, new tasks go into that list (so they don't vanish from view). */
+const qaInList=p=>{if(!p.list&&taskList)p.list=taskList;return p};
+/* Adds parsed lines: tasks go on the list; done things are ticked off straight away (an open task with the same words
+   is ticked instead of adding a copy). Returns the tasks added and the ones ticked off. */
+function qaCommit(ps){
+  rollDay();const added=[],ticked=[],made=[];
+  ps.forEach(p=>{
+    if(p.done){const same=S.tasks.find(t=>!t.done&&isDue(t)&&qaNorm(t.text)===qaNorm(p.text));if(same){ticked.push(same);return}}
+    const t=qaMake(p);S.tasks.push(t);(p.done?ticked:added).push(t);if(p.done)made.push(t)});
+  const before={h:S.hearts,e:S.energy};
+  ticked.forEach(t=>finish(t));
+  const got={h:S.hearts-before.h,e:S.energy-before.e};
+  return{added,ticked,made,got,undo:()=>{
+    const old=ticked.filter(t=>!made.includes(t));
+    S.tasks=S.tasks.filter(t=>!added.includes(t));
+    unlog(made);
+    old.forEach(t=>{if(S.hearts>=(t.earned||0)&&S.energy>=(t.en||0)){S.hearts-=t.earned||0;S.dayHearts=Math.max(0,S.dayHearts-(t.earned||0));S.energy-=t.en||0;S.dayEnergy=Math.max(0,(S.dayEnergy||0)-(t.en||0))}t.done=false;delete t.doneAt;delete t.earned;delete t.en});
+    save();renderTop();renderTasks();renderShop()}};
+}
+const gotText=g=>g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e} energy`:''} for ${cur().name}.`:'';
 function qaAdd(raw){
   const t=String(raw).trim();if(!t)return false;
-  const ps=qaExpand(t).map(qaParse);ps.forEach(p=>S.tasks.push(qaMake(p)));save();renderTasks();sfx('offload');
-  const p=ps[0],n=ps.length>1?ps.map(x=>x.remind||(x.when&&WHENS[x.when]||'').toLowerCase()).join(' and '):qaNote(p);toast('Added "'+p.text+'"'+(n?' ('+n+').':'.'));
+  if(/^(?:did|done|finished)\s*:?$/i.test(t)){toast('Type what you did, then Add.');return false}
+  const ps=qaExpand(t).map(qaParse).map(qaInList),r=qaCommit(ps);
+  undoFn=r.undo;save();renderTop();renderTasks();renderShop();
+  if(r.ticked.length){sfx('tick_'+r.ticked[0].size);say(pick(VOICE[cur().sp].cheer));toast('Done: '+r.ticked[0].text+'.'+gotText(r.got),true);return true}
+  sfx('offload');
+  const p=ps[0],n=ps.length>1?ps.map(x=>x.remind||(x.when&&WHENS[x.when]||'').toLowerCase()).join(' and '):qaNote(p);toast('Added "'+p.text+'"'+(n?' ('+n+').':'.'),true);
   return true;
 }
 let qaFrom=null;
@@ -3373,15 +3551,30 @@ function qaBar(open){
 function qaLines(){
   return $('#dump-text').value.split(/\r?\n/).map((l,i)=>({l,i})).filter(x=>x.l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim());
 }
+/* Lines that read as done but that you turned back into tasks in the preview (keyed by the line's words) */
+const qaUndone=new Set();
+const QA_INDENT=/^(?:\t| {2,})/;
 function qaItems(){
-  const have=new Set(S.tasks.filter(t=>!t.done).map(qaKey)),seen=new Set();
-  return qaLines().slice(0,50).flatMap(x=>qaExpand(x.l).map(l=>{const p=qaParse(l),k=qaKey(p),dup=have.has(k)||seen.has(k);seen.add(k);return{i:x.i,p,dup}}));
+  const have=new Set(S.tasks.filter(t=>!t.done).map(qaKey)),seen=new Set(),out=[];
+  qaLines().slice(0,50).forEach(x=>{
+    // indented lines under a task (pasted from a notes app) become its steps
+    const last=out[out.length-1];
+    if(QA_INDENT.test(x.l)&&last&&!last.p.done){const st=x.l.replace(/^\s*(?:[-*•]|\d+[.)]|\[[ x]?\])?\s*/i,'').trim().slice(0,60);if(st&&last.p.steps.length<8){last.p.steps.push(st.charAt(0).toUpperCase()+st.slice(1));last.kids.push(x.i)}return}
+    qaExpand(x.l).forEach(l=>{
+      const key=l.trim().toLowerCase();let p=qaParse(l);const could=p.done;
+      if(could&&qaUndone.has(key))p=qaParse('to do: '+l.trim());
+      qaInList(p);
+      const k=qaKey(p),dup=!p.done&&(have.has(k)||seen.has(k));seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
+  });
+  return out;
 }
 function qaPreview(){
   const all=qaLines(),ps=qaItems();
-  $('#dump-list').innerHTML=ps.map(x=>{const n=x.dup?'already on your list':qaNote(x.p);return `<li${x.dup?' class="dim"':''}><span class="dl-t">${esc(x.p.text)}</span>${n?`<span class="dl-n">${esc(n)}</span>`:''}<button type="button" class="dl-x" data-qa="rm" data-i="${x.i}" aria-label="Remove ${esc(x.p.text)}">&times;</button></li>`}).join('');
-  const c=ps.filter(x=>!x.dup).length,b=$('#dump-add');b.disabled=!c;
-  b.querySelector('span:last-child').textContent=c?'Add '+c+' task'+(c>1?'s':''):'Add tasks';
+  $('#dump-list').innerHTML=ps.map(x=>{const n=x.dup?'already on your list':qaNote(x.p);
+    const tick=x.could?`<button type="button" class="dl-d" data-qa="flip" data-k="${esc(x.key)}" aria-pressed="${x.p.done}" aria-label="Already done: ${esc(x.p.text)}">${x.p.done?ic('check',14):''}</button>`:'';
+    return `<li class="${x.dup?'dim':''}${x.could?' can':''}">${tick}<span class="dl-t">${esc(x.p.text)}</span>${n?`<span class="dl-n">${esc(n)}</span>`:''}<button type="button" class="dl-x" data-qa="rm" data-i="${[x.i,...x.kids].join(',')}" aria-label="Remove ${esc(x.p.text)}">&times;</button></li>`}).join('');
+  const keep=ps.filter(x=>!x.dup),c=keep.filter(x=>!x.p.done).length,d=keep.length-c,b=$('#dump-add');b.disabled=!keep.length;
+  b.querySelector('span:last-child').textContent=!keep.length?'Add tasks':c&&d?`Add ${c} and ${d} done`:c?`Add ${c} task${c>1?'s':''}`:`Add ${d} done`;
   $('#dump-note').hidden=all.length<=50;
 }
 function qaOpen(text){
@@ -3397,10 +3590,12 @@ function qaClose(){
 }
 function qaDump(){
   const ps=qaItems(),add=ps.filter(x=>!x.dup),skipped=ps.length-add.length;if(!add.length)return;
-  add.forEach(x=>S.tasks.push(qaMake(x.p)));
+  const r=qaCommit(add.map(x=>x.p));undoFn=r.undo;qaUndone.clear();
   save();$('#dump-text').value='';qaClose();
   if(tab!=='tasks')setTab('tasks');
-  renderTasks();sfx('offload');toast('Added '+add.length+' task'+(add.length>1?'s':'')+'.'+(skipped?' Skipped '+skipped+' already on your list.':''));
+  renderTop();renderTasks();renderShop();sfx(r.ticked.length&&!r.added.length?'tick_'+r.ticked[0].size:'offload');
+  const a=r.added.length,d=r.ticked.length;
+  toast((a?'Added '+a+' task'+(a>1?'s':'')+'.':'')+(d?(a?' ':'')+d+' done'+(d>1?' things':'')+'.'+gotText(r.got):'')+(skipped?' Skipped '+skipped+' already on your list.':''),true);
 }
 
 window.__share=function(t){
@@ -3430,7 +3625,8 @@ document.addEventListener('click',e=>{
   else if(a==='full'){const v=$('#qa-in').value.trim();$('#qa-in').value='';qaBar(false);openTaskSheet(v)}
   else if(a==='close')qaClose();
   else if(a==='add')qaDump();
-  else if(a==='rm'){const ta=$('#dump-text'),ls=ta.value.split(/\r?\n/);ls.splice(+b.dataset.i,1);ta.value=ls.join('\n');qaPreview()}
+  else if(a==='rm'){const ta=$('#dump-text'),ls=ta.value.split(/\r?\n/),gone=new Set(b.dataset.i.split(',').map(Number));ta.value=ls.filter((l,i)=>!gone.has(i)).join('\n');qaPreview()}
+  else if(a==='flip'){const k=b.dataset.k;if(qaUndone.has(k))qaUndone.delete(k);else qaUndone.add(k);qaPreview()}
 });
 document.addEventListener('input',e=>{if(e.target.id==='dump-text')qaPreview()});
 document.addEventListener('click',e=>{
