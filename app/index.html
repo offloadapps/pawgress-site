@@ -109,7 +109,6 @@ p{margin:0}
 .palname{display:grid;min-width:0;flex:1 1 150px}
 .palbtns{display:flex;gap:8px;flex:none}
 .palbtns .btn{min-height:46px;padding-inline:14px}
-.btn.iconbtn{width:46px;padding:0}
 .iconbtn .heart{color:var(--pink);display:flex}
 .screen .scene{position:absolute;inset:0;width:100%;height:100%}
 .petwrap{position:absolute;left:50%;bottom:2%;height:90%;aspect-ratio:1;transform:translateX(-50%);z-index:2;animation:float 3.2s ease-in-out infinite}
@@ -669,9 +668,6 @@ details.addwrap>summary h2{font-size:1.06rem}
 .fold .n{color:var(--muted);font-weight:400}
 .fold svg{transition:transform .15s}
 .fold[aria-expanded="true"] svg{transform:rotate(180deg)}
-.pinned{color:var(--pink-text);margin-right:4px;vertical-align:-1px}
-.btn.ico{padding:6px 9px}
-.btn.ico[aria-pressed="true"]{background:var(--pink-soft);color:var(--pink-text)}
 .tnote{flex:1 1 100%;margin:2px 0 0 50px;font-size:.9rem;color:var(--muted);overflow-wrap:anywhere;white-space:normal}
 .tnote a{color:var(--pink-text);font-weight:700}
 .didrow{justify-content:space-between;align-items:center;margin-top:10px}
@@ -837,25 +833,17 @@ body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
       </div>
       <fieldset class="seg" id="size-seg"></fieldset>
       <p class="fine" id="size-hint"></p>
-      <details id="task-more" class="more"><summary>More options</summary><div class="stack more-body">
-      <label class="remrow"><span><input id="task-later" type="checkbox"> Keep for later</span></label>
-      <div><label for="task-list" class="lbl">List</label><input id="task-list" class="input" type="text" maxlength="20" list="task-lists" autocomplete="off" placeholder="Home"><datalist id="task-lists"></datalist></div>
-      <div>
-        <label for="task-note" class="lbl">Notes</label>
-        <textarea id="task-note" class="input" rows="2" maxlength="500" placeholder="Bin bags are under the sink"></textarea>
-      </div>
       <div>
         <label for="task-due" class="lbl">Due date</label>
         <input id="task-due" class="input" type="date">
       </div>
+      <details id="task-more" class="more"><summary>More options</summary><div class="stack more-body">
+      <div><label for="task-list" class="lbl">List</label>
+        <select id="task-list" class="input"></select>
+        <input id="task-list-new" class="input mt-s" type="text" maxlength="20" autocomplete="off" placeholder="New list name" aria-label="New list name" hidden>
+      </div>
       <div>
-        <label for="task-remind" class="lbl">Reminder</label>
-              <input id="task-remind" class="input" type="time">
-              <label for="task-rmin" class="lbl mt-s">How early</label>
-              <select id="task-rmin" class="input"><option value="0">At that time</option><option value="10">10 min before</option><option value="30">30 min before</option><option value="60">1 hour before</option><option value="120">2 hours before</option><option value="1440">1 day before</option></select>
-            </div>
-            <div>
-              <label for="task-steps" class="lbl">Steps</label>
+        <label for="task-steps" class="lbl">Steps</label>
         <textarea id="task-steps" class="input" rows="3" maxlength="400" placeholder="Pick up the bin&#10;Tie the bag&#10;Carry it out"></textarea>
       </div>
       <div class="two">
@@ -867,6 +855,17 @@ body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
       <fieldset class="days" id="task-days" hidden><legend class="lbl">Which days?</legend><div class="daygrid" id="daygrid"></div></fieldset>
       <div id="task-start-wrap" hidden><label for="task-start" class="lbl">Starting</label><select id="task-start" class="input"></select></div>
       <div id="task-dom-wrap" hidden><label for="task-dom" class="lbl">On the</label><select id="task-dom" class="input"></select><p class="fine under">Shorter months use their last day.</p></div>
+      <div>
+        <label for="task-remind" class="lbl">Reminder</label>
+        <input id="task-remind" class="input" type="time">
+        <label for="task-rmin" class="lbl mt-s">How early</label>
+        <select id="task-rmin" class="input"><option value="0">At that time</option><option value="10">10 min before</option><option value="30">30 min before</option><option value="60">1 hour before</option><option value="120">2 hours before</option><option value="1440">1 day before</option></select>
+      </div>
+      <div>
+        <label for="task-note" class="lbl">Notes</label>
+        <textarea id="task-note" class="input" rows="2" maxlength="500" placeholder="Bin bags are under the sink"></textarea>
+      </div>
+      <label class="remrow"><span><input id="task-later" type="checkbox"> Keep for later</span></label>
       </div></details>
       <div class="row"><button class="btn" type="submit" id="task-submit"><span data-ic="plus" data-size="20"></span><span id="task-submit-t">Add task</span></button><button class="btn ghost" type="button" id="task-cancel" data-act="cancel-edit">Cancel</button></div>
     </form>
@@ -1583,7 +1582,6 @@ const ICONS={
   plus:'<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/>',
   left:'<path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   grip:'<g fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></g>',
-  pin:'<path d="M9 3h6l-.8 5.5L17 12v2h-4v6l-1 1.5-1-1.5v-6H7v-2l2.8-3.5z" fill="currentColor"/>',
   note:'<path d="M6 3h8l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   right:'<path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
 };
@@ -1758,7 +1756,6 @@ function cleanState(o){
     if(t.startPaid)q.startPaid=intOr(t.startPaid,0,0,10);
     if(t.ex)q.ex=true;
     if(!q.done&&!q.rep&&t.later)q.later=true;
-    if(!q.done&&t.pin)q.pin=true;
     {const l=strOr(t.list,20).trim().toLowerCase();if(l)q.list=l}
     {const n=strOr(t.note,500).trim();if(n)q.note=n}
     if(Number.isFinite(t.ord))q.ord=intOr(t.ord,0,0,1e6);
@@ -1995,8 +1992,8 @@ function dueLabel(t){
   if(t.due>td)return t.due===tm?'Due tomorrow':'Due '+fmtDay(t.due);
   return 'From '+fmtDay(t.due);
 }
-/* Order: pinned first, then the order you dragged them into (newer tasks after those), then by date and size */
-const taskCmp=(a,b)=>{if(!a.pin!==!b.pin)return a.pin?-1:1;{const oa=a.ord!=null,ob=b.ord!=null;if(oa&&ob&&a.ord!==b.ord)return a.ord-b.ord;if(oa!==ob)return oa?-1:1}const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
+/* Order: the order you dragged them into (newer tasks after those), then by date and size */
+const taskCmp=(a,b)=>{{const oa=a.ord!=null,ob=b.ord!=null;if(oa&&ob&&a.ord!==b.ord)return a.ord-b.ord;if(oa!==ob)return oa?-1:1}const da=a.due||'9999',db=b.due||'9999';return da<db?-1:da>db?1:(SIZE_BY[a.size].hearts-SIZE_BY[b.size].hearts)||(a.id-b.id)};
 const soonCmp=(a,b)=>{const da=a.hideUntil||a.due||'9999',db=b.hideUntil||b.due||'9999';return da<db?-1:da>db?1:a.id-b.id};
 const ordinal=n=>n+([11,12,13].includes(n%100)?'th':({1:'st',2:'nd',3:'rd'}[n%10]||'th'));
 const weekText=d=>{d=d.slice().sort();const k=d.join();return k==='0,1,2,3,4,5,6'?'Every day':k==='1,2,3,4,5'?'Weekdays':k==='0,6'?'Weekends':d.map(i=>DOW[i]).join(' ')};
@@ -2271,17 +2268,16 @@ function renderTasks(){
     const picking=!!sel&&!t.done,on=picking&&sel.has(t.id);
     const open=!picking&&(t.done?openTask===t.id:(openTask===t.id||(!dim&&S.focus&&S.focus.id===t.id)));
     const meta=taskMeta(t,dim,sn,sd);
-    const pinB=`<button class="btn ghost sm ico" type="button" data-act="pin" data-id="${t.id}" aria-pressed="${!!t.pin}" aria-label="${t.pin?'Unpin':'Pin to top'}">${ic('pin',18)}</button>`;
     const laterB=t.rep?'':`<button class="btn ghost sm" type="button" data-act="later" data-id="${t.id}">Later</button>`;
     const edB=`<button class="btn ghost sm" type="button" data-act="edit" data-id="${t.id}">Edit</button><button class="linkbtn" type="button" data-act="del" data-id="${t.id}">Delete</button>`;
     // Coming-up and Later tasks can be pulled into today (unless they only repeat on other days), edited or deleted.
     // Done tasks (repeating ones stay until tomorrow) can still be edited or deleted.
     const acts=!open?'':t.done?`<div class="acts">${edB}</div>`
-      :dim?`<div class="acts">${t.rep&&!repOn(t.rep,new Date())?'':`<button class="btn sm" type="button" data-act="today" data-id="${t.id}">Do it today</button>`}${t.later?pinB:''}${edB}</div>`
-      :`<div class="acts"><button class="btn sm" type="button" data-act="focus" data-id="${t.id}">${S.focus&&S.focus.id===t.id?'Sitting with you':'Just start<span class="sr"> for 5 minutes</span>'}</button><button class="btn ghost sm" type="button" data-act="snooze" data-id="${t.id}">Not today</button>${laterB}${pinB}${edB}</div>`;
+      :dim?`<div class="acts">${t.rep&&!repOn(t.rep,new Date())?'':`<button class="btn sm" type="button" data-act="today" data-id="${t.id}">Do it today</button>`}${edB}</div>`
+      :`<div class="acts"><button class="btn sm" type="button" data-act="focus" data-id="${t.id}">${S.focus&&S.focus.id===t.id?'Sitting with you':'Just start<span class="sr"> for 5 minutes</span>'}</button><button class="btn ghost sm" type="button" data-act="snooze" data-id="${t.id}">Not today</button>${laterB}${edB}</div>`;
     const note=open&&t.note?`<p class="tnote">${linkify(t.note)}</p>`:'';
     const steps=sn&&(open||t.done)?`<ul class="substeps">${t.steps.map((s,i)=>`<li><button type="button" data-act="step" data-id="${t.id}" data-i="${i}" aria-pressed="${!!s.done}"><span class="box">${s.done?ic('check',14):''}</span><span class="${s.done?'sdone':''}">${esc(s.t)}</span></button></li>`).join('')}</ul>`:'';
-    const inner=`<span class="ttl">${t.pin&&!t.done?`<span class="pinned">${ic('pin',14)}<span class="sr">Pinned: </span></span>`:''}${esc(t.text)}</span>${meta?`<span class="meta">${meta}</span>`:''}`;
+    const inner=`<span class="ttl">${esc(t.text)}</span>${meta?`<span class="meta">${meta}</span>`:''}`;
     const check=picking?`<button class="check pick" type="button" data-act="sel" data-id="${t.id}" aria-label="Select: ${esc(t.text)}" aria-pressed="${on}">${on?ic('check',20):''}</button>`
       :`<button class="check" type="button" data-act="toggle" data-id="${t.id}" aria-label="${t.done?'Done: ':'Mark done: '}${esc(t.text)}" aria-pressed="${t.done}" ${t.done||dim?'aria-disabled="true"':''}>${t.done?ic('check',20):''}</button>`;
     const canMove=!picking&&!t.done&&(!dim||t.later),mv=canMove?`<button class="grip" type="button" tabindex="-1" aria-hidden="true" data-id="${t.id}">${ic('grip',18)}</button><button class="sr-f btn ghost sm" type="button" data-act="move" data-id="${t.id}" data-v="-1">Move up<span class="sr">: ${esc(t.text)}</span></button><button class="sr-f btn ghost sm" type="button" data-act="move" data-id="${t.id}" data-v="1">Move down<span class="sr">: ${esc(t.text)}</span></button>`:'';
@@ -2293,11 +2289,11 @@ function renderTasks(){
   let main;
   if(!due.length)main=`<p class="empty">${(qs||taskList)&&!soon.length&&!later.length?'Nothing matches that.':!qs&&done.length?'All done for today. Well done!':soon.length||later.length?'Nothing due today. Enjoy the quiet.':'Nothing on your list. Tap + to add one thing, or the paw to offload everything at once.'}</p>`;
   else{
-    const pins=due.filter(t=>t.pin),rest=due.filter(t=>!t.pin);
+    const rest=due;
     const order=['morning','afternoon','evening','any'],grp=w=>rest.filter(t=>(t.when||'any')===w);
     const used=order.filter(w=>grp(w).length);
-    // Morning / Afternoon / Evening headings only help once the list is long. Pinned tasks always come first.
-    main=(pins.length?`<ul class="tasks" data-sec="due">${pins.map(t=>li(t)).join('')}</ul>`:'')+(rest.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks" data-sec="due">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
+    // Morning / Afternoon / Evening headings only help once the list is long.
+    main=(rest.length>6&&used.length>1?used.map(w=>`<h3 class="sec-title">${WHENS[w]}</h3><ul class="tasks" data-sec="due">${grp(w).map(t=>li(t)).join('')}</ul>`).join('')
       :`<ul class="tasks" data-sec="due">${used.flatMap(grp).map(t=>li(t)).join('')}</ul>`);
   }
   const lOpen=laterOpen||!!qs||!!sel;
@@ -2327,7 +2323,7 @@ function bulk(v){
   toast(v==='del'?'Deleted '+w+'.':v==='today'?'Moved '+w+' to today.':v==='later'?'Saved '+w+' for later.':'Not today. '+(n===1?'It comes':'They come')+' back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true);
 }
 /* Drag to reorder: the grip on each row of Today and Later. The new order is saved as each task's `ord`
-   (every task in that section, in the order shown), so pinned tasks still come first and new tasks go below. */
+   (every task in that section, in the order shown), so new tasks go below the ones you ordered. */
 function saveOrder(sec){const ids=$$(`#tasklist ul[data-sec="${sec}"] li.task`).map(li=>+li.dataset.id);
   ids.forEach((id,i)=>{const t=S.tasks.find(x=>x.id===id);if(t)t.ord=i});save();renderTasks();sfx('step')}
 let tdrag=null;
@@ -2390,8 +2386,8 @@ function setTaskForm(t){
   {const rm=String(t&&t.remindMin!=null?t.remindMin:remCfg().defMin),sel=$('#task-rmin');[...sel.querySelectorAll('option[data-x]')].forEach(o=>o.remove());if(![...sel.options].some(o=>o.value===rm)){const o=document.createElement('option');o.value=rm;o.dataset.x='1';o.textContent=rm+' min before';sel.appendChild(o)}sel.value=rm}
   $('#task-due').value=t&&t.due||'';
   $('#task-note').value=t&&t.note||'';$('#task-later').checked=!!(t&&t.later);
-  $('#task-list').value=t?listName(t.list||''):listName(taskList);
-  $('#task-lists').innerHTML=allLists().map(l=>`<option value="${esc(listName(l))}">`).join('');
+  {const cur=t?t.list||'':taskList;$('#task-list').innerHTML=`<option value="">None</option>`+allLists().map(l=>`<option value="${esc(l)}">${esc(listName(l))}</option>`).join('')+`<option value="__new">New list</option>`;
+    $('#task-list').value=cur;$('#task-list-new').value='';$('#task-list-new').hidden=true}
   $('#task-steps').value=t&&t.steps?t.steps.map(s=>s.t).join('\n'):'';
   const r=$(`input[name="size"][value="${t?t.size:'small'}"]`);if(r)r.checked=true;
   let v='none';
@@ -2403,7 +2399,6 @@ function setTaskForm(t){
   repStartOpts(t&&t.rep&&t.rep.every===2?t.rep.from:null);
   updRepUI(v);
   $('#task-more').open=!!(t&&((t.steps&&t.steps.length)||t.rep||t.remind||(t.when&&t.when!=='any')||t.note||t.list||t.later));
-  if(t&&t.due)$('#task-more').open=true;
   updSizeHint();
   $('#task-submit-t').textContent=t?'Save changes':'Add task';
 }
@@ -2793,7 +2788,7 @@ function addTask(){
   if(rv==='custom'||rv==='fortnight'){const days=$$('input[name="day"]:checked').map(c=>+c.value);if(!days.length){toast('Pick at least one day, or choose Just once.');return}rep={days};if(rv==='fortnight'){rep.every=2;rep.from=$('#task-start').value||mondayIso(new Date())}}
   else if(rv==='monthly')rep={dom:+$('#task-dom').value||1};
   else if(rv!=='none')rep={days:repDays(rv)};
-  const note=$('#task-note').value.trim().slice(0,500),list=$('#task-list').value.trim().replace(/^#/,'').toLowerCase().slice(0,20),later=!rep&&$('#task-later').checked;
+  const lv=$('#task-list').value,note=$('#task-note').value.trim().slice(0,500),list=lv==='__new'?listKey($('#task-list-new').value):lv,later=!rep&&$('#task-later').checked;
   const extra=t=>{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list;if(later){t.later=true;t.due='';delete t.hideUntil}else delete t.later};
   const lines=$('#task-steps').value.split('\n').map(s=>s.trim().slice(0,60)).filter(Boolean).slice(0,8);
   if(editId!=null){
@@ -2810,7 +2805,7 @@ function addTask(){
 /* Marks a task done and pays it: hearts up to the daily cap, energy up to the day's and the bank's limits. */
 function finish(t){
   const earn=Math.max(0,Math.min(SIZE_BY[t.size].hearts-(t.paid||0),DAILY_CAP-S.dayHearts));
-  t.done=true;t.doneAt=Date.now();t.earned=earn+(t.paid||0);delete t.later;delete t.pin;
+  t.done=true;t.doneAt=Date.now();t.earned=earn+(t.paid||0);delete t.later;
   const enLeft=DAILY_ENERGY-(S.dayEnergy||0),en=t.earned>0?Math.max(0,Math.min(SIZE_BY[t.size].energy,ENERGY_MAX-S.energy,enLeft)):0,enFull=t.earned>0&&S.energy>=ENERGY_MAX,enDay=t.earned>0&&!enFull&&enLeft<=0;
   S.hearts+=earn;S.dayHearts+=earn;S.energy+=en;S.dayEnergy=(S.dayEnergy||0)+en;t.en=en;
   if(S.focus&&S.focus.id===t.id)S.focus=null;
@@ -3175,7 +3170,6 @@ document.addEventListener('click',e=>{
       if(!sib){toast(b.dataset.v==='-1'?'Already at the top.':'Already at the bottom.');break}
       if(b.dataset.v==='-1')ul.insertBefore(li,sib);else ul.insertBefore(sib,li);saveOrder(ul.dataset.sec);break}
     case'later-fold':laterOpen=!laterOpen;renderTasks();break;
-    case'pin':{const t=S.tasks.find(x=>x.id===+id);if(t){if(t.pin)delete t.pin;else t.pin=true;save();renderTasks();toast(t.pin?'Pinned to the top.':'Unpinned.')}break}
     case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();t.later=true;t.due='';delete t.hideUntil;openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
     case'did':{if(sel)break;const i=$('#qa-in');i.value='Did ';i.focus();i.setSelectionRange(4,4);i.scrollIntoView({block:'center'});break}
     case'select':sel=sel?null:new Set();openTask=null;renderTasks();break;
@@ -3310,6 +3304,7 @@ $$('[data-ic]').forEach(el=>{el.innerHTML=ic(el.dataset.ic,+el.dataset.size||20)
 if(S.started&&S.pets.length)showApp();else showWelcome();
 
 $('#size-seg').addEventListener('change',updSizeHint);
+$('#task-list').addEventListener('change',e=>{const n=$('#task-list-new');n.hidden=e.target.value!=='__new';if(!n.hidden)n.focus()});
 $('#task-rep').addEventListener('change',e=>{const v=e.target.value;
   if((v==='custom'||v==='fortnight')&&!$$('input[name="day"]:checked').length)$$('input[name="day"]').forEach(c=>c.checked=v==='custom'?[1,2,3,4,5].includes(+c.value):+c.value===new Date().getDay());
   if(v==='monthly'){const d=$('#task-due').value;if(ISO_DAY.test(d))$('#task-dom').value=String(+d.slice(8))}
