@@ -345,7 +345,11 @@ li.task:last-child{border-bottom:0}
 .scard .evo{justify-content:center;gap:3px}
 
 .growth{display:grid;gap:12px}
-.grow-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.give-row{display:flex;gap:8px}
+.give-row .btn{flex:1 1 0;min-width:0;justify-content:center;gap:4px;padding:10px 6px;white-space:nowrap}
+.give-row .btn .ic{margin-left:2px}
+@media (max-width:360px){.give-row{gap:6px}.give-row .btn{font-size:.9rem;padding:10px 4px;gap:3px}}
+.growth > .fine{margin-top:-6px}
 .growth .evo .mini{width:52px;height:52px;background:none;border-radius:0;overflow:visible}
 .growth .mini.unreached{opacity:1}
 .growth .mini.unreached svg{filter:brightness(0) opacity(.16)}
@@ -1646,6 +1650,7 @@ const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const ICONS={
+  heartline:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
   heart:'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>',
   gear:'<path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z" fill="currentColor"/>',
   bell:'<path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1z" fill="currentColor"/>',
@@ -2274,11 +2279,13 @@ function growthHTML(p){
   const st=stageOf(p),l=p.loved||0,forms=`<div class="forms">${evoStrip(p.sp,st)}</div>`;
   if(st>=2)return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">All grown up</span></div>${forms}<p class="fine">${esc(p.name)} earns 30% more coins on errands.</p></div>`;
   const from=EVO[st],to=EVO[st+1],pct=Math.round((l-from)/(to-from)*100),need=to-l,n5=Math.min(5,need);
-  const btn=n=>`<button class="btn ghost" type="button" data-act="give" data-n="${n}" aria-disabled="${S.hearts<n}">Give ${hearts(n)}</button>`;
+  // Give buttons show an outline heart, so they don't read like the filled heart a task earns.
+  const gave=n=>`${ic('heartline',14)}${n}`;
+  const btn=(n,grow)=>`<button class="btn${grow?'':' ghost'}" type="button" data-act="give" data-n="${n}" aria-label="${grow?'Grow now':'Give'}, ${n} heart${n>1?'s':''}" aria-disabled="${S.hearts<n}">${grow?'Grow':'Give'} ${gave(n)}</button>`;
   return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">${l-from} of ${to-from} hearts</span></div>
     <div class="bar" role="progressbar" aria-label="Growth progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-    <div class="grow-row">${forms}<div class="row">${btn(1)}${n5>1?btn(n5):''}${need>n5?`<button class="btn ghost" type="button" data-act="give" data-n="${need}" aria-disabled="${S.hearts<need}">Grow now ${hearts(need)}</button>`:''}</div></div>
-    <p class="fine">${need} heart${need>1?'s':''} until ${esc(p.name)} is ${NOW_FORM[st+1]}.</p></div>`;
+    ${forms}<p class="fine">${need} heart${need>1?'s':''} until ${esc(p.name)} is ${NOW_FORM[st+1]}.</p>
+    <div class="give-row">${btn(1)}${n5>1?btn(n5):''}${need>n5?btn(need,true):''}</div></div>`;
 }
 
 function renderJobs(){
