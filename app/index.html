@@ -1693,6 +1693,8 @@ let exactTipNow=false;const remIdsAtLoad=new Set(S.tasks.filter(t=>t.remind).map
 
 function dayKey(){return new Date().toDateString()}
 const CFG_DEF={theme:'system',text:'normal',calm:false,chat:true,sound:true,voices:true,defSize:'small',snooze:1};
+const PLAY_URL='https://play.google.com/store/apps/details?id=com.offloadapps.pawgress';
+const SHARE_TEXT=`I'm using Pawgress to offload my to-do list. It's simple and seriously cute: ${PLAY_URL}`;
 const APP_VERSION='1.0',PRIVACY_URL='https://offloadapps.github.io/pawgress-site/privacy.html',CONTACT_EMAIL='app.pawgress@gmail.com';
 function cfg(){return Object.assign({},CFG_DEF,S.cfg||{})}
 function applySettings(){
@@ -2753,8 +2755,16 @@ function feedbackHref(){
   const a=appInfo(),ver=a?`Pawgress ${a.version} (build ${a.code}) on Android ${a.android}`:`Pawgress ${APP_VERSION} (web version)`;
   return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Pawgress feedback')}&body=${encodeURIComponent(`\n\n\n---\n${ver}`)}`;
 }
+// Share Pawgress: Android's share sheet, the browser's share sheet, or copy the line. No tracking.
+function shareApp(){
+  try{if(NATIVE&&NATIVE.share){NATIVE.share(SHARE_TEXT);return}}catch(e){}
+  if(navigator.share){navigator.share({text:SHARE_TEXT}).catch(()=>{});return}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(SHARE_TEXT).then(()=>toast('Link copied. Thanks for sharing!')).catch(()=>toast(PLAY_URL));
+  else toast(PLAY_URL);
+}
 function aboutCard(){const a=appInfo();return `<div class="card"><h2>About</h2>
     <p>Version ${a?`${esc(a.version)} <span class="fine">(build ${esc(String(a.code))})</span>`:APP_VERSION}</p>
+    <div class="row"><button class="btn ghost sm" type="button" data-act="share-app">Share Pawgress</button><a class="btn ghost sm" href="${PLAY_URL}" target="_blank" rel="noopener">Rate on Google Play</a></div>
     ${CONTACT_EMAIL?`<div class="row"><a class="btn sm" href="${feedbackHref()}">Send feedback</a></div>
     <p class="fine">Or email <b class="copyable">${CONTACT_EMAIL}</b></p>`:''}
     ${PRIVACY_URL?`<p><a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a></p>`:''}
@@ -3180,6 +3190,7 @@ document.addEventListener('click',e=>{
     case'edit':{const t=S.tasks.find(x=>x.id===+id);if(t){openTask=null;setTaskForm(t);$('#task-text').scrollIntoView({block:'center'});$('#task-text').focus()}break}
     case'cancel-edit':setTaskForm(null);break;
     case'undo':undo();break;
+    case'share-app':shareApp();break;
     case'notif-settings':if(NATIVE)NATIVE.openNotificationSettings();break;
     case'voice':if(NATIVE&&NATIVE.speak)NATIVE.speak();break;
     case'exact-tip-on':exactTipNow=false;remCfg().exact=true;save();syncReminders();if(!canExact()&&NATIVE.requestExact)NATIVE.requestExact();else toast('Reminders will come on the minute.');renderTasks();break;
