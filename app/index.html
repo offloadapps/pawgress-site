@@ -2290,12 +2290,13 @@ function growthHTML(p){
   const st=stageOf(p),l=p.loved||0;
   if(st>=2)return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">All grown up</span></div>${growPath(p,st,100)}<p class="fine">${esc(p.name)} earns 30% more coins on errands.</p></div>`;
   const from=EVO[st],to=EVO[st+1],pct=Math.round((l-from)/(to-from)*100),need=to-l,n5=Math.min(5,need);
+  // The button that finishes growing up is always Grow (filled), even when only one or two buttons are left.
   // Give buttons show an outline heart, so they don't read like the filled heart a task earns.
   const gave=n=>`${ic('heartline',14)}${n}`;
   const btn=(n,grow)=>`<button class="btn${grow?'':' ghost'}" type="button" data-act="give" data-n="${n}" aria-label="${grow?'Grow now':'Give'}, ${n} heart${n>1?'s':''}" aria-disabled="${S.hearts<n}">${grow?'Grow':'Give'} ${gave(n)}</button>`;
   return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">${need} heart${need>1?'s':''} to go</span></div>
     ${growPath(p,st,pct)}
-    <div class="give-row">${btn(1)}${n5>1?btn(n5):''}${need>n5?btn(need,true):''}</div></div>`;
+    <div class="give-row">${[...new Set([1,n5,need])].map(n=>btn(n,n===need)).join('')}</div></div>`;
 }
 
 function renderJobs(){
