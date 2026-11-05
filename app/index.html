@@ -349,8 +349,11 @@ li.task:last-child{border-bottom:0}
 .give-row .btn{flex:1 1 0;min-width:0;justify-content:center;gap:4px;padding:10px 6px;white-space:nowrap}
 .give-row .btn .ic{margin-left:2px}
 @media (max-width:360px){.give-row{gap:6px}.give-row .btn{font-size:.9rem;padding:10px 4px;gap:3px}}
+.growpath{display:flex;align-items:center;gap:6px}
+.growpath .mini{width:52px;height:52px;flex:none;background:none;border-radius:0;overflow:visible}
+.growpath .bar.gseg{flex:1;height:8px;min-width:20px}
 .growth > .fine{margin-top:-6px}
-.growth .evo .mini{width:52px;height:52px;background:none;border-radius:0;overflow:visible}
+.growth .mini{width:52px;height:52px;background:none;border-radius:0;overflow:visible}
 .growth .mini.unreached{opacity:1}
 .growth .mini.unreached svg{filter:brightness(0) opacity(.16)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .growth .mini.unreached svg{filter:brightness(0) invert(1) opacity(.2)}}
@@ -2275,16 +2278,23 @@ function renderTools(){
   $('#pal-tools').innerHTML=`${growthHTML(p)}`;
 }
 
+// Growing up (5 Nov 2026, Jessica: Home had too many rows): the bar runs between the pal's forms, filling toward the
+// next one, so the forms show progress themselves. The header says only the hearts still needed.
+function growPath(p,st,pct){
+  const mini=i=>`<span class="mini${i>st?' unreached':''}">${petSVG(p.sp,null,i,'sm')}</span>`;
+  const seg=i=>{const w=st>i?100:st===i?pct:0;
+    return `<div class="bar gseg"${st===i?` role="progressbar" aria-label="Growing up" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w}"`:' aria-hidden="true"'}><i style="width:${w}%"></i></div>`};
+  return `<div class="growpath">${mini(0)}${seg(0)}${mini(1)}${seg(1)}${mini(2)}</div>`;
+}
 function growthHTML(p){
-  const st=stageOf(p),l=p.loved||0,forms=`<div class="forms">${evoStrip(p.sp,st)}</div>`;
-  if(st>=2)return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">All grown up</span></div>${forms}<p class="fine">${esc(p.name)} earns 30% more coins on errands.</p></div>`;
+  const st=stageOf(p),l=p.loved||0;
+  if(st>=2)return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">All grown up</span></div>${growPath(p,st,100)}<p class="fine">${esc(p.name)} earns 30% more coins on errands.</p></div>`;
   const from=EVO[st],to=EVO[st+1],pct=Math.round((l-from)/(to-from)*100),need=to-l,n5=Math.min(5,need);
   // Give buttons show an outline heart, so they don't read like the filled heart a task earns.
   const gave=n=>`${ic('heartline',14)}${n}`;
   const btn=(n,grow)=>`<button class="btn${grow?'':' ghost'}" type="button" data-act="give" data-n="${n}" aria-label="${grow?'Grow now':'Give'}, ${n} heart${n>1?'s':''}" aria-disabled="${S.hearts<n}">${grow?'Grow':'Give'} ${gave(n)}</button>`;
-  return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">${l-from} of ${to-from} hearts</span></div>
-    <div class="bar" role="progressbar" aria-label="Growth progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
-    ${forms}<p class="fine">${need} heart${need>1?'s':''} until ${esc(p.name)} is ${NOW_FORM[st+1]}.</p>
+  return `<div class="growth"><div class="row spread base"><h2>Growing up</h2><span class="fine">${need} heart${need>1?'s':''} to go</span></div>
+    ${growPath(p,st,pct)}
     <div class="give-row">${btn(1)}${n5>1?btn(n5):''}${need>n5?btn(need,true):''}</div></div>`;
 }
 
