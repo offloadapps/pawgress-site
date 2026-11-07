@@ -378,9 +378,11 @@ li.task:last-child{border-bottom:0}
 .remrow select.input,.remrow input.remt{width:auto;max-width:48%;flex:none}
 .setgrp{margin:0;font-size:.92rem;font-weight:700}
 .btn.ghost[aria-pressed="true"],.btn[aria-pressed="true"]{background:var(--pink-soft);color:var(--ink);border:1.5px solid var(--outline);box-shadow:none}
-.guidehd{margin:18px 2px 0}
+.remrow.sub{padding-left:54px}
+.card .setgrp:not(:first-of-type){margin-top:8px}
+.resetrow{text-align:center}
 /* wide screens: settings and guide each flow into two columns */
-@media (min-width:900px){#guide{display:block;columns:2;column-gap:18px}#guide>*{break-inside:avoid;margin:0 0 18px}#guide>.guidehd{column-span:all;margin:6px 2px 18px}}
+@media (min-width:900px){#guide{display:block;columns:2;column-gap:18px}#guide>*{break-inside:avoid;margin:0 0 18px}#guide>.resetrow{column-span:all}}
 
 
 /* quick add at the top of Tasks, and the one Offload button */
@@ -2804,19 +2806,25 @@ function appearanceCard(){return `<div class="card"><h2>Appearance</h2>
     <p class="setgrp">Theme</p>${segBtns('theme',[['system','Match phone'],['light','Light'],['dark','Dark']])}
     <p class="setgrp">Text size</p>${segBtns('text',[['normal','Normal'],['large','Large'],['xl','Extra large']])}
     <label class="remrow"><span><input type="checkbox" data-cfg="calm"${cfg().calm?' checked':''}> Reduce motion</span></label></div>`}
-function remindersCard(){if(!NATIVE)return '';return `<div class="card"><h2>Reminders</h2>
+function remindersCard(){if(!NATIVE)return '';const r=remCfg();
+  const tog=(k,on,l,extra='')=>`<label class="remrow"><span><input type="checkbox" data-rem="${k}"${on?' checked':''}> ${l}</span>${extra}</label>`;
+  const at=(k,l)=>r[k].on?`<input class="input remt" type="time" data-remt="${k}" value="${r[k].t}" aria-label="${l} time">`:'';
+  return `<div class="card"><h2>Reminders</h2>
     ${NATIVE.canNotify()?'':`<p class="fine">Notifications are switched off for Pawgress.</p><div><button class="btn sm" type="button" data-act="allow-notify">Allow notifications</button></div>`}
-    <label class="remrow"><span><input type="checkbox" data-rem="morning"${remCfg().morning.on?' checked':''}> Morning prompt</span><input class="input remt" type="time" data-remt="morning" value="${remCfg().morning.t}" aria-label="Morning prompt time"></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="evening"${remCfg().evening.on?' checked':''}> Evening prompt</span><input class="input remt" type="time" data-remt="evening" value="${remCfg().evening.t}" aria-label="Evening prompt time"></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="brief"${remCfg().brief.on?' checked':''}> Daily briefing</span></label>
-    ${remCfg().brief.on?`<div class="remrow"><label for="rem-am" class="fine">Today's list at</label><input id="rem-am" class="input remt" type="time" data-remb="am" value="${remCfg().brief.am}"></div>
-    <div class="remrow"><label for="rem-pm" class="fine">Tomorrow's list at</label><input id="rem-pm" class="input remt" type="time" data-remb="pm" value="${remCfg().brief.pm}"></div>`:''}
-    <label class="remrow"><span>Still to do</span><select class="input remt" data-remsel="nag" aria-label="Still to do">${[[0,'Off'],[120,'Every 2 hours'],[240,'Every 4 hours']].map(([v,l])=>`<option value="${v}"${remCfg().nag===v?' selected':''}>${l}</option>`).join('')}</select></label>
-    <label class="remrow"><span>Default reminder</span><select class="input remt" data-remsel="defMin" aria-label="Default reminder">${REM_OPTS.map(([v,l])=>`<option value="${v}"${remCfg().defMin===v?' selected':''}>${l}</option>`).join('')}</select></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="quick"${remCfg().quick?' checked':''}> Quick-add notification</span></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="errands"${remCfg().errands?' checked':''}> Pals coming home</span></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="focus"${remCfg().focus?' checked':''}> Just start timer</span></label>
-    <label class="remrow"><span><input type="checkbox" data-rem="tasks"${remCfg().tasks?' checked':''}> Task reminders</span></label>
+    <p class="setgrp">Daily</p>
+    ${tog('morning',r.morning.on,'Morning prompt',at('morning','Morning prompt'))}
+    ${tog('evening',r.evening.on,'Evening prompt',at('evening','Evening prompt'))}
+    ${tog('brief',r.brief.on,'Daily briefing')}
+    ${r.brief.on?`<div class="remrow sub"><label for="rem-am" class="fine">Today's list at</label><input id="rem-am" class="input remt" type="time" data-remb="am" value="${r.brief.am}"></div>
+    <div class="remrow sub"><label for="rem-pm" class="fine">Tomorrow's list at</label><input id="rem-pm" class="input remt" type="time" data-remb="pm" value="${r.brief.pm}"></div>`:''}
+    <p class="setgrp">Notify me about</p>
+    ${tog('tasks',r.tasks,'Task reminders')}
+    ${r.tasks?`<label class="remrow sub"><span class="fine">Default reminder</span><select class="input remt" data-remsel="defMin" aria-label="Default reminder">${REM_OPTS.map(([v,l])=>`<option value="${v}"${r.defMin===v?' selected':''}>${l}</option>`).join('')}</select></label>`:''}
+    <label class="remrow"><span>Still to do</span><select class="input remt" data-remsel="nag" aria-label="Still to do">${[[0,'Off'],[120,'Every 2 hours'],[240,'Every 4 hours']].map(([v,l])=>`<option value="${v}"${r.nag===v?' selected':''}>${l}</option>`).join('')}</select></label>
+    ${tog('errands',r.errands,'Pals coming home')}
+    ${tog('focus',r.focus,'Just start finished')}
+    <p class="setgrp">More</p>
+    ${tog('quick',r.quick,'Quick add in notifications')}
     ${exactHTML()}
     <div><button class="btn ghost sm" type="button" data-act="notif-settings">Open phone notification settings</button></div></div>`}
 // Reminders on the minute: Android 12+ only allows it with "Alarms and reminders" access, which the person grants.
@@ -2838,9 +2846,8 @@ function tasksCard(){return `<div class="card"><h2>Tasks and Offload</h2>
     <label class="remrow"><span>Default size</span>${cfgSel('defSize',[['tiny','Tiny'],['small','Small'],['medium','Medium'],['big','Big']],'Default size')}</label>
     <label class="remrow"><span>Not today returns</span>${cfgSel('snooze',[[1,'Tomorrow'],[2,'In 2 days'],[7,'Next week']],'Not today returns')}</label>
     ${listsHTML()}</div>`}
-function palsCard(){return `<div class="card"><h2>Pals</h2>
-    <label class="remrow"><span><input type="checkbox" data-cfg="chat"${cfg().chat?' checked':''}> Speech bubbles</span></label></div>`}
-function soundCard(){return `<div class="card"><h2>Sound</h2>
+function palsSoundCard(){return `<div class="card"><h2>Pals and sound</h2>
+    <label class="remrow"><span><input type="checkbox" data-cfg="chat"${cfg().chat?' checked':''}> Speech bubbles</span></label>
     <label class="remrow"><span><input type="checkbox" data-cfg="sound"${cfg().sound?' checked':''}> Sounds</span></label>
     <label class="remrow"><span><input type="checkbox" data-cfg="voices"${cfg().voices?' checked':''}${cfg().sound?'':' disabled'}> Pal voices</span></label>
     ${NATIVE?'<p class="fine">Quiet when your phone is on silent.</p>':''}</div>`}
@@ -2849,7 +2856,7 @@ function dataCard(){return `<div class="card"><h2>Your data</h2>
     <div class="row"><button class="btn ghost sm" type="button" data-act="bk-copy">Copy backup code</button><button class="btn ghost sm" type="button" data-act="bk-open">Restore from code</button><button class="btn ghost sm" type="button" data-act="copy-list">Copy my task list</button></div>
     <div id="bk-box" class="stack" hidden><textarea id="bk-text" class="input" rows="4" aria-label="Backup code or list" placeholder="Paste your backup code here"></textarea><div class="row"><button class="btn sm" type="button" data-act="bk-restore">Restore</button><button class="btn ghost sm" type="button" data-act="bk-cancel">Cancel</button></div><p class="fine m0" id="bk-msg" role="status"></p></div>
     ${damagedSave()?`<p class="fine">An older save on this device could not be read. It has been kept, not deleted. Copy it if you are asking for help getting it back.</p><div><button class="btn ghost sm" type="button" data-act="copy-damaged">Copy unreadable save</button></div>`:''}
-    <div><button id="reset" class="btn ghost sm" type="button" data-act="reset">Start over</button></div></div>`}
+    </div>`}
 // Version details for feedback emails: from Android when there, else the web version number.
 function appInfo(){try{if(NATIVE&&NATIVE.appInfo)return JSON.parse(NATIVE.appInfo())}catch(e){}return null}
 function feedbackHref(){
@@ -2866,39 +2873,37 @@ function shareApp(){
 function aboutCard(){const a=appInfo();return `<div class="card"><h2>About</h2>
     <p>Version ${a?`${esc(a.version)} <span class="fine">(build ${esc(String(a.code))})</span>`:APP_VERSION}</p>
     <div class="row"><button class="btn ghost sm" type="button" data-act="share-app">Share Pawgress</button><a class="btn ghost sm" href="${PLAY_URL}" target="_blank" rel="noopener">Rate on Google Play</a></div>
-    ${CONTACT_EMAIL?`<div class="row"><a class="btn sm" href="${feedbackHref()}">Send feedback</a></div>
-    <p class="fine">Or email <b class="copyable">${CONTACT_EMAIL}</b></p>`:''}
-    ${PRIVACY_URL?`<p><a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a></p>`:''}
-    <p class="fine">Fonts: DynaPuff and Atkinson Hyperlegible, used under the SIL Open Font Licence.</p></div>`}
+    ${CONTACT_EMAIL?`<div class="row"><a class="btn sm" href="${feedbackHref()}">Send feedback</a></div>`:''}
+    <p class="fine m0">${PRIVACY_URL?`<a href="${PRIVACY_URL}" target="_blank" rel="noopener">Privacy policy</a><br>`:''}Fonts: DynaPuff and Atkinson Hyperlegible, used under the SIL Open Font Licence.</p></div>`}
 function demoCard(){if(!DEMO&&!TEST)return '';return `<div class="card"><h2>${TEST?'Test controls':'Demo controls'}</h2>
     <p class="fine">${TEST?'Test builds only. Not in the Play Store version.':'Progress is saved in this browser only.'}</p>
     <div class="row"><button class="btn ghost sm" type="button" data-act="demo-hearts">+50 hearts</button><button class="btn ghost sm" type="button" data-act="demo-coins">+200 coins</button><button class="btn ghost sm" type="button" data-act="demo-energy">Fill energy</button></div>
     <label class="row"><input id="fast" type="checkbox" ${S.fast?'checked':''}> <span>Fast timers (12 times quicker)</span></label></div>`}
 function renderGuide(){
-  $('#guide').innerHTML=appearanceCard()+remindersCard()+tasksCard()+palsCard()+soundCard()+dataCard()+`
-  <h2 class="guidehd">Guide</h2>
+  $('#guide').innerHTML=remindersCard()+tasksCard()+appearanceCard()+palsSoundCard()+dataCard()+`
   <details class="card addwrap"><summary><h2>How Pawgress works</h2></summary>
     <ol class="guide-steps">
       <li><span class="n">1</span><p><b>Do a real task.</b> Add it, pick a size, tick it off. Bigger tasks pay more hearts and more energy.</p></li>
       <li><span class="n">2</span><p><b>Spend hearts on pals.</b> Adopt new pals, or give hearts to the pal you love so it grows into a new form. Hearts only come from tasks.</p></li>
       <li><span class="n">3</span><p><b>Pals work for coins.</b> Errands use energy, which finished tasks give you. Send a pal on an errand and carry on with your day. Errands never cost coins, they earn them.</p></li>
       <li><span class="n">4</span><p><b>Coins buy the fun stuff.</b> Stickers, decor and holidays that unlock new backdrops.</p></li>
-    </ol></details>
-  <details class="card addwrap"><summary><h2>Growing up</h2></summary>
+    </ol>
+    <h3 class="subhd">Growing up</h3>
     <p>Every pal has three forms. Give hearts to a pal on the Home tab to help it grow.</p>
     <div class="scroll-x"><table class="table"><thead><tr><th>Form</th><th>Hearts given</th><th>Errand coins</th></tr></thead><tbody><tr><td>First</td><td>0</td><td>Normal</td></tr><tr><td>Second</td><td>${EVO[1]}</td><td>+15%</td></tr><tr><td>Third</td><td>${EVO[2]}</td><td>+30%</td></tr></tbody></table></div>
-    <p class="fine">Hearts given stay with that pal, and pals never shrink back.</p></details>
-  <details class="card addwrap"><summary><h2>Task sizes</h2></summary>
+    <p class="fine">Hearts given stay with that pal, and pals never shrink back.</p>
+    <h3 class="subhd">Task sizes</h3>
     <div class="scroll-x"><table class="table"><thead><tr><th>Size</th><th>Feels like</th><th>Earns</th></tr></thead><tbody>${SIZES.map(s=>`<tr><td>${s.label}</td><td>${s.hint}</td><td><span class="rw nw" aria-label="${s.hearts} heart${s.hearts>1?'s':''} and ${s.energy} energy"><span>${ic('heart',14)}${s.hearts}</span><span class="bolt">${ic('bolt',14)}<i>${s.energy}</i></span></span></td></tr>`).join('')}</tbody></table></div>
-    <p class="fine">Hearts stop at ${DAILY_CAP} a day. Tapped by mistake? Use Undo.</p></details>
-  <details class="card addwrap"><summary><h2>Built to be gentle</h2></summary>
+    <p class="fine">Hearts stop at ${DAILY_CAP} a day. Tapped by mistake? Use Undo.</p>
+    <h3 class="subhd">Built to be gentle</h3>
     <ul class="guide-steps">
       <li><p>Nothing expires and nothing is ever late.</p></li>
       <li><p>Pals never get sad, hungry or sick.</p></li>
       <li><p>Not today? Tap a task, then Not today. It comes back later.</p></li>
       <li><p>Hard to begin? Just start: your pal sits with you for 5 minutes, and anything bigger than tiny pays a heart for starting.</p></li>
       <li><p>Tiny tasks count. Split big jobs into steps, and each step pays some hearts early.</p></li>
-    </ul></details>`+aboutCard()+demoCard();
+    </ul></details>`+aboutCard()+`
+  <div class="resetrow"><button id="reset" class="linkbtn" type="button" data-act="reset">Start over</button></div>`+demoCard();
 }
 
 function renderAll(){applySettings();renderFocus();renderTop();renderDevice();renderTools();renderJobs();renderAway();renderTasks();renderShop();renderGuide()}
@@ -3341,7 +3346,7 @@ document.addEventListener('change',e=>{
   if(t.dataset.cfg){setCfg(t.dataset.cfg,t.checked);if(t.dataset.cfg==='sound'){const v=$('#guide [data-cfg="voices"]');if(v)v.disabled=!t.checked;if(t.checked)sfx('pat')}if(t.dataset.cfg==='voices'&&t.checked)chirp();return}
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
   else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
-  else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='exact'&&t.checked&&!canExact()&&NATIVE.requestExact)NATIVE.requestExact();if(k==='brief'||k==='exact')renderGuide()}
+  else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='exact'&&t.checked&&!canExact()&&NATIVE.requestExact)NATIVE.requestExact();if(['morning','evening','brief','tasks','exact'].includes(k)){renderGuide();const f=$('#guide [data-rem="'+k+'"]');if(f)f.focus()}}
   else if(t.dataset.listname!=null){const from=t.dataset.listname,to=listKey(t.value);if(!to){t.value=listName(from);return}if(renameList(from,to)){save();renderTasks();renderGuide();toast('Renamed to '+listName(to)+'.')}}
   else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||REM_DEFAULT[t.dataset.remt].t;save();syncReminders()}
   else if(t.dataset.remb){remCfg().brief[t.dataset.remb]=t.value||(t.dataset.remb==='am'?'07:30':'20:30');save();syncReminders()}
