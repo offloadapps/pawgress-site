@@ -89,7 +89,7 @@ p{margin:0}
 .btn[aria-disabled="true"]{opacity:.55;box-shadow:none}
 .icon{background:transparent;border:0;color:var(--muted);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}
 .icon:hover{background:var(--surface-2)}
-.field,.input{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;min-height:46px;width:100%}
+.input{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;min-height:46px;width:100%}
 .lbl{font-weight:700;display:block;margin-bottom:6px}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:.8rem;font-weight:700;border-radius:8px;padding:2px 10px;background:var(--pink-soft);color:var(--chip-ink);white-space:nowrap}
 .chip.ok{background:var(--surface-2);color:var(--ink)}
@@ -127,11 +127,6 @@ p{margin:0}
 .card,.sec{display:grid;gap:12px;min-width:0}
 .stack>.sec+.sec{padding-top:6px}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.palrow{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
-.palchip{flex:none;display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:999px;padding:3px 14px 3px 3px;font-weight:700}
-.palchip[aria-pressed="true"]{border-color:var(--outline);background:var(--pink-soft)}
-.palchip:disabled{cursor:default}
-.palchip:disabled:not([aria-pressed="true"]){opacity:.55}
 .mini{width:38px;height:38px;border-radius:50%;background:var(--surface);display:block;overflow:hidden}
 /* pal button and Your pals (3 Nov 2026) */
 .palbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 14px 3px 3px;font:inherit;font-weight:700;font-size:1rem;color:var(--ink);cursor:pointer;text-align:left}
@@ -182,7 +177,7 @@ p{margin:0}
 .daygrid span{display:grid;place-items:center;min-height:44px;border:2px solid var(--line);background:var(--surface);border-radius:12px;font-weight:700;font-size:.9rem}
 .daygrid input:checked+span{border-color:var(--btn-bg);background:var(--pink-soft)}
 .daygrid input:focus-visible+span{outline:3px solid var(--focus);outline-offset:2px}
-select.input,select.field{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%239A6C8B' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+select.input{appearance:none;-webkit-appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%239A6C8B' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 /* size buttons: hearts and energy earned, icons centred on the numbers; names shrink a little on very small phones */
 .seg span.opt b{font-size:clamp(.8rem,4.1vw,1rem);white-space:nowrap}
 /* hearts and energy side by side, icons centred on the numbers (size buttons and the task list) */
@@ -457,7 +452,6 @@ body.zoom-open .toast{z-index:56;bottom:auto;top:calc(16px + env(safe-area-inset
 /* small helpers that replace inline styles in the templates */
 .row.spread{justify-content:space-between}
 .row.base{align-items:baseline}
-.row.nowrap{flex-wrap:nowrap}
 .m0{margin:0}
 .nw{white-space:nowrap}
 .dim{opacity:.6}
@@ -604,8 +598,6 @@ body.zoom-open .toast{z-index:56;bottom:auto;top:calc(16px + env(safe-area-inset
 :root[data-theme="dark"] .scene .base .moon{display:inline}
 
 /* ---------- stickers (redesign step 4) ---------- */
-.stick-open{justify-content:space-between;width:100%}
-.stick-open .fine{font-weight:400}
 .price{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-variant-numeric:tabular-nums}
 .price .ic,.buy-price .ic{color:var(--gold)}
 /* shop sheets */
@@ -697,10 +689,8 @@ div.stk{cursor:default}
 .zoom-card.buy-card{justify-items:center;text-align:center;gap:12px}
 .grab{width:40px;height:4px;border-radius:2px;background:var(--line)}
 .buy-pic{position:relative;width:min(300px,100%);height:200px}
-.buy-pal{position:absolute;left:0;bottom:0;width:58%;height:84%}
-.buy-pal svg,.buy-stk svg{width:100%;height:100%;display:block;overflow:visible}
+.buy-stk svg{width:100%;height:100%;display:block;overflow:visible}
 .buy-stk{position:absolute;right:2%;top:4%;width:44%;aspect-ratio:1;transform:rotate(-8deg)}
-.buy-arrow{position:absolute;left:43%;top:50%;width:54px;height:34px;color:var(--muted)}
 .buy-try{position:relative;width:min(300px,100%);border-radius:22px;background:var(--surface-2);display:grid;place-items:center;padding:4px 0}
 .buy-try>svg{width:min(220px,100%,28vh);width:min(220px,100%,28dvh);height:auto;aspect-ratio:1;display:block}
 .buy-try.apart{grid-template-columns:1fr auto;justify-items:center;padding:4px 18px 4px 4px}
@@ -1706,7 +1696,6 @@ const TRIPS=[
 ];
 const TRIP_BY=byId(TRIPS);
 const SAMPLE_TASKS=[['Drink a glass of water','tiny',{days:[0,1,2,3,4,5,6]},'morning'],['Reply to one message','small'],['Put a load of laundry on','medium']];
-const TASK_LINES=['Yay, you did it!','I am so proud of you.','That counts. Nice work.','Tiny steps add up.','You are doing great.','Look at you go!'];
 const VOICE={
   cat:{cheer:['Roar! You did it!','Tigrr is so proud of you!','Pounce! Another one done!'],hi:['Grr-eat to see you!','Ready to prowl?']},
   panda:{cheer:['Yay! Bamboo party!','You are the best!','Roll-around time!'],hi:['Hi hi hi!','Snack break soon?']},
@@ -1816,7 +1805,7 @@ function cleanState(o){
   s.hearts=intOr(o.hearts,0,0,1e7);s.coins=intOr(o.coins,0,0,1e7);
   s.energy=intOr(o.energy,ENERGY_START,0,ENERGY_MAX);s.dayHearts=intOr(o.dayHearts,0,0,DAILY_CAP);s.dayEnergy=intOr(o.dayEnergy,0,0,DAILY_ENERGY);
   s.day=strOr(o.day,40)||dayKey();
-  if('fast' in s)s.fast=o.fast!==false;
+  s.fast=typeof o.fast==='boolean'?o.fast:DEMO;
   const LD=o.lastDone||(o.streak&&o.streak.last);s.lastDone=typeof LD==='string'?LD.slice(0,40):null;
   if(o.askedNotif)s.askedNotif=true;
   const MIG={bun:'panda',slime:'dog',axo:'hedge',fox:'cater',lamb:'ant',bat:'bird',drake:'camel',owl:'alien'},seen=new Set();
@@ -1919,7 +1908,7 @@ function buildPlan(){
     if(p.trip&&p.trip.end>now)plan.push({id:planId('trip'+p.sp),at:p.trip.end,ch:palCh(p.trip.end,r),title:`${p.name} is home from holiday!`,body:`A postcard from ${TRIP_BY[p.trip.id].name} is waiting for you.`});
   });
   if(r.focus&&S.focus&&!S.focus.rung&&S.focus.end>now)plan.push({id:planId('focus'),at:S.focus.end,ch:'pals',title:'Five minutes done',body:`You started, and ${pet.name} is proud of you. Keep going or mark it done.`});
-  const t0=new Date(),once={},sizeOrder=t=>t;
+  const t0=new Date(),once={};
   const onDay=(t,d,k)=>{
     const diso=isoDay(d);
     if(t.later)return false;
@@ -1940,7 +1929,7 @@ function buildPlan(){
       if(am>now){const today=S.tasks.filter(t=>onDay(t,d,k)).sort(taskCmp);if(today.length)plan.push({id:planId('ba'+diso),at:am,ch:'reminders',act:'tasks',title:today.length===1?'1 thing on your list today':`${today.length} things on your list today`,body:names(today)})}
       const pm=atTime(d,r.brief.pm);
       if(pm>now){
-        const nd=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+k+1),tm=S.tasks.filter(t=>!t.done&&!(t.hideUntil&&isoDay(nd)<t.hideUntil)&&sched(t,nd)&&(!t.due||t.due<=isoDay(nd))).sort(taskCmp);
+        const nd=new Date(t0.getFullYear(),t0.getMonth(),t0.getDate()+k+1),tm=S.tasks.filter(t=>(t.rep||!t.done)&&!t.later&&!(t.hideUntil&&isoDay(nd)<t.hideUntil)&&sched(t,nd)&&(!t.due||t.due<=isoDay(nd))).sort(taskCmp);
         if(tm.length)plan.push({id:planId('bp'+diso),at:pm,ch:'reminders',act:'tasks',title:tm.length===1?'Tomorrow: 1 thing planned':`Tomorrow: ${tm.length} things planned`,body:names(tm)});
       }
     }
@@ -2032,6 +2021,7 @@ document.addEventListener('click',e=>{
 });
 window.__back=()=>{
   if(!$('#zoom').hidden){closeZoom();return true}
+  if(!$('#dump').hidden){qaClose();return true} // Offload closes and keeps what you typed
   if(editId!=null||!$('#task-sheet').hidden){setTaskForm(null);return true}
   if(tab!=='home'){setTab('home');return true}
   return false;
@@ -2232,7 +2222,6 @@ function tickFocus(){
   if(left<=0&&!f.rung){f.rung=true;save();renderFocus();sfx('done');toast('Five minutes done. Starting was the hard part.');say('You started! That is the hard part.');return}
   const el=$('#focus-left');if(el&&left>0)el.textContent=mmss(left*speed())+' left. '+cur().name+' is right here with you.';
 }
-const WHEN_RANK={morning:0,afternoon:1,evening:2,any:3};
 function toggleStep(id,i){
   const t=S.tasks.find(x=>x.id===id),s=t&&t.steps&&t.steps[i];if(!s||t.done)return;
   s.done=!s.done;let got=0;
@@ -2431,7 +2420,7 @@ function bulk(v){
   if(v==='del'){S.tasks=S.tasks.filter(t=>!sel.has(t.id));n=ps.length;if(S.focus&&sel.has(S.focus.id)){S.focus=null;renderFocus()}}
   else ps.forEach(t=>{
     if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;if(t.due&&t.due>td)t.due=td;n++}
-    else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));n++}
+    else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}n++}
     else if(v==='later'){if(t.rep||t.later)return;toLater(t);n++}});
   if(!n){toast('Nothing to change there.');return}
   const w=n===1?'1 task':n+' tasks';
@@ -3259,8 +3248,6 @@ function giveHearts(n){
   }
 }
 
-function move(d){if(growing())return;S.active=(S.active+d+S.pets.length)%S.pets.length;save();renderDevice();renderTools();renderJobs();renderShop()}
-
 /* ---------- events ---------- */
 function focusKeyOf(b){return b&&b.dataset?{act:b.dataset.act,id:b.dataset.id,i:b.dataset.i,k:b.dataset.k,v:b.dataset.v,t:b.dataset.t}:null}
 function refocus(k){
@@ -3317,7 +3304,6 @@ document.addEventListener('click',e=>{
     case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();toLater(t);openTask=null;undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
     case'did':{if(sel)break;const i=$('#qa-in');i.value='Did ';i.focus();i.setSelectionRange(4,4);i.scrollIntoView({block:'center'});break}
     case'select':sel=sel?null:new Set();openTask=null;renderTasks();break;
-    case'sel-off':sel=null;renderTasks();break;
     case'sel':{if(!sel)break;const n=+id;if(sel.has(n))sel.delete(n);else sel.add(n);renderTasks();break}
     case'bulk':bulk(b.dataset.v);break;
     case'focus':startFocus(+id);break;
@@ -3327,13 +3313,9 @@ document.addEventListener('click',e=>{
     case'adopt':adopt(id);if(zoomIsOpen()&&S.pets.some(p=>p.sp===id))closeZoom();break;
     case'buyoutfit':if(buyOutfit(id,true,b.dataset.pal!=null?+b.dataset.pal:undefined)&&zoom&&zoom.k==='buy')closeZoom();break;
     case'buysave':if(buyOutfit(id,false)&&zoom&&zoom.k==='buy')closeZoom();break;
-    case'wear':wear(id);break;
     case'job':startJob(id,b.dataset.i!=null?+b.dataset.i:undefined);if(zoom&&zoom.k==='pals'){zoom.open=null;renderZoom()}break;
     case'trip':startTrip(id);break;
     case'collect':collect(+b.dataset.i,b.dataset.k);break;
-    case'pick':if(growing())break;S.active=+b.dataset.i;save();renderDevice();renderTools();renderJobs();renderShop();break;
-    case'prev':move(-1);break;
-    case'next':move(1);break;
     case'pat':sfx('pat');chirp(cur(),.12);say(pick([...PAT_LINES,...VOICE[cur().sp].hi]));break;
     case'give':giveHearts(+b.dataset.n);break;
     case'demo-hearts':if(!DEMO&&!TEST)break;S.hearts+=50;save();renderTop();renderShop();toast('+50 hearts');break;
@@ -3341,7 +3323,9 @@ document.addEventListener('click',e=>{
     case'demo-coins':if(!DEMO&&!TEST)break;S.coins+=200;save();renderTop();renderShop();toast('+200 coins');break;
     case'reset':
       if(!resetArmed){resetArmed=true;b.textContent='Tap again to erase everything';setTimeout(()=>{resetArmed=false;b.textContent='Start over'},4000)}
-      else{resetArmed=false;const keep=S.cfg;S=fresh();if(keep)S.cfg=keep;save();showWelcome()}
+      else{resetArmed=false;const keep=S.cfg;S=fresh();if(keep)S.cfg=keep;save();
+        // nothing from the old save can come back: no Undo, no picked list or selection
+        undoFn=null;sel=null;openTask=null;taskList='';taskQ='';{const q=$('#task-q');if(q)q.value=''}clearTimeout(toastTimer);$('#toast').hidden=true;showWelcome()}
       break;
   }
 });
@@ -3350,11 +3334,10 @@ document.addEventListener('change',e=>{
   const t=e.target;
   if(t.dataset.cfg){setCfg(t.dataset.cfg,t.checked);if(t.dataset.cfg==='sound'){const v=$('#guide [data-cfg="voices"]');if(v)v.disabled=!t.checked;if(t.checked)sfx('pat')}if(t.dataset.cfg==='voices'&&t.checked)chirp();return}
   if(t.dataset.cfgsel){const v=t.dataset.cfgsel==='snooze'?+t.value:t.value;setCfg(t.dataset.cfgsel,v);return}
-  else if(t.dataset.wearslot){const p=cur(),w=Object.assign({},wearOf(p));if(t.value)w[t.dataset.wearslot]=t.value;else delete w[t.dataset.wearslot];p.wear=w;save();renderDevice();renderTools();renderShop()}
   else if(t.id==='fast'&&(DEMO||TEST)){S.fast=t.checked;save();renderJobs();renderShop()}
   else if(t.dataset.rem){const r=remCfg(),k=t.dataset.rem;if(k==='morning'||k==='evening'||k==='brief')r[k].on=t.checked;else r[k]=t.checked;save();syncReminders();if(k==='exact'&&t.checked&&!canExact()&&NATIVE.requestExact)NATIVE.requestExact();if(k==='brief'||k==='exact')renderGuide()}
   else if(t.dataset.listname!=null){const from=t.dataset.listname,to=listKey(t.value);if(!to){t.value=listName(from);return}if(renameList(from,to)){save();renderTasks();renderGuide();toast('Renamed to '+listName(to)+'.')}}
-  else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||'09:00';save();syncReminders()}
+  else if(t.dataset.remt){remCfg()[t.dataset.remt].t=t.value||REM_DEFAULT[t.dataset.remt].t;save();syncReminders()}
   else if(t.dataset.remb){remCfg().brief[t.dataset.remb]=t.value||(t.dataset.remb==='am'?'07:30':'20:30');save();syncReminders()}
   else if(t.dataset.remsel){remCfg()[t.dataset.remsel]=+t.value||0;save();syncReminders()}
 });
@@ -3441,7 +3424,7 @@ function greetLine(p){
 function showApp(){
   $('#welcome').hidden=true;$('#app').hidden=false;
   rollDay();lastSig=sigNow();renderAll();setTab('home');
-  setTimeout(()=>say(greetLine(cur())),500);
+  setTimeout(()=>{const p=cur();if(p&&!$('#app').hidden)say(greetLine(p))},500);
 }
 
 $$('[data-ic]').forEach(el=>{el.innerHTML=ic(el.dataset.ic,+el.dataset.size||20)});
@@ -3539,6 +3522,8 @@ function qaParse(raw){
   cut(/[\s,;]*\bremind(?:\s+me)?\s+(?:at|for)\s+(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?\b/i,(m,h,mi,ap)=>{wantsRemind=true;remindAt=qaTime(h,mi,ap,ctx)});
   cut(/[\s,;]*\bremind\s+me\b(?=\s*(?:[,;]|$))/i,()=>{wantsRemind=true});
   cut(/^\s*remind\s+me\s+(?:to\s+)?/i,()=>{wantsRemind=true});
+  // a time range ("10:30-11:30", "2pm to 3pm") keeps its start time; the end isn't stored
+  s=s.replace(/(\d{1,2}:\d{2}|\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*(?:-|–|to|until|till)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)?(?=[\s,;]|$)/i,(m,a)=>/:|am|pm/i.test(m.slice(a.length))||/am|pm/i.test(a)?a:m);
   cut(/\s(?:at|@|by)\s+(noon|midday)\b/i,()=>{time='12:00'});
   const AT='(?:(?:at|@|by|from|around|about|at around|at about)\\s+)';
   if(!time)cut(new RegExp('\\s'+AT+'?(\\d{1,2})(?:[:.](\\d{2}))?\\s*(am|pm)\\b'+ISH,'i'),(m,h,mi,ap)=>{time=qaTime(h,mi,ap,ctx)});
@@ -3570,12 +3555,15 @@ function qaParse(raw){
     cut(/\s(?:(?:by|for|due|on)\s+)?(today|tomorrow)\b/i,(m,w)=>{due=iso(/^tom/i.test(w)?1:0)});
     if(!due)cut(/\sin\s+(\d{1,2})\s+(day|week)s?\b/i,(m,n,u)=>{due=iso(+n*(/^w/i.test(u)?7:1))});
     if(!due)cut(/\snext\s+week\b/i,()=>{due=iso(7)});
-    const onDate=(d,mo)=>{const n=new Date(),y=n.getFullYear();d=+d;
-      if(mo==null){let m=n.getMonth();if(d<n.getDate())m++;const x=new Date(y,m,d);return x.getDate()===d?isoDay(x):null}
-      let x=new Date(y,mo,d);if(x.getMonth()!==mo)return null;if(isoDay(x)<isoDay())x=new Date(y+1,mo,d);return isoDay(x)};
-    if(!due)cut(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?(?:the\\s+)?([12]?\\d|3[01])(?:st|nd|rd|th)?\\s+(?:of\\s+)?('+QA_M+')\\b','i'),(m,d,mo)=>{due=onDate(d,QA_MON[mo.slice(0,3).toLowerCase()])});
-    if(!due)cut(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?('+QA_M+')\\s+([12]?\\d|3[01])(?:st|nd|rd|th)?\\b','i'),(m,mo,d)=>{due=onDate(d,QA_MON[mo.slice(0,3).toLowerCase()])});
-    if(!due)cut(/\s(?:(?:on|by|for|due|before)\s+)?the\s+([12]?\d|3[01])(?:st|nd|rd|th)\b/i,(m,d)=>{due=onDate(d,null)});
+    // The next date that has that day: "the 31st" on 30 April is 31 May, "29 feb" waits for a leap year. A date that
+    // never comes ("feb 30") gives null, and its words stay in the task so nothing you typed disappears.
+    const onDate=(d,mo)=>{const n=new Date(),y=n.getFullYear(),td=isoDay();d=+d;if(d<1)return null;
+      if(mo==null){for(let k=0;k<=12;k++){const x=new Date(y,n.getMonth()+k,d);if(x.getDate()===d&&isoDay(x)>=td)return isoDay(x)}return null}
+      for(let k=0;k<=8;k++){const x=new Date(y+k,mo,d);if(x.getMonth()===mo&&isoDay(x)>=td)return isoDay(x)}return null};
+    const cutDate=(re,fn)=>{s=s.replace(re,(...m)=>{const r=fn(...m);if(!r)return m[0];due=r;return ' '})};
+    if(!due)cutDate(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?(?:the\\s+)?([12]?\\d|3[01])(?:st|nd|rd|th)?\\s+(?:of\\s+)?('+QA_M+')\\b','i'),(m,d,mo)=>onDate(d,QA_MON[mo.slice(0,3).toLowerCase()]));
+    if(!due)cutDate(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?('+QA_M+')\\s+([12]?\\d|3[01])(?:st|nd|rd|th)?\\b','i'),(m,mo,d)=>onDate(d,QA_MON[mo.slice(0,3).toLowerCase()]));
+    if(!due)cutDate(/\s(?:(?:on|by|for|due|before)\s+)?the\s+([12]?\d|3[01])(?:st|nd|rd|th)\b/i,(m,d)=>onDate(d,null));
     if(!due)s=s.replace(new RegExp('(\\s)(?:(by|on|for|before|due|this|next)\\s+)?('+QA_D+')\\b(?=(\\s*[^\\s]*))','i'),(m,sp,kw,w,after)=>{
       // A bare "sun" or "sat" is usually a word (sun cream, sat nav), so only treat it as a day when it is clearly one.
       if(!kw&&/^(sun|sat)$/i.test(w)&&!/^\s*(?:[,;]|at\b|@|\d|$)/i.test(after))return m;
@@ -3726,6 +3714,7 @@ function qaInList(p){if(!p.list&&taskList)p.list=taskList;return p}
    present ("called the GP" ticks "Call the GP") or dropped ("did the washing up" ticks "Washing up"). Leading words
    like "the" or "my" don't count. */
 const QA_DROP=new Set(['did','done','finished','completed','sorted']);
+const qaEmpty=p=>p.done&&(!qaNorm(p.text)||QA_DROP.has(qaNorm(p.text)));
 const qaCore=t=>qaNorm(t).replace(/^(?:(?:the|my|a|an|some|our)\s+)+/,'');
 function qaDoneKeys(text){
   const n=qaNorm(text),m=n.match(/^([a-z']+)\s*(.*)$/),keys=new Set([qaCore(n)]);if(!m)return keys;
@@ -3759,7 +3748,8 @@ function gotText(g){return g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e}
 function qaAdd(raw){
   const t=String(raw).trim();if(!t)return false;
   if(/^(?:did|done|finished)\s*:?$/i.test(t)){toast('Type what you did, then Add.');return false}
-  const ps=qaExpand(t).map(qaParse).map(qaInList),r=qaCommit(ps);
+  const ps=qaExpand(t).map(qaParse).filter(p=>!qaEmpty(p)).map(qaInList);if(!ps.length){toast('Type what you did, then Add.');return false}
+  const r=qaCommit(ps);
   undoFn=r.undo;save();renderTop();renderTasks();renderShop();
   if(r.ticked.length){sfx('tick_'+r.ticked[0].size);say(pick(VOICE[cur().sp].cheer));toast('Done: '+r.ticked[0].text+'.'+gotText(r.got),true);return true}
   sfx('offload');
@@ -3788,6 +3778,7 @@ function qaItems(){
     qaExpand(x.l).forEach(l=>{
       const key=l.trim().toLowerCase();let p=qaParse(l);const could=p.done;
       if(could&&qaUndone.has(key))p=qaParse('to do: '+l.trim());
+      if(qaEmpty(p))return; // "did" on its own says nothing to tick off
       qaInList(p);
       const k=(p.done?'done|':'')+qaKey(p),dup=p.done?seen.has(k):have.has(k)||seen.has(k);seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
   });
@@ -3899,10 +3890,6 @@ document.addEventListener('keydown',e=>{
     if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
     else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
   }
-});
-document.addEventListener('focusout',e=>{
-  if(!e.target.closest||!e.target.closest('#qa'))return;
-
 });
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.activeElement===$('#qa-in')&&$('#dump').hidden){$('#qa-in').blur();return}
