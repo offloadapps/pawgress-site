@@ -2020,6 +2020,7 @@ document.addEventListener('click',e=>{
   if(e.target&&e.target.id==='start')setTimeout(()=>{const a=window.__pendingAct;if(a){window.__pendingAct=null;window.__act(a)}},1000);
 });
 window.__back=()=>{
+  if(!$('#welcome').hidden){if(wStep>1){wGo(wStep-1);return true}return false} // back a welcome step
   if(!$('#zoom').hidden){closeZoom();return true}
   if(!$('#dump').hidden){qaClose();return true} // Offload closes and keeps what you typed
   if(editId!=null||!$('#task-sheet').hidden){setTaskForm(null);return true}
@@ -2201,12 +2202,17 @@ function startFocus(id){
   const t=S.tasks.find(x=>x.id===id);if(!t||t.done)return;
   let got=0;
   if(!t.startPaid){t.startPaid=1;got=payPool(t,1)}
-  const now=Date.now();S.focus={id,start:now,end:now+dur(FOCUS_SEC),rung:false};
+  const now=Date.now();focusWas=null;S.focus={id,start:now,end:now+dur(FOCUS_SEC),rung:false};
   save();renderTop();renderTasks();renderFocus();sfx('start');
   toast(`${cur().name} is sitting with you for 5 minutes.${got?' +1 heart for starting.':''}`);
   say(pick(VOICE[cur().sp].cheer));
 }
-function stopFocus(){S.focus=null;save();renderFocus();renderTasks()}
+function stopFocus(){S.focus=null;focusWas=null;save();renderFocus();renderTasks()}
+/* Just start ends when its task is ticked, deleted, snoozed or saved for later. Undo puts it back (focusBack), as long as
+   the task is open and on Today again. */
+let focusWas=null;
+function dropFocus(id){if(S.focus&&S.focus.id===id){focusWas=S.focus;S.focus=null;renderFocus()}}
+function focusBack(){const f=focusWas;focusWas=null;if(!f||S.focus)return;const t=S.tasks.find(x=>x.id===f.id);if(t&&!t.done&&isDue(t)){S.focus=f;save();renderFocus();renderTasks()}}
 function renderFocus(){
   const el=$('#focusbar');if(!el)return;
   const f=S.focus,t=f&&S.tasks.find(x=>x.id===f.id);
@@ -2412,15 +2418,15 @@ function renderTasks(){
 function tasksSnap(){return JSON.stringify(S.tasks)}
 /* Later means no day yet, so a task saved for later drops its date, its Not today and its reminder time (Later tasks get
    no reminders), and stops being the Just start task. */
-function toLater(t){t.later=true;t.due='';delete t.hideUntil;t.remind='';t.remindMin=0;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}}
+function toLater(t){t.later=true;t.due='';delete t.hideUntil;t.remind='';t.remindMin=0;dropFocus(t.id)}
 function tasksBack(snap){S.tasks=JSON.parse(snap);save();renderTasks()}
 function bulk(v){
   if(!sel||!sel.size)return;
   const ps=S.tasks.filter(t=>sel.has(t.id)),snap=tasksSnap(),td=isoDay();let n=0;
-  if(v==='del'){S.tasks=S.tasks.filter(t=>!sel.has(t.id));n=ps.length;if(S.focus&&sel.has(S.focus.id)){S.focus=null;renderFocus()}}
+  if(v==='del'){S.tasks=S.tasks.filter(t=>!sel.has(t.id));n=ps.length;if(S.focus&&sel.has(S.focus.id))dropFocus(S.focus.id)}
   else ps.forEach(t=>{
     if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;if(t.due&&t.due>td)t.due=td;n++}
-    else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}n++}
+    else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));dropFocus(t.id);n++}
     else if(v==='later'){if(t.rep||t.later)return;toLater(t);n++}});
   if(!n){toast('Nothing to change there.');return}
   const w=n===1?'1 task':n+' tasks';
@@ -2937,7 +2943,7 @@ function finish(t){
   t.done=true;t.doneAt=Date.now();t.earned=earn+(t.paid||0);delete t.later;
   const enLeft=DAILY_ENERGY-(S.dayEnergy||0),en=t.earned>0?Math.max(0,Math.min(SIZE_BY[t.size].energy,ENERGY_MAX-S.energy,enLeft)):0,enFull=t.earned>0&&S.energy>=ENERGY_MAX,enDay=t.earned>0&&!enFull&&enLeft<=0;
   S.hearts+=earn;S.dayHearts+=earn;S.energy+=en;S.dayEnergy=(S.dayEnergy||0)+en;t.en=en;
-  if(S.focus&&S.focus.id===t.id)S.focus=null;
+  dropFocus(t.id);
   S.lastDone=dayKey();
   return{earn,en,enFull,enDay,enLeft};
 }
@@ -2963,13 +2969,13 @@ function complete(id){
 }
 function undo(){
   sfx('undo');
-  if(undoFn){const f=undoFn;undoFn=null;f();$('#toast').hidden=true;return}
-  const l=S.last;if(!l)return;
+  if(undoFn){const f=undoFn;undoFn=null;f();focusBack();$('#toast').hidden=true;return}
+  const l=S.last;if(!l){rollDay();$('#toast').hidden=true;toast("It's a new day, so that one stays done.");return}
   const t=S.tasks.find(x=>x.id===l.id);
   if(t&&t.done){
     if(S.hearts<l.earn||S.energy<(l.en||0)){S.last=null;$('#toast').hidden=true;toast('Those hearts are already spent, so this one stays done.');return}
     t.done=false;delete t.doneAt;delete t.earned;delete t.en;S.hearts-=l.earn;S.dayHearts=Math.max(0,S.dayHearts-l.earn);S.energy-=(l.en||0);S.dayEnergy=Math.max(0,(S.dayEnergy||0)-(l.en||0))}
-  S.last=null;save();renderTop();renderTasks();renderShop();
+  S.last=null;save();renderTop();renderTasks();renderShop();focusBack();
   $('#toast').hidden=true;
 }
 
@@ -3189,12 +3195,12 @@ function heartFlight(n,done){
   // Lands on the pal, or on the screen's 'away' message while the pal is out on an errand or holiday.
   const target=()=>$('#petwrap')||$('#device .awaymsg')||$('#device .screen');
   if(calmMotion()||!n||!target()){if(n)heartSound(n,.07,0);fin();return}
-  heartsPending+=n;renderTop();
+  heartsPending+=n;renderTop();let left=n;
   const gap=Math.max(28,Math.min(110,1400/n)),dur=760;
   const go=()=>{
     heartSound(n,gap/1000,dur/1000);
     for(let i=0;i<n;i++)setTimeout(()=>{
-      heartsPending=Math.max(0,heartsPending-1);$('#n-hearts').textContent=S.hearts+heartsPending;
+      left--;heartsPending=Math.max(0,heartsPending-1);$('#n-hearts').textContent=S.hearts+heartsPending;
       const src=$('#n-hearts'),dst=target();if(!src||!dst)return;
       const a=src.getBoundingClientRect(),b=dst.getBoundingClientRect();
       const x0=a.left+a.width/2-11,y0=a.top+a.height/2-11;
@@ -3207,7 +3213,7 @@ function heartFlight(n,done){
         {transform:`translate(${x1}px,${y1}px) scale(.45)`,opacity:.15}],{duration:dur,easing:'cubic-bezier(.35,.6,.45,1)'});
       an.onfinish=()=>{h.remove();const w=bouncy(target());if(w)w.animate([{transform:'scale(1)'},{transform:'scale(1.07)'},{transform:'scale(1)'}],{duration:220,easing:'ease-out'})};
     },i*gap);
-    setTimeout(()=>{heartsPending=0;renderTop();fin()},(n-1)*gap+dur+60);
+    setTimeout(()=>{heartsPending=Math.max(0,heartsPending-left);left=0;renderTop();fin()},(n-1)*gap+dur+60);
   };
   // Scroll up to the pal first, then send the hearts.
   if(window.scrollY>40){toTop();setTimeout(go,420)}else go();
@@ -3270,10 +3276,10 @@ document.addEventListener('click',e=>{
       if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast(open.length?'Task list copied.':'Nothing to copy yet.')).catch(fb);else fb();break}
     case'subtab':shopTab=b.dataset.t;renderShop();break;
     case'toggle':complete(+id);break;
-    case'del':{const ix=S.tasks.findIndex(t=>t.id===+id),gone=S.tasks[ix];if(!gone)break;S.tasks.splice(ix,1);if(S.focus&&S.focus.id===+id){S.focus=null;renderFocus()}if(editId===+id)setTaskForm(null);undoFn=()=>{S.tasks.splice(Math.min(ix,S.tasks.length),0,gone);save();renderTasks()};save();renderTasks();toast('Deleted.',true);break}
+    case'del':{const ix=S.tasks.findIndex(t=>t.id===+id),gone=S.tasks[ix];if(!gone)break;S.tasks.splice(ix,1);dropFocus(+id);if(editId===+id)setTaskForm(null);undoFn=()=>{S.tasks.splice(Math.min(ix,S.tasks.length),0,gone);save();renderTasks()};save();renderTasks();toast('Deleted.',true);break}
     case'clear':{const gone=S.tasks.filter(t=>t.done&&!t.rep);S.tasks=S.tasks.filter(t=>!t.done||t.rep);undoFn=()=>{S.tasks.push(...gone);save();renderTasks()};save();renderTasks();toast('Cleared '+gone.length+' finished task'+(gone.length===1?'':'s')+'.',true);break}
     case'today':{const t=S.tasks.find(x=>x.id===+id);if(t){const was={due:t.due,hideUntil:t.hideUntil,later:t.later};delete t.hideUntil;delete t.later;if(t.due&&t.due>isoDay())t.due=isoDay();openTask=null;undoFn=()=>{['due','hideUntil','later'].forEach(k=>{if(was[k])t[k]=was[k];else delete t[k]});save();renderTasks()};save();renderTasks();toast('Moved to today.',true)}break}
-    case'snooze':{const t=S.tasks.find(x=>x.id===+id);if(t){const was=t.hideUntil;t.hideUntil=isoDay(addDays(cfg().snooze));openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>{if(was)t.hideUntil=was;else delete t.hideUntil;save();renderTasks()};save();renderTasks();toast('Not today. It comes back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true)}break}
+    case'snooze':{const t=S.tasks.find(x=>x.id===+id);if(t){const was=t.hideUntil;t.hideUntil=isoDay(addDays(cfg().snooze));openTask=null;dropFocus(t.id);undoFn=()=>{if(was)t.hideUntil=was;else delete t.hideUntil;save();renderTasks()};save();renderTasks();toast('Not today. It comes back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true)}break}
     case'bk-copy':{const code='PAWGRESS1.'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));const box=$('#bk-box'),ta=$('#bk-text'),msg=$('#bk-msg');
       const fallback=()=>{box.hidden=false;ta.value=code;ta.focus();ta.select();msg.textContent='Copying did not work here. Select the code above and copy it yourself.'};
       if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(()=>toast('Backup code copied. Keep it somewhere safe.')).catch(fallback);else fallback();break}
@@ -3325,7 +3331,7 @@ document.addEventListener('click',e=>{
       if(!resetArmed){resetArmed=true;b.textContent='Tap again to erase everything';setTimeout(()=>{resetArmed=false;b.textContent='Start over'},4000)}
       else{resetArmed=false;const keep=S.cfg;S=fresh();if(keep)S.cfg=keep;save();
         // nothing from the old save can come back: no Undo, no picked list or selection
-        undoFn=null;sel=null;openTask=null;taskList='';taskQ='';{const q=$('#task-q');if(q)q.value=''}clearTimeout(toastTimer);$('#toast').hidden=true;showWelcome()}
+        undoFn=null;focusWas=null;sel=null;openTask=null;taskList='';taskQ='';{const q=$('#task-q');if(q)q.value=''}clearTimeout(toastTimer);$('#toast').hidden=true;showWelcome()}
       break;
   }
 });
@@ -3369,7 +3375,7 @@ function wPreview(){
   if(typeof qaParse!=='function'){ul.innerHTML='';return}
   try{
     const seen=new Set();
-    ul.innerHTML=$('#w-dump').value.split(/\r?\n/).filter(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).slice(0,20).flatMap(qaExpand).map(l=>{
+    ul.innerHTML=$('#w-dump').value.split(/\r?\n/).filter(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).slice(0,20).flatMap(qaExpand).filter(l=>!qaEmpty(qaTask(l))).map(l=>{
       const p=qaTask(l),k=qaKey(p),dup=seen.has(k);seen.add(k);const n=dup?'same as the line above':qaNote(p);
       return `<li${dup?' class="dim"':''}><span class="dl-t">${esc(p.text)}</span>${n?`<span class="dl-n">${esc(n)}</span>`:''}</li>`}).join('');
   }catch(e){ul.innerHTML=''}
@@ -3378,7 +3384,7 @@ function addWelcomeTasks(){
   if(typeof qaParse==='function'){
     const seen=new Set();
     $('#w-dump').value.split(/\r?\n/).filter(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).slice(0,20).flatMap(qaExpand).forEach(l=>{
-      const p=qaTask(l),k=qaKey(p);if(seen.has(k))return;seen.add(k);S.tasks.push(qaMake(p))});
+      const p=qaTask(l),k=qaKey(p);if(seen.has(k)||qaEmpty(p))return;seen.add(k);S.tasks.push(qaMake(p))});
   }else{
     if(DEMO)SAMPLE_TASKS.forEach(([text,size,rep,when])=>S.tasks.push({id:S.nextId++,text,size,done:false,ex:true,rep:rep||null,when:when||'any'}));
   }
@@ -3714,7 +3720,8 @@ function qaInList(p){if(!p.list&&taskList)p.list=taskList;return p}
    present ("called the GP" ticks "Call the GP") or dropped ("did the washing up" ticks "Washing up"). Leading words
    like "the" or "my" don't count. */
 const QA_DROP=new Set(['did','done','finished','completed','sorted']);
-const qaEmpty=p=>p.done&&(!qaNorm(p.text)||QA_DROP.has(qaNorm(p.text)));
+// A line with no words ("-", "#", "..."), or "did" on its own, says nothing to add or tick off.
+const qaEmpty=p=>!/[\p{L}\p{N}\p{Extended_Pictographic}]/u.test(p.text)||(p.done&&QA_DROP.has(qaNorm(p.text)));
 const qaCore=t=>qaNorm(t).replace(/^(?:(?:the|my|a|an|some|our)\s+)+/,'');
 function qaDoneKeys(text){
   const n=qaNorm(text),m=n.match(/^([a-z']+)\s*(.*)$/),keys=new Set([qaCore(n)]);if(!m)return keys;
@@ -3748,7 +3755,7 @@ function gotText(g){return g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e}
 function qaAdd(raw){
   const t=String(raw).trim();if(!t)return false;
   if(/^(?:did|done|finished)\s*:?$/i.test(t)){toast('Type what you did, then Add.');return false}
-  const ps=qaExpand(t).map(qaParse).filter(p=>!qaEmpty(p)).map(qaInList);if(!ps.length){toast('Type what you did, then Add.');return false}
+  const ps=qaExpand(t).map(qaParse).filter(p=>!qaEmpty(p)).map(qaInList);if(!ps.length){toast(/^(?:i\s+)?(?:did|done|finished)\b/i.test(t)?'Type what you did, then Add.':'Type what needs doing first.');return false}
   const r=qaCommit(ps);
   undoFn=r.undo;save();renderTop();renderTasks();renderShop();
   if(r.ticked.length){sfx('tick_'+r.ticked[0].size);say(pick(VOICE[cur().sp].cheer));toast('Done: '+r.ticked[0].text+'.'+gotText(r.got),true);return true}
@@ -3778,7 +3785,7 @@ function qaItems(){
     qaExpand(x.l).forEach(l=>{
       const key=l.trim().toLowerCase();let p=qaParse(l);const could=p.done;
       if(could&&qaUndone.has(key))p=qaParse('to do: '+l.trim());
-      if(qaEmpty(p))return; // "did" on its own says nothing to tick off
+      if(qaEmpty(p))return;
       qaInList(p);
       const k=(p.done?'done|':'')+qaKey(p),dup=p.done?seen.has(k):have.has(k)||seen.has(k);seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
   });
