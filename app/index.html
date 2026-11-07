@@ -1952,7 +1952,7 @@ function buildPlan(){
       }
     }
     if(r.tasks)S.tasks.forEach(t=>{
-      if(!t.remind)return;
+      if(!t.remind||t.later)return; // Later tasks get no reminders
       const mins=t.remindMin||0,at=atTime(d,t.remind)-mins*60000;if(at<=now)return;
       {const diso2=isoDay(d);if((t.hideUntil&&diso2<t.hideUntil)||(t.due&&diso2<t.due))return}
       if(t.rep){if(!repOn(t.rep,d)||(k===0&&t.done))return}
@@ -2421,6 +2421,9 @@ function renderTasks(){
 }
 /* Undo for changes to several tasks at once: put the whole list back as it was */
 function tasksSnap(){return JSON.stringify(S.tasks)}
+/* Later means no day yet, so a task saved for later drops its date, its Not today and its reminder time (Later tasks get
+   no reminders), and stops being the Just start task. */
+function toLater(t){t.later=true;t.due='';delete t.hideUntil;t.remind='';t.remindMin=0;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}}
 function tasksBack(snap){S.tasks=JSON.parse(snap);save();renderTasks()}
 function bulk(v){
   if(!sel||!sel.size)return;
@@ -2429,7 +2432,7 @@ function bulk(v){
   else ps.forEach(t=>{
     if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;if(t.due&&t.due>td)t.due=td;n++}
     else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));n++}
-    else if(v==='later'){if(t.rep||t.later)return;t.later=true;t.due='';delete t.hideUntil;n++}});
+    else if(v==='later'){if(t.rep||t.later)return;toLater(t);n++}});
   if(!n){toast('Nothing to change there.');return}
   const w=n===1?'1 task':n+' tasks';
   sel=null;undoFn=()=>tasksBack(snap);save();renderTasks();
@@ -2922,18 +2925,21 @@ function addTask(){
   if(rv==='custom'||rv==='fortnight'){const days=$$('input[name="day"]:checked').map(c=>+c.value);if(!days.length){toast('Pick at least one day, or choose Just once.');return}rep={days};if(rv==='fortnight'){rep.every=2;rep.from=$('#task-start').value||mondayIso(new Date())}}
   else if(rv==='monthly')rep={dom:+$('#task-dom').value||1};
   else if(rv!=='none')rep={days:repDays(rv)};
-  const lv=$('#task-list').value,note=$('#task-note').value.trim().slice(0,500),list=lv==='__new'?listKey($('#task-list-new').value):lv,later=!rep&&$('#task-later').checked;
+  const lv=$('#task-list').value,note=$('#task-note').value.trim().slice(0,500),list=lv==='__new'?listKey($('#task-list-new').value):lv;
+  // A date or a reminder time wins over Later, as it does in Offload (Later tasks have no day and no reminders).
+  const hasDay=$('#task-due').value?'a date':$('#task-remind').value?'a reminder time':'',wantLater=!rep&&$('#task-later').checked,later=wantLater&&!hasDay;
+  const notLater=wantLater&&hasDay?` It has ${hasDay}, so it isn't kept for later.`:'';
   const extra=t=>{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list;if(later){t.later=true;t.due='';delete t.hideUntil}else delete t.later};
   const lines=$('#task-steps').value.split('\n').map(s=>s.trim().slice(0,60)).filter(Boolean).slice(0,8);
   if(editId!=null){
     const t=S.tasks.find(x=>x.id===editId);
     if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list}}
-    setTaskForm(null);save();renderTasks();toast('Saved.');return;
+    setTaskForm(null);save();renderTasks();toast('Saved.'+notLater);return;
   }
   const nt={id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0};
   extra(nt);S.tasks.push(nt);
   setTaskForm(null);save();renderTasks();sfx('offload');
-  toast(later?'Saved for later.':rep?'Added. It comes back '+repPhrase(rep)+'.':'Added. It will pay '+SIZE_BY[size].hearts+' heart'+(SIZE_BY[size].hearts>1?'s':'')+'.');
+  toast(notLater?'Added.'+notLater:later?'Saved for later.':rep?'Added. It comes back '+repPhrase(rep)+'.':'Added. It will pay '+SIZE_BY[size].hearts+' heart'+(SIZE_BY[size].hearts>1?'s':'')+'.');
 }
 
 /* Marks a task done and pays it: hearts up to the daily cap, energy up to the day's and the bank's limits. */
@@ -3308,7 +3314,7 @@ document.addEventListener('click',e=>{
       if(!sib){toast(b.dataset.v==='-1'?'Already at the top.':'Already at the bottom.');break}
       if(b.dataset.v==='-1')ul.insertBefore(li,sib);else ul.insertBefore(sib,li);saveOrder(ul.dataset.sec);break}
     case'later-fold':laterOpen=!laterOpen;renderTasks();break;
-    case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();t.later=true;t.due='';delete t.hideUntil;openTask=null;if(S.focus&&S.focus.id===t.id){S.focus=null;renderFocus()}undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
+    case'later':{const t=S.tasks.find(x=>x.id===+id);if(t&&!t.rep){const snap=tasksSnap();toLater(t);openTask=null;undoFn=()=>tasksBack(snap);save();renderTasks();toast('Saved for later. It waits in Later until you pick it up.',true)}break}
     case'did':{if(sel)break;const i=$('#qa-in');i.value='Did ';i.focus();i.setSelectionRange(4,4);i.scrollIntoView({block:'center'});break}
     case'select':sel=sel?null:new Set();openTask=null;renderTasks();break;
     case'sel-off':sel=null;renderTasks();break;
@@ -3501,7 +3507,7 @@ const QA_BASE={did:'do',done:'do',went:'go',made:'make',took:'take',got:'get',ga
 function qaPresent(t){return t.replace(/^([a-z']+)/i,w=>{const l=w.toLowerCase();if(QA_BASE[l])return QA_BASE[l];if(!/ed$/.test(l))return w;
   const a=l.replace(/ied$/,'y').replace(/([^aeiou])\1ed$/,'$1').replace(/ed$/,'');return a+' '+a+'e '+l.replace(/d$/,'')})}
 /* Later: no day yet, kept off Today until you pick it up */
-const QA_LATER=/[\s,;]*\b(?:some\s?day|one\s+day|at\s+some\s+point|some\s?time(?!\s+(?:today|tomorrow|tonight|this|next|on|in))|eventually|when\s+i\s+(?:can|get\s+(?:a\s+)?(?:chance|time|round\s+to\s+it))|no\s+rush|for\s+later|(?:#|hashtag\s+)later)\b/i;
+const QA_LATER=/[\s,;]*(?:#later|\bhashtag\s+later|\b(?:some\s?day|one\s+day|at\s+some\s+point|some\s?time(?!\s+(?:today|tomorrow|tonight|this|next|on|in))|eventually|when\s+i\s+(?:can|get\s+(?:a\s+)?(?:chance|time|round\s+to\s+it))|no\s+rush|for\s+later))\b/i;
 function qaParse(raw){
   let s=' '+String(raw).replace(/^\s*(?:[-*•]|\d+[.)])\s+/,'').trim()+' ';
   let done=false,later=false,list='';
@@ -3716,21 +3722,37 @@ function removeList(l){const snap={t:tasksSnap(),l:JSON.stringify(S.lists||[])},
   toast(`Removed ${listName(l)}.${n?' Its tasks are still on your list.':''}`,true)}
 /* While a list chip is picked, new tasks go into that list (so they don't vanish from view). */
 function qaInList(p){if(!p.list&&taskList)p.list=taskList;return p}
+/* The open task a done line is about: the same words, or the same words once the past tense is put back into the
+   present ("called the GP" ticks "Call the GP") or dropped ("did the washing up" ticks "Washing up"). Leading words
+   like "the" or "my" don't count. */
+const QA_DROP=new Set(['did','done','finished','completed','sorted']);
+const qaCore=t=>qaNorm(t).replace(/^(?:(?:the|my|a|an|some|our)\s+)+/,'');
+function qaDoneKeys(text){
+  const n=qaNorm(text),m=n.match(/^([a-z']+)\s*(.*)$/),keys=new Set([qaCore(n)]);if(!m)return keys;
+  const [,w,rest]=m,add=x=>keys.add(qaCore((x+' '+rest).trim()));
+  if(QA_DROP.has(w))keys.add(qaCore(rest));
+  if(QA_BASE[w])add(QA_BASE[w]);
+  else if(/ed$/.test(w)){const a=w.replace(/ied$/,'y').replace(/([^aeiou])\1ed$/,'$1').replace(/ed$/,'');add(a);add(a+'e');add(w.replace(/d$/,''));add(w.replace(/ed$/,''))}
+  keys.delete('');return keys;
+}
+function qaMatch(p){const keys=qaDoneKeys(p.text);return S.tasks.find(t=>!t.done&&isDue(t)&&keys.has(qaCore(t.text)))}
 /* Adds parsed lines: tasks go on the list; done things are ticked off straight away (an open task with the same words
-   is ticked instead of adding a copy). Returns the tasks added and the ones ticked off. */
+   is ticked instead of adding a copy, and only once however many lines name it). Returns the tasks added and ticked. */
 function qaCommit(ps){
   rollDay();const added=[],ticked=[],made=[];
   ps.forEach(p=>{
-    if(p.done){const same=S.tasks.find(t=>!t.done&&isDue(t)&&qaNorm(t.text)===qaNorm(p.text));if(same){ticked.push(same);return}}
+    if(p.done){const same=qaMatch(p);if(same){if(!ticked.includes(same))ticked.push(same);return}}
     const t=qaMake(p);S.tasks.push(t);(p.done?ticked:added).push(t);if(p.done)made.push(t)});
-  const before={h:S.hearts,e:S.energy};
-  ticked.forEach(t=>finish(t));
+  const before={h:S.hearts,e:S.energy},paid=new Map();
+  ticked.forEach(t=>{const r=finish(t);paid.set(t,r)});
   const got={h:S.hearts-before.h,e:S.energy-before.e};
   return{added,ticked,made,got,undo:()=>{
     const old=ticked.filter(t=>!made.includes(t));
     S.tasks=S.tasks.filter(t=>!added.includes(t));
     unlog(made);
-    old.forEach(t=>{if(S.hearts>=(t.earned||0)&&S.energy>=(t.en||0)){S.hearts-=t.earned||0;S.dayHearts=Math.max(0,S.dayHearts-(t.earned||0));S.energy-=t.en||0;S.dayEnergy=Math.max(0,(S.dayEnergy||0)-(t.en||0))}t.done=false;delete t.doneAt;delete t.earned;delete t.en});
+    // A task that was already on the list goes back to open, and gives back only what ticking it just paid
+    // (hearts its steps paid earlier stay), while that's still unspent.
+    old.forEach(t=>{const r=paid.get(t)||{earn:0,en:0};if(S.hearts>=r.earn&&S.energy>=r.en){S.hearts-=r.earn;S.dayHearts=Math.max(0,S.dayHearts-r.earn);S.energy-=r.en;S.dayEnergy=Math.max(0,(S.dayEnergy||0)-r.en)}t.done=false;delete t.doneAt;delete t.earned;delete t.en});
     save();renderTop();renderTasks();renderShop()}};
 }
 function gotText(g){return g.h?` +${g.h} heart${g.h>1?'s':''}${g.e?` and +${g.e} energy`:''} for ${cur().name}.`:''}
@@ -3767,13 +3789,13 @@ function qaItems(){
       const key=l.trim().toLowerCase();let p=qaParse(l);const could=p.done;
       if(could&&qaUndone.has(key))p=qaParse('to do: '+l.trim());
       qaInList(p);
-      const k=qaKey(p),dup=!p.done&&(have.has(k)||seen.has(k));seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
+      const k=(p.done?'done|':'')+qaKey(p),dup=p.done?seen.has(k):have.has(k)||seen.has(k);seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
   });
   return out;
 }
 function qaPreview(){
   const all=qaLines(),ps=qaItems();
-  $('#dump-list').innerHTML=ps.map(x=>{const n=x.dup?'already on your list':qaNote(x.p);
+  $('#dump-list').innerHTML=ps.map(x=>{const n=x.dup?(x.p.done?'same as a line above':'already on your list'):qaNote(x.p);
     const tick=x.could?`<button type="button" class="dl-d" data-qa="flip" data-k="${esc(x.key)}" aria-pressed="${x.p.done}" aria-label="Already done: ${esc(x.p.text)}">${x.p.done?ic('check',14):''}</button>`:'';
     return `<li class="${x.dup?'dim':''}${x.could?' can':''}">${tick}<span class="dl-t">${esc(x.p.text)}</span>${n?`<span class="dl-n">${esc(n)}</span>`:''}<button type="button" class="dl-x" data-qa="rm" data-i="${[x.i,...x.kids].join(',')}" aria-label="Remove ${esc(x.p.text)}">&times;</button></li>`}).join('');
   const keep=ps.filter(x=>!x.dup),c=keep.filter(x=>!x.p.done).length,d=keep.length-c,b=$('#dump-add');b.disabled=!keep.length;
@@ -3792,7 +3814,7 @@ function qaClose(){
   if(qaFrom&&qaFrom.focus&&document.contains(qaFrom))qaFrom.focus();
 }
 function qaDump(){
-  const ps=qaItems(),add=ps.filter(x=>!x.dup),skipped=ps.length-add.length;if(!add.length)return;
+  const ps=qaItems(),add=ps.filter(x=>!x.dup),skipped=ps.filter(x=>x.dup&&!x.p.done).length;if(!add.length)return;
   const r=qaCommit(add.map(x=>x.p));undoFn=r.undo;qaUndone.clear();
   save();$('#dump-text').value='';qaClose();
   if(tab!=='tasks')setTab('tasks');
