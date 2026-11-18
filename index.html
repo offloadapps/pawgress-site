@@ -95,6 +95,7 @@ h1,h2,h3{font-family:var(--f-display)}
 .close h2{font-size:clamp(2rem,5vw,3rem);color:var(--band-ink)}
 .close p{margin:0;max-width:46ch;color:var(--band-muted)}
 .close .btn{background:var(--band-btn);color:var(--band-btn-ink);box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.close .btn.ghost{background:transparent;color:var(--band-ink);border:1.5px solid currentColor;box-shadow:none}
 .close a{color:var(--band-ink)}
 .close .pals{display:flex;gap:8px;margin-bottom:8px}
 .close .pals{gap:16px}.close .pals img{width:clamp(80px,12vw,112px);height:auto}
@@ -143,8 +144,8 @@ h1,h2,h3{font-family:var(--f-display)}
     <h1>Offload your to-do list in seconds.</h1>
     <p class="lede">Simple, and seriously cute. Dump everything on your mind, Pawgress sorts it, and every task you finish helps your pal grow up.</p>
     <div class="cta">
-      <a class="btn" href="app/">Try it in your browser</a>
-      <span class="soon" id="play"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Coming soon to Google Play</span>
+      <a class="btn" id="play" href="https://play.google.com/store/apps/details?id=com.offloadapps.pawgress"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="5.6" ry="4.6" fill="currentColor"/><circle cx="5.2" cy="9.6" r="2.3" fill="currentColor"/><circle cx="9.2" cy="5.6" r="2.3" fill="currentColor"/><circle cx="14.8" cy="5.6" r="2.3" fill="currentColor"/><circle cx="18.8" cy="9.6" r="2.3" fill="currentColor"/></svg>Free on Google Play</a>
+      <a class="btn ghost" href="app/">Try it in your browser</a>
     </div>
   </div>
   <div class="stage" aria-hidden="false">
@@ -210,8 +211,8 @@ h1,h2,h3{font-family:var(--f-display)}
 <section class="band close" aria-labelledby="close-h"><div class="in">
   <div class="pals reveal" aria-hidden="true"><img src="img/art/pal-panda.svg" alt=""><img src="img/art/pal-cat.svg" alt=""><img src="img/art/pal-uni.svg" alt=""></div>
   <h2 id="close-h" class="reveal">Ready to offload?</h2>
-  <p class="reveal">Try Pawgress in your browser now. The Android app is coming soon to Google Play.</p>
-  <a class="btn reveal" href="app/">Try it in your browser</a>
+  <p class="reveal">Pawgress is free on Google Play, with no ads. Not on Android? Try it in your browser.</p>
+  <div class="cta reveal"><a class="btn" href="https://play.google.com/store/apps/details?id=com.offloadapps.pawgress">Free on Google Play</a><a class="btn ghost" href="app/">Try it in your browser</a></div>
   <p class="iphone reveal"><b>On an iPhone?</b> Open the <a href="app/">web version</a> in Safari, tap Share, then Add to Home Screen. It works offline and saves on your phone. Reminders need the Android app for now.</p>
 </div></section>
 </main>
