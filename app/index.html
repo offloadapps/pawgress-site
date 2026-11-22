@@ -3460,22 +3460,24 @@ setInterval(()=>{
 
 /* ---------- quick add and offload (web) ---------- */
 const QA_DOW={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
-const QA_D='(?:mon(?:day)?|tues?(?:day)?|wed(?:nesday)?|thu(?:rs?(?:day)?)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)';
+const QA_D='(?:mon(?:day)?|tues?(?:day)?|wed(?:nesday|s)?|thu(?:rs?(?:day)?)?|fri(?:day)?|sat(?:urday)?|sun(?:day)?)';
 const QA_MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 const QA_M='(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
 const QA_PL='(?:mon|tues|wednes|thurs|fri|satur|sun)days';
-const QA_BIG=/\b(essay|assignment|project|report|thesis|revise|revision|study|exam|declutter|pack|packing|moving|taxes|presentation|deep clean|spring clean|clean (?:the )?(?:house|flat|room|bathroom))\b/i;
+const QA_BIG=/\b(essay|assignment|project|report|thesis|revise|revision|study|exam|declutter|pack(?:ing)?\s+for|packing|pack\s+up|moving|taxes|presentation|deep clean|spring clean|clean (?:the )?(?:house|flat|room|bathroom))\b/i;
 const QA_MED=/\b(clean|tidy|laundry|washing|cook|meal prep|shopping|groceries|hoover|vacuum|mop|iron|organi[sz]e|gym|workout|exercise|walk|run|plan|write|draft|homework|read)\b/i;
-const QA_TINY=/\b(reply|text|message|call|ring|email|pay|book|order|buy|send|check|cancel|renew|water|bins?|meds?|medication|vitamins?|post|sign|submit|confirm|remind|stretch|drink|feed|lock|charge|upload|print)\b/i;
-function qaGuess(t){return QA_BIG.test(t)?'big':QA_MED.test(t)?'medium':QA_TINY.test(t)?'tiny':(typeof cfg==='function'?cfg().defSize:'small')}
-function qaGuessWhen(t){return /\bbreakfast\b/i.test(t)?'morning':/\blunch\b/i.test(t)?'afternoon':/\b(dinner|supper|bedtime|before bed|go to bed)\b/i.test(t)?'evening':null}
+const QA_TINY=/(?<!\bon\s)\b(reply|text|message|call|ring|email|pay|book|order|buy|send|check|cancel|renew|water|bins?|meds?|medication|vitamins?|post|sign|submit|confirm|remind|stretch|drink|feed|lock|charge|upload|print)\b/i;
+/* A task that starts with a quick admin verb is tiny, whatever it's about ("pay gym", "email the report"). */
+const QA_LEAD_TINY=/^(?:pay|renew|cancel|book|order|e-?mail|text|message|reply|send|submit|sign|confirm|call|ring|charge|print|upload|check|post)\b/i;
+function qaGuess(t){return QA_LEAD_TINY.test(t)?'tiny':QA_BIG.test(t)?'big':QA_MED.test(t)?'medium':QA_TINY.test(t)?'tiny':(typeof cfg==='function'?cfg().defSize:'small')}
+function qaGuessWhen(t){return /\bbreakfast\b/i.test(t)?'morning':/(?<!\b(?:re:?|about)\s+)\blunch\b/i.test(t)?'afternoon':/\b(dinner|supper|bedtime|before bed|go to bed|parents'?\s+evening$)\b/i.test(t)?'evening':null}
 function qaSnap(m){return Math.max(0,Math.min(10080,Math.round(m)))}
-function qaCtx(t){return qaGuessWhen(t)||(/\b(tonight|evening|night)\b/i.test(t)?'evening':/\bmorning\b/i.test(t)?'morning':/\bafternoon\b/i.test(t)?'afternoon':null)}
+function qaCtx(t){return qaGuessWhen(t)||(/\b(?:wake(?:\s+up)?|get\s+up|up\s+at|alarm|open(?:ing)?\s+at)\b/i.test(t)?'morning':/\b(tonight|evening|night)\b/i.test(t)?'evening':/\bmorning\b/i.test(t)?'morning':/\bafternoon\b/i.test(t)?'afternoon':null)}
 function qaTime(h,m,ap,ctx){
   h=+h;m=+m||0;if(m>59||h>23)return null;
   if(ap){ap=ap.toLowerCase();if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0}
   else if(h>=1&&h<=11&&(ctx==='evening'||(ctx==='afternoon'&&h<=7)))h+=12;
-  else if(ctx==='morning'){}
+  else if(ctx==='morning'&&h>=1&&h<=11)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+'!'
   // a bare "at 7": marked with ? and settled in qaBare once the day is known
   else if(h>=1&&h<=11)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+'?';
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
@@ -3483,6 +3485,8 @@ function qaTime(h,m,ap,ctx){
 /* A time said without am or pm ("at 7"). For today, or no day at all: the next time it comes round (7am if that's still
    ahead, else 7pm, else 7am tomorrow). For another day or a repeat: 1 to 6 means afternoon or evening, 7 to 11 morning. */
 function qaBare(x,due,rep,now=new Date()){
+  // "!": a morning time ("up at 5"); if it has already gone today, it means tomorrow
+  if(x&&x.endsWith('!')){x=x.slice(0,-1);if(!rep&&!due&&+x.slice(0,2)*60+ +x.slice(3)<=now.getHours()*60+now.getMinutes())due=isoDay(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));return{time:x,due}}
   if(!x||!x.endsWith('?'))return{time:x,due};
   x=x.slice(0,-1);const h=+x.slice(0,2),mi=+x.slice(3),f=n=>String(n).padStart(2,'0')+':'+String(mi).padStart(2,'0');
   if(!rep&&(!due||due===isoDay(now))){const nm=now.getHours()*60+now.getMinutes();
@@ -3494,7 +3498,7 @@ function qaBare(x,due,rep,now=new Date()){
    ("done: laundry", "laundry (done)") goes straight to Done today. "to do:" in front keeps a line as a task. */
 const QA_PAST=new Set(('did done went made took got gave sent paid bought ate drank wrote ran rang fed swept slept spoke sold found brought '+
   'caught taught met left kept hung held built spent won threw drew drove rode flew wore sang swam began came saw told said thought had shook woke').split(' '));
-const QA_NOT_PAST=new Set('need feed weed seed speed shred bleed breed heed embed proceed succeed exceed bed red shed sled wed deed reed steed fred ahmed mohammed'.split(' '));
+const QA_NOT_PAST=new Set('need feed weed seed speed shred bleed breed heed embed proceed succeed exceed bed red shed sled wed deed reed steed fred ahmed mohammed ofsted hundred wicked ted ned ed zed'.split(' '));
 const QA_LEAD=/^(?:(?:i|i've|ive|i have|we|we've)\s+)?(?:(?:just|already|finally|also)\s+)?/i;
 function qaPast(t){const w=(String(t).replace(QA_LEAD,'').match(/^[a-z']+/i)||[''])[0].toLowerCase();return QA_PAST.has(w)||(/^[a-z]{2,}ed$/.test(w)&&!QA_NOT_PAST.has(w))}
 /* a past-tense line, with its first word also in the present, so the size guess still works ("called" -> "call") */
@@ -3512,6 +3516,12 @@ function qaParse(raw){
     else if((m=r.match(/^(.+?)\s*(?:\(done\)|[-–]\s*done|[✓✔]+)\s*$/i))){done=true;s=' '+m[1]+' '}
     else if(qaPast(r)){done=true;s=' '+r.replace(QA_LEAD,'')+' '}}
   s=s.replace(/\ssome\s?time(?=\s+(?:today|tomorrow|tonight|this|next|on|in)\b)/i,' ');
+  // everyday shorthand: "tmrw", "2moro", "tonite"; "wednesday night" is that evening
+  s=s.replace(/\s(?:tmrw|tmw|tmr|tmoz|tomoz|2moro|2morrow|tomorow|tommorow|tommorrow)(?=[\s,;.!?]|$)/gi,' tomorrow').replace(/\stonite\b/gi,' tonight');
+  s=s.replace(new RegExp('(\\s(?:'+QA_D+'|today|tomorrow))\\s+night\\b','gi'),'$1 evening');
+  // a range of days ("mon-thurs") is every day in it
+  s=s.replace(new RegExp('\\s('+QA_D+')\\s*[-–]\\s*('+QA_D+')\\b','i'),(m,a,b)=>{const N=['sun','mon','tue','wed','thu','fri','sat'];let i=QA_DOW[a.slice(0,3).toLowerCase()];const j=QA_DOW[b.slice(0,3).toLowerCase()],o=[];
+    for(let k=0;k<7;k++){o.push(N[i]);if(i===j)break;i=(i+1)%7}return ' '+o.join(' ')});
   if(QA_LATER.test(s)){later=true;s=s.replace(QA_LATER,' ')}
   s=s.replace(/\s(?:#|hashtag\s+)(?!(?:tiny|small|medium|big)\b)(\p{L}[\p{L}\p{N}_-]{0,19})/giu,(m,w)=>{if(!list)list=w.toLowerCase();return ' '});
   let rep=null,when=null,size=null,every=false,due=null,time=null,remindAt=null,remindMin=null,wantsRemind=false;
@@ -3534,6 +3544,7 @@ function qaParse(raw){
   cut(/[\s,;]*\bremind(?:\s+me)?\s+(?:at|for)\s+(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?\b/i,(m,h,mi,ap)=>{wantsRemind=true;remindAt=qaTime(h,mi,ap,ctx)});
   cut(/[\s,;]*\bremind\s+me\b(?=\s*(?:[,;]|$))/i,()=>{wantsRemind=true});
   cut(/^\s*remind\s+me\s+(?:to\s+)?/i,()=>{wantsRemind=true});
+  s=s.replace(new RegExp('(\\s(?:work(?:ing)?|shift|'+QA_D+'))\\s+(1[0-2]|[1-9])\\s*(?:-|–|to|till|until)\\s*(1[0-2]|[1-9])(?=[\\s,;]|$)','i'),(m,pre,a,b)=>pre+' at '+a+(+b<=+a?'am':+a<=6?'pm':''));
   // a time range ("10:30-11:30", "2pm to 3pm") keeps its start time; the end isn't stored
   s=s.replace(/(\d{1,2}:\d{2}|\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*(?:-|–|to|until|till)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)?(?=[\s,;]|$)/i,(m,a)=>/:|am|pm/i.test(m.slice(a.length))||/am|pm/i.test(a)?a:m);
   cut(/\s(?:at|@|by)\s+(noon|midday)\b/i,()=>{time='12:00'});
@@ -3542,6 +3553,10 @@ function qaParse(raw){
   if(!time)cut(new RegExp('\\s'+AT+'?([01]?\\d|2[0-3]):([0-5]\\d)\\b'+ISH,'i'),(m,h,mi)=>{time=qaTime(h,mi,null,ctx)});
   if(!time)cut(new RegExp('\\s'+AT+'([01]?\\d|2[0-3])\\.([0-5]\\d)\\b'+ISH,'i'),(m,h,mi)=>{time=qaTime(h,mi,null,ctx)});
   if(!time)cut(new RegExp('\\s(?:at|@|around|about|at around|at about)\\s+(\\d{1,2})(?!\\s*(?:min|hour|hr|day|week|%|st\\b|nd\\b|rd\\b|th\\b|\\d|:|\\.\\d))\\b'+ISH,'i'),(m,h)=>{time=qaTime(h,0,null,ctx)});
+  const DAYW='(?:'+QA_D+'|today|tomorrow)';
+  if(!time)s=s.replace(new RegExp('(\\s'+DAYW+')\\s+([01]?\\d|2[0-3])\\.([0-5]\\d)\\b','i'),(m,d,h,mi)=>{time=qaTime(h,mi,null,ctx);return d+' '});
+  if(!time)cut(new RegExp('\\s([01]?\\d|2[0-3])\\.([0-5]\\d)(?=\\s+'+DAYW+'\\b)','i'),(m,h,mi)=>{time=qaTime(h,mi,null,ctx)});
+  if(!time)s=s.replace(new RegExp('(\\s'+DAYW+')\\s+(1[0-2]|[1-9])(?=\\s*(?:[,;]|$))','i'),(m,d,h)=>{time=qaTime(h,0,null,ctx);return d+' '});
   // every month: "every month on the 1st", "the 15th of every month", "monthly", "the last day of the month"
   const MONTHLY='(?:every\\s+month|each\\s+month|monthly)';
   cut(/\s(?:on\s+)?the\s+last\s+day\s+of\s+(?:every|each|the)\s+month\b/i,()=>{rep={dom:31}});
@@ -3564,7 +3579,7 @@ function qaParse(raw){
   if(!rep)cut(new RegExp('\\s('+QA_D+'(?:(?:\\s*(?:,|and|&)\\s*|\\s+)'+QA_D+')+)\\b','i'),(m,list)=>{
     const d=[...list.toLowerCase().matchAll(/(mon|tue|wed|thu|fri|sat|sun)/g)].map(x=>QA_DOW[x[1]]);rep={days:[...new Set(d)]}});
   if(!rep){
-    cut(/\s(?:(?:by|for|due|on)\s+)?(today|tomorrow)\b/i,(m,w)=>{due=iso(/^tom/i.test(w)?1:0)});
+    cut(/\s(?:(?:by|for|due|on)\s+)?(today|tomorrow)\b(?!['’]s\b)/i,(m,w)=>{due=iso(/^tom/i.test(w)?1:0)});
     if(!due)cut(/\sin\s+(\d{1,2})\s+(day|week)s?\b/i,(m,n,u)=>{due=iso(+n*(/^w/i.test(u)?7:1))});
     if(!due)cut(/\snext\s+week\b/i,()=>{due=iso(7)});
     // The next date that has that day: "the 31st" on 30 April is 31 May, "29 feb" waits for a leap year. A date that
@@ -3576,7 +3591,9 @@ function qaParse(raw){
     if(!due)cutDate(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?(?:the\\s+)?([12]?\\d|3[01])(?:st|nd|rd|th)?\\s+(?:of\\s+)?('+QA_M+')\\b','i'),(m,d,mo)=>onDate(d,QA_MON[mo.slice(0,3).toLowerCase()]));
     if(!due)cutDate(new RegExp('\\s(?:(?:on|by|for|due|before)\\s+)?('+QA_M+')\\s+([12]?\\d|3[01])(?:st|nd|rd|th)?\\b','i'),(m,mo,d)=>onDate(d,QA_MON[mo.slice(0,3).toLowerCase()]));
     if(!due)cutDate(/\s(?:(?:on|by|for|due|before)\s+)?the\s+([12]?\d|3[01])(?:st|nd|rd|th)\b/i,(m,d)=>onDate(d,null));
-    if(!due)s=s.replace(new RegExp('(\\s)(?:(by|on|for|before|due|this|next)\\s+)?('+QA_D+')\\b(?=(\\s*[^\\s]*))','i'),(m,sp,kw,w,after)=>{
+    if(!due)cutDate(/\s(?:on|by|for|due|before)\s+([12]?\d|3[01])(?:st|nd|rd|th)\b/i,(m,d)=>onDate(d,null));
+    if(!due)cutDate(/(?<!\b(?:my|his|her|their|our|your))\s([12]?\d|3[01])(?:st|nd|rd|th)(?=\s*(?:[,;]|$))/i,(m,d)=>onDate(d,null));
+    if(!due)s=s.replace(new RegExp('(\\s)(?:(by|on|for|before|due|this|next)\\s+)?('+QA_D+')\\b(?![\'’]s\\b)(?=(\\s*[^\\s]*))','i'),(m,sp,kw,w,after)=>{
       // A bare "sun" or "sat" is usually a word (sun cream, sat nav), so only treat it as a day when it is clearly one.
       if(!kw&&/^(sun|sat)$/i.test(w)&&!/^\s*(?:[,;]|at\b|@|\d|$)/i.test(after))return m;
       const t=new Date().getDay(),k=(kw||'').toLowerCase(),off=(dayIdx(w)-t+7)%7;
@@ -3584,9 +3601,9 @@ function qaParse(raw){
   }
   cut(/\s(every|each|in the|this)\s+(morning|afternoon|evening)\b/i,(m,p,w)=>{when=w.toLowerCase();if(/^(every|each)$/i.test(p))every=true});
   cut(/\stonight\b/i,()=>{when='evening'});
-  cut(/\s(morning|afternoon|evening)\s*$/i,(m,w)=>{when=w.toLowerCase()});
+  cut(/(?<!parents'?)\s(morning|afternoon|evening)\s*$/i,(m,w)=>{when=w.toLowerCase()});
   if(every&&!rep)rep={days:[0,1,2,3,4,5,6]};
-  s=s.replace(/\s*,(?:\s*,)+/g,',').replace(/\s+,/g,',').replace(/\s+/g,' ').trim().replace(/(?:\s+(?:and|on|at|in|for|every|each|the|this|by|due|before|next))+$/i,'').replace(/[\s,;:\-]+$/,'').replace(/^[\s,;:\-]+/,'');
+  s=s.replace(/\s*,(?:\s*,)+/g,',').replace(/\s+,/g,',').replace(/\s+/g,' ').trim().replace(/(?:\s+(?:and|on|at|in|for|every|each|the|this|by|due|before|next))+$/i,m=>/^\s+(?:in|on)$/i.test(m)&&(' '+String(raw).trim().replace(/[\s.!?]+$/,'').toLowerCase().replace(/\s+/g,' ')).endsWith(' '+m.trim().toLowerCase().replace(/\s+/g,' '))?m:'').replace(/[\s,;:\-]+$/,'').replace(/^[\s,;:\-]+/,'');
   if(wantsRemind)s=s.replace(/^to\s+/i,'');
   let text=s||String(raw).trim();
   // Steps after a colon: "clean kitchen: dishes, sides and floor" (two or more; one part after a colon stays as it is)
@@ -3625,10 +3642,24 @@ function qaNote(p){
   const sz=p.size||p.guess;if(sz&&sz!=='small')a.push(SIZE_BY[sz].label.toLowerCase());
   return a.join(', ');
 }
-function qaExpand(line){
-  const T='(\\d{1,2}(?:[:.]\\d{2})?\\s*(?:am|pm))';
-  let m=line.match(new RegExp('^(.*?\\s)(?:at\\s+)?'+T+'\\s+and\\s+(?:at\\s+)?'+T+'(.*)$','i'));
-  if(m)return [m[1]+'at '+m[2]+m[4],m[1]+'at '+m[3]+m[4]];
+/* A typed line with commas between whole tasks ("invoice mrs patel, order copper pipe, call accountant") is several
+   tasks. It stays one task when a part is a detail of the task ("…, remind me 30 mins before, tiny", "…, friday at 3"),
+   when it has steps after a colon, or when the parts are just things in a list ("buy milk, eggs, bread"). */
+const QA_DETAIL=new RegExp('^(?:#|\\d|(?:remind|every|each|tiny|small|medium|big|size|at|on|by|due|before|after|in|from|until|till|around|about|today|tomorrow|tonight|this|next|morning|afternoon|evening|'+QA_D.slice(3,-1)+'|'+QA_M.slice(3,-1)+')\\b)','i');
+function qaCommas(line){
+  if(/:/.test(line.replace(/\d:\d/g,''))||!line.includes(','))return [line];
+  const parts=line.replace(/\([^)]*\)/g,x=>x.replace(/,/g,'\u0001')).split(',').map(x=>x.replace(/\u0001/g,',').trim()).filter(Boolean);
+  if(parts.length<2||parts.slice(1).some(x=>QA_DETAIL.test(x)))return [line];
+  const words=x=>x.split(/\s+/).length,verb=x=>SP_VERBS.has(x.split(/\s+/)[0].toLowerCase());
+  if((parts.length>=3&&parts.every(x=>words(x)>=2))||parts.every(verb))return parts;
+  return [line];
+}
+function qaExpand(line){return qaCommas(line).flatMap(qaTimes)}
+function qaTimes(line){
+  // several times for one thing: "meds at 8am and 8pm", "viewings 10am 11am 2pm thursday"
+  const T='\\d{1,2}(?:[:.]\\d{2})?\\s*(?:am|pm)';
+  let m=line.match(new RegExp('^(.*?\\s)(?:at\\s+)?('+T+'(?:\\s*(?:,|and|&)?\\s*(?:at\\s+)?'+T+')+)(.*)$','i'));
+  if(m&&!/[-–]|\bto\b|\btill\b|\buntil\b/i.test(m[2]))return m[2].match(new RegExp(T,'gi')).map(t=>m[1]+'at '+t+m[3]);
   m=line.match(/^(.*?\s)(every|each)\s+(morning|afternoon|evening)\s+and\s+(?:every\s+|each\s+)?(morning|afternoon|evening)\b(.*)$/i);
   if(m)return [m[1]+m[2]+' '+m[3]+m[5],m[1]+m[2]+' '+m[4]+m[5]];
   return [line];
