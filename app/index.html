@@ -3650,7 +3650,7 @@ function qaParse(raw){
     for(let k=0;k<7;k++){o.push(N[i]);if(i===j)break;i=(i+1)%7}return ' '+o.join(' ')});
   if(QA_LATER.test(s)){later=true;s=s.replace(QA_LATER,' ')}
   s=s.replace(/\s(?:#|hashtag\s+)(?!(?:tiny|small|medium|big)\b)(\p{L}[\p{L}\p{N}_-]{0,19})/giu,(m,w)=>{if(!list)list=w.toLowerCase();return ' '});
-  let rep=null,when=null,size=null,every=false,due=null,time=null,remindAt=null,remindMin=null,wantsRemind=false;
+  let fromRange=false,rep=null,when=null,size=null,every=false,due=null,time=null,remindAt=null,remindMin=null,wantsRemind=false;
   const ctx=qaCtx(raw),ISH='(?:\\s*-?\\s*ish)?';
   const cut=(re,fn)=>{s=s.replace(re,(...m)=>{fn(...m);return ' '})};
   const dayIdx=w=>QA_DOW[w.slice(0,3).toLowerCase()];
@@ -3670,7 +3670,7 @@ function qaParse(raw){
   cut(/[\s,;]*\bremind(?:\s+me)?\s+(?:at|for)\s+(\d{1,2})(?:[:.](\d{2}))?\s*(am|pm)?\b/i,(m,h,mi,ap)=>{wantsRemind=true;remindAt=qaTime(h,mi,ap,ctx)});
   cut(/[\s,;]*\bremind\s+me\b(?=\s*(?:[,;]|$))/i,()=>{wantsRemind=true});
   cut(/^\s*remind\s+me\s+(?:to\s+)?/i,()=>{wantsRemind=true});
-  s=s.replace(new RegExp('(\\s(?:work(?:ing)?|shift|'+QA_D+'))\\s+(1[0-2]|[1-9])\\s*(?:-|–|to|till|until)\\s*(1[0-2]|[1-9])(?=[\\s,;]|$)','i'),(m,pre,a,b)=>pre+' at '+a+(+b<=+a?'am':+a<=6?'pm':''));
+  s=s.replace(new RegExp('(\\s(?:work(?:ing)?|shift|'+QA_D+'))\\s+(1[0-2]|[1-9])\\s*(?:-|–|to|till|until)\\s*(1[0-2]|[1-9])(?=[\\s,;]|$)','i'),(m,pre,a,b)=>{fromRange=true;return pre+' at '+a+(+b<=+a?'am':+a<=6?'pm':'')});
   // a time range ("10:30-11:30", "2pm to 3pm") keeps its start time; the end isn't stored
   s=s.replace(/(\d{1,2}:\d{2}|\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*(?:-|–|to|until|till)\s*\d{1,2}(?::\d{2})?\s*(?:am|pm)?(?=[\s,;]|$)/i,(m,a)=>/:|am|pm/i.test(m.slice(a.length))||/am|pm/i.test(a)?a:m);
   cut(/\s(?:at|@|by)\s+(noon|midday)\b/i,()=>{time='12:00'});
@@ -3741,6 +3741,8 @@ function qaParse(raw){
       if(st.length>1){text=m[1].trim();steps=st.slice(0,8).map(x=>(x.charAt(0).toUpperCase()+x.slice(1)).slice(0,60))}}}
   text=text.charAt(0).toUpperCase()+text.slice(1);
   {const a=qaBare(time,due,rep);time=a.time;due=a.due;const b=qaBare(remindAt,due,rep);remindAt=b.time;due=b.due}
+  // a shift typed after it has started ("work 8-5" at 11pm) is tomorrow's
+  if(fromRange&&time&&!due&&!rep&&+time.slice(0,2)*60+ +time.slice(3,5)<new Date().getHours()*60+new Date().getMinutes())due=isoDay(addDays(1));
   const remind=remindAt||time;
   if(remind&&!when){const hh=+remind.slice(0,2);when=hh<12?'morning':hh<17?'afternoon':'evening'}
   if(!when)when=qaGuessWhen(text);
