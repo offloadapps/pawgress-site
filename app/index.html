@@ -3812,16 +3812,31 @@ const SP_VERBS=new Set(('tidy clean wash hoover vacuum mop sweep wipe scrub dust
   'fix repair replace change charge install update upgrade back clear check test '+
   'write finish start do submit print sign scan file fill read revise study learn practise practice research review edit draft '+
   'go visit meet see watch attend join leave drive shower bath brush stretch exercise run swim train meditate rest '+
-  'plan prepare research apply register book wrap open close lock tidy hand drop list note').split(' '));
-const SP_AMBIG=new Set('water walk text book plant order post mail file change check test back hand note list top drop face shop run rest train contact answer call ring email message reply phone clean dust iron'.split(' '));
-const SP_STOP=new Set('a an the to my your our his her their its some any for of with this that these those me i and or but at by from into onto about after before is are be will can must should need have has had not no'.split(' '));
+  'plan prepare research apply register book wrap open close lock tidy hand drop list note '+
+  'teach invoice quote crochet knit sew repot restring film sketch mark defrost recycle decorate redecorate paint shave log cut dig hang').split(' '));
+const SP_AMBIG=new Set('wash invoice log cut paint shower bath mark film quote sketch water walk text book plant order post mail file change check test back hand note list top drop face shop run rest train contact answer call ring email message reply phone clean dust iron'.split(' '));
+const SP_STOP=new Set('them it him us a an the to my your our his her their its some any for of with this that these those me i and or but at by from into onto about after before is are be will can must should need have has had not no'.split(' '));
+/* A word that names the kind of thing, so a verb-looking word after it is part of the name: "meal prep", "tax return",
+   "client call", "site visit", "deep clean", "choir practice", "theory test", "work do". */
+const SP_MOD=new Set(('meal tax client site home deep spring quick big weekly food team test theory lab seminar audition choir netball dance '+
+  'piano guitar driving swimming football rugby boxing yoga fitness contract work car van bike gel nail eye flu hair dress school '+
+  'rest day night late early long phone video zoom vat mot kids garden play dentist doctors gp exam mock'+' science maths english history acca aca evening pub bar double unpaid overdue last final first rough new old dissertation essay spending performance annual code').split(' '));
+/* Words that start a task on their own, with no verb: "laundry", "doctors appt", "travel insurance". Speaking one
+   straight after another task starts a new task. Two-word starts are listed as "a b". */
+const SP_TASK=new Set(('laundry ironing hoovering standup stand-up parkrun yoga pilates rehearsal shift gym homework revision exam essay haircut '+
+  'haircut dentist doctors doctor\'s gp physio opticians overtime nights lates').split(' '));
+const SP_TASK2=new Set(['travel insurance','car insurance','home insurance','van insurance','car service','bike service','tractor service','car valet',
+  'car wash','parents evening','court appearance','home visit','site visit','expenses claim','case notes','driving lesson','swimming lessons',
+  'kids dentist','kids swimming','night shift','day shift','long shift','late shift','early shift','team meeting','staff meeting','food shop',
+  'christmas shopping','food shopping','grocery shop','weekly shop','meal prep','team call','dog walk','christmas party','work from','doctors appt','dentist appointment','eye test','flu jab','school run','bike ride']);
 const SP_PART=new Set('up out off away down over round around back on in'.split(' '));
-const SP_WHEN=new RegExp('^(?:every|each|on|at|by|this|next|tomorrow|today|tonight|morning|afternoon|evening|night|noon|midday|week|weekend|weekdays?|month|daily|weekly|monthly|in|the|of|am|pm|o\'?clock|\\d{1,2}(?:[:.]\\d{2})?(?:am|pm)?|'+QA_D.slice(3,-1)+')s?$','i');
+const SP_WHEN=new RegExp('^(?:every|each|on|at|by|this|next|tomorrow|tmrw|tmr|2moro|tonite|today|tonight|morning|afternoon|evening|night|noon|midday|week|weekend|weekdays?|month|daily|weekly|monthly|in|the|of|am|pm|o\'?clock|\\d{1,2}(?:[:.]\\d{2})?(?:am|pm)?|'+QA_D.slice(3,-1)+')s?$','i');
 function spTimes(s){
   s=' '+s+' ';
   s=s.replace(/\b([ap])\.\s?m\.?(?=\s|,|$)/gi,(m,a)=>a.toLowerCase()+'m');
   s=s.replace(/\bthe day after tomorrow\b/gi,'in 2 days');
   s=s.replace(new RegExp('(?:\\bat\\s+)?\\b(half|quarter)\\s+(past|to)\\s+('+SP_N+')\\b','gi'),(m,q,d,n)=>{let h=spNum(n),mi=q.toLowerCase()==='half'?30:15;if(d.toLowerCase()==='to'){h=h===1?12:h-1;mi=60-mi}return 'at '+h+':'+String(mi).padStart(2,'0')});
+  s=s.replace(new RegExp('\\bat\\s+half\\s+('+SP_N+')\\b(?!\\s+(?:an?|hour|past|to)\\b)','gi'),(m,n)=>{const h=spNum(n);return h>=1&&h<=12?'at '+h+':30':m});
   s=s.replace(new RegExp('(?:\\bat\\s+)?\\b('+SP_N+')\\s+o\\s?\'?\\s?clock\\b','gi'),(m,n)=>'at '+spNum(n));
   // "at six", "at six thirty", "six thirty pm", "seven am"
   s=s.replace(new RegExp('\\b(at|by|around|about|from|until|till)\\s+('+SP_N+')(?:\\s+('+SP_N+'))?(\\s*(?:am|pm))?\\b','gi'),(m,p,a,b,ap)=>{const h=spNum(a),mi=b!=null?spNum(b):null;if(h>23||(mi!=null&&mi>59))return m;return p+' '+h+(mi!=null?':'+String(mi).padStart(2,'0'):'')+(ap||'')});
@@ -3854,9 +3869,23 @@ function qaSpoken(raw){
       const isRemind=lw==='remind'&&next==='me'&&/^(to|about)$/i.test(words[i+2]||'');
       const isVerb=(SP_VERBS.has(lw)&&lw!=='remind')||isRemind;
       const ambigOk=!SP_AMBIG.has(lw)||(next&&!SP_VERBS.has(next)&&!/^(and|or|,)$/.test(next));
-      if(lw==='and'&&cur.length>=2&&content(cur)&&SP_VERBS.has(next)&&(!SP_AMBIG.has(next)||(words[i+2]&&!/^(and|or)$/i.test(words[i+2])))){flush();continue}
+      if(lw==='and'&&cur.length>=1&&content(cur)&&SP_VERBS.has(next)&&(!SP_AMBIG.has(next)||(words[i+2]&&!/^(and|or)$/i.test(words[i+2])))){flush();continue}
       const prevVerb=SP_VERBS.has(prev)&&!(SP_AMBIG.has(prev)&&cur.length>1);
-      if(isVerb&&ambigOk&&cur.length&&content(cur)&&!SP_STOP.has(prev)&&!prevVerb&&prev!==','&&!/'s$/.test(prev)){flush()}
+      // "meal prep", "tax return": a verb-looking word after a naming word, or at the very end, is part of the name
+      const named=SP_MOD.has(prev.replace(/[^a-z']/g,''))||!words[i+1];
+      // a task with no verb ("laundry", "travel insurance") said straight after another task starts a new one
+      const two=lw+' '+next,startsTask=((SP_TASK.has(lw)&&!SP_VERBS.has(prev))||SP_TASK2.has(two))&&cur.length>=2&&content(cur)&&!SP_STOP.has(prev)&&!SP_MOD.has(prev)&&prev!==','&&!SP_TASK2.has(prev+' '+lw);
+      if(lw==='and'&&cur.length>=1&&content(cur)&&(SP_TASK.has(next)||SP_TASK2.has(next+' '+(words[i+2]||'').toLowerCase().replace(/[^a-z']/g,'')))){flush();continue}
+      // "...books and nativity costumes letter home": "and" between two longer phrases joins two tasks (but not
+      // "fish and chips", "call mum and dad", "buy milk and water", or "on monday and friday")
+      if(lw==='and'&&next&&!SP_STOP.has(next)&&!SP_WHEN.test(next)&&cur.filter(w=>w!==','&&!SP_STOP.has(w.toLowerCase())).length>=3){
+        let k=i+1,n=0;while(k<words.length&&!/^(and|,)$/i.test(words[k])){n++;k++}
+        if(n>=3){flush();continue}}
+      // after a day or a time, a new word that isn't part of the when starts a new task ("delivery 6am appraisals")
+      const afterWhen=cur.length>=2&&content(cur.slice(0,-1))&&(new RegExp('^(?:'+QA_D.slice(3,-1)+')$','i').test(prev)||/^\d{1,2}(?:[:.]\d{2})?(?:am|pm)$|^\d{1,2}[:.]\d{2}$|^\d{1,2}(?:am|pm)?-\d{1,2}(?:am|pm)?$/i.test(prev))&&
+        /^[a-z]/i.test(w)&&!SP_STOP.has(lw)&&!SP_WHEN.test(w)&&!SP_PART.has(lw)&&!/^(?:ish|o'?clock|tiny|small|medium|big|until|till|then|start|finish|end|shift)$/i.test(lw)&&(lw!=='remind'||isRemind);
+      if(startsTask||afterWhen){flush()}
+      else if(isVerb&&!named&&ambigOk&&cur.length&&content(cur)&&!SP_STOP.has(prev)&&!prevVerb&&prev!==','&&!/'s$/.test(prev)){flush()}
       else if(w===','&&SP_VERBS.has(next)&&cur.length&&content(cur)&&(!SP_AMBIG.has(next)||(words[i+2]&&!SP_VERBS.has((words[i+2]||'').toLowerCase())))){flush();continue}
       cur.push(w);
     }
@@ -3864,7 +3893,7 @@ function qaSpoken(raw){
   }
   // a trailing "when" chunk with nothing after it goes back onto the task before it
   if(out.length>1&&out[out.length-1].when){const p=out.pop();out[out.length-1].w=out[out.length-1].w.concat(p.w)}
-  return out.map(x=>x.w.join(' ').replace(/\s+,/g,',').replace(/^[,\s]+|[,\s]+$/g,'')).filter(Boolean).join('\n');
+  return out.map(x=>x.w.join(' ').replace(/\s+,/g,',').replace(/^[,\s]+|[,\s]+$/g,'').replace(/^(?:and|then|also)\s+/i,'')).filter(Boolean).join('\n');
 }
 window.__voice=function(t){window.__share(qaSpoken(t))};
 const qaKey=p=>qaNorm(p.text)+'|'+(p.remind||'')+'|'+(p.remind?'':(p.when||''));
