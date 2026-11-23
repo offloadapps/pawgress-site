@@ -790,6 +790,76 @@ ul.tasks li.task.dragging{position:relative;z-index:6;background:var(--surface);
 ul.tasks li.task{transition:transform .15s}
 body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .sr-f:not(:focus){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;padding:0;border:0;min-height:0}
+
+/* calendar (23 Nov 2026): the button on Tasks, then a sheet with a month and the chosen day's tasks */
+#p-tasks .ptitle{align-items:center;flex-wrap:wrap;row-gap:4px}
+#p-tasks .tright{margin-left:auto}
+.tright{display:flex;align-items:center;gap:8px}
+.calbtn{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--outline);background:var(--pink-soft);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
+.calbtn:active{transform:translateY(1px)}
+.cal-card{overflow:visible;margin-top:56px;display:flex;flex-direction:column;gap:12px;border:0;border-top:2px solid var(--outline)}
+.cal-card .grab{align-self:center;width:40px;height:4px;border-radius:2px;background:var(--line);flex:none}
+.cal-pal{position:absolute;right:18px;top:-50px;width:72px;height:72px;pointer-events:none}
+.cal-pal svg{width:100%;height:100%;display:block}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-right:84px;min-height:44px}
+.cal-top h2{font-family:var(--f-display);font-size:1.75rem;line-height:1.1;overflow-wrap:break-word;min-width:0}
+.cal-top h2:focus{outline:none}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-arrow{flex:none;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--outline);background:var(--surface);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
+.cal-mon{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-size:1.1rem;text-align:center}
+.cal-mon .lchip{min-height:32px;padding:2px 12px}
+.cal-grid-wrap{background:var(--cut-bg);border-radius:20px;padding:8px 4px;touch-action:pan-y;flex:none}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
+.cal-heads{font-size:.8rem;font-weight:700;color:var(--muted);text-align:center;padding-bottom:2px}
+.cal-c{display:grid;place-items:center;min-height:46px}
+.cal-d{width:min(44px,100%);aspect-ratio:1;border-radius:50%;border:2px solid transparent;background:none;color:var(--ink);font:inherit;font-weight:700;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;cursor:pointer}
+.cal-d .n{font-size:.95rem;line-height:1}
+.cal-d.today{border-color:var(--pink)}
+.cal-d[aria-pressed="true"]{background:var(--btn-bg);border-color:var(--btn-bg);color:var(--btn-ink)}
+.marks{display:flex;align-items:center;gap:3px;height:6px}
+.marks i,.cal-key i{display:block;width:6px;height:6px;border-radius:50%;box-sizing:border-box;flex:none}
+.dot{background:var(--pink)}
+.ring{border:1.5px solid var(--pink)}
+.marks .more{width:auto;height:auto;border-radius:0;font-style:normal;font-size:11px;line-height:6px;font-weight:700;color:var(--pink)}
+.cal-d[aria-pressed="true"] .dot{background:var(--btn-ink)}
+.cal-d[aria-pressed="true"] .ring{border-color:var(--btn-ink)}
+.cal-d[aria-pressed="true"] .more{color:var(--btn-ink)}
+.cal-key{display:flex;justify-content:center;gap:18px;margin:4px 0 0;font-size:.8rem;color:var(--muted)}
+.cal-key span{display:inline-flex;align-items:center;gap:6px}
+.cal-key i{width:7px;height:7px}
+.cal-dayhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cal-dayhd h3{font-size:1.1rem}
+.cal-body{flex:1 1 auto;min-height:72px;overflow:auto;margin-top:-6px}
+.cal-list{list-style:none;margin:0;padding:0}
+.cal-list li{border-bottom:1px solid var(--line)}
+.cal-t,.cal-fold,.cal-done{width:100%;display:flex;align-items:center;gap:12px;padding:10px 0;background:none;border:0;font:inherit;color:var(--ink);text-align:left;cursor:pointer;min-height:52px}
+.cal-t.in{padding-left:14px}
+.cal-o{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--outline);display:grid;place-items:center;box-sizing:border-box}
+.cal-o.on{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.cal-tx{flex:1;min-width:0;display:grid}
+.cal-tx .meta{font-size:.86rem;color:var(--muted)}
+.cal-done .ttl{color:var(--muted)}
+.cal-tm{flex:none;font-weight:700;font-size:.86rem}
+.cal-fold{color:var(--muted);font-weight:700}
+.cal-fold span{flex:1}
+.cal-fold[aria-expanded="true"] .ic:last-child{transform:rotate(180deg)}
+.cal-empty{margin:8px 0 0;color:var(--muted)}
+.cal-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;flex:none}
+.cal-acts .btn{min-height:52px;font-size:1.05rem;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.cal-acts.mv{display:flex;flex-wrap:wrap;align-items:center}
+.cal-acts.mv .btn{flex:1 1 130px}
+.cal-fs{border:0;margin:0;padding:0;display:grid;gap:4px}
+.cal-fs .lchips{margin:0}
+.cal-pick{position:relative;display:inline-flex;align-items:center}
+.cal-pick input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.cal-pick:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+.cal-pick.on{background:var(--pink-soft);border-color:var(--outline)}
+@media (max-width:360px){.cal-card{gap:10px}.cal-top{padding-right:64px}.cal-top h2{font-size:1.5rem}.cal-c{min-height:40px}.cal-d .n{font-size:.88rem}.marks i{width:5px;height:5px}.cal-key{gap:12px}.cal-pal{width:62px;height:62px;top:-44px}}
+/* larger text (Settings > Text size): numbers only, so they never crowd the marks */
+:root.bigtext .marks,:root.bigtext .cal-key{display:none}
+:root.bigtext .cal-c{min-height:50px}
+.tright .fine{white-space:nowrap}
+@media (max-width:360px){.tright{gap:4px}.tright .calbtn{width:40px;height:40px}#p-tasks .ptitle h1{font-size:1.5rem}}
 </style>
 </head>
 <body>
@@ -870,7 +940,7 @@ body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
     <section id="p-tasks" class="panel" role="tabpanel" aria-label="Tasks" hidden>
       <div class="tasks-grid">
         <div class="sec">
-          <div class="ptitle"><h1>Today</h1><span class="fine"><span id="today-date"></span> <button class="linkbtn" type="button" id="tsel" data-act="select" aria-pressed="false" hidden>Select</button></span></div>
+          <div class="ptitle"><h1>Today</h1><span class="tright"><span class="fine"><span id="today-date"></span> <button class="linkbtn" type="button" id="tsel" data-act="select" aria-pressed="false" hidden>Select</button></span><button class="calbtn" type="button" id="cal-open" data-cal="open" aria-label="Calendar" aria-haspopup="dialog"><span data-ic="cal" data-size="22"></span></button></span></div>
           <form id="qa" class="qa-inline" autocomplete="off">
             <input id="qa-in" class="input" type="text" maxlength="120" enterkeyhint="done" placeholder="Add a task" aria-label="Add a task">
             <button class="btn ghost" type="submit">Add</button>
@@ -905,13 +975,17 @@ body.dragging-task{user-select:none;-webkit-user-select:none;cursor:grabbing}
       <span class="dump-pal" id="dump-pal" aria-hidden="true"></span>
       <span class="grab" aria-hidden="true"></span>
       <div><h2 id="dump-h">Offload</h2>
-      <p class="fine m0">Everything on your mind. One thing per line.</p></div>
+      <p class="fine m0" id="dump-sub">Everything on your mind. One thing per line.</p></div>
       <textarea id="dump-text" class="input" rows="6" maxlength="4000" aria-label="Your tasks, one per line" placeholder="Book the dentist&#10;Bins every Fri at 6pm, remind me 30 mins before, tiny&#10;Clean kitchen: dishes, sides, floor&#10;Did the washing up&#10;Learn guitar someday"></textarea>
       <ul id="dump-list" class="dump-list" aria-live="polite"></ul>
       <p class="fine m0" id="dump-note" hidden>Only the first 50 lines are added.</p>
       <p class="fine m0" id="dump-voice-tip" hidden>Speaking? Just list your tasks, or say "next" between them.</p>
       <div class="dump-acts"><button class="btn ghost mic" type="button" data-act="voice" id="dump-mic" aria-label="Speak your tasks" hidden><span data-ic="mic" data-size="22"></span></button><button class="btn big" type="button" id="dump-add" data-qa="add" disabled><span>Add tasks</span></button><button class="txtbtn" type="button" data-qa="close">Cancel</button></div>
     </div>
+  </div>
+  <div id="cal" class="dump" hidden>
+    <div class="dump-back" data-cal="close"></div>
+    <div id="cal-card" class="dump-card cal-card" role="dialog" aria-modal="true" aria-labelledby="cal-h"></div>
   </div>
   <div id="zoom" class="dump" hidden>
     <div class="dump-back" data-zoom="close"></div>
@@ -1803,6 +1877,7 @@ function applySettings(){
   if(c.theme==='light'||c.theme==='dark')r.setAttribute('data-theme',c.theme);else r.removeAttribute('data-theme');
   r.style.fontSize=({large:'112.5%',xl:'125%'})[c.text]||'';
   r.classList.toggle('calm',!!c.calm);
+  r.classList.toggle('bigtext',c.text==='large'||c.text==='xl');
   const N=window.PawgressNative;
   if(N&&N.systemDark){let d=c.theme==='dark';try{if(c.theme==='system')d=!!N.systemDark()}catch(e){}r.setAttribute('data-theme',d?'dark':'light');try{N.setBars(d)}catch(e){}}
 }
@@ -1857,6 +1932,7 @@ function cleanState(o){
     else if(t.rep&&Array.isArray(t.rep.days)){const d=[...new Set(t.rep.days.map(Number).filter(x=>Number.isInteger(x)&&x>=0&&x<=6))].sort();if(d.length){q.rep={days:d};if(t.rep.every===2&&YMD.test(t.rep.from)){q.rep.every=2;q.rep.from=t.rep.from}}}
     if(Array.isArray(t.steps))q.steps=t.steps.slice(0,8).map(x=>{const st=x&&typeof x==='object'?strOr(x.t,60).trim():'';return st?{t:st,done:!!x.done,paid:!!x.paid}:null}).filter(Boolean);
     if(YMD.test(t.hideUntil))q.hideUntil=t.hideUntil;
+    if(q.rep&&Array.isArray(t.skip)){const k=[...new Set(t.skip.filter(x=>YMD.test(x)))].sort().slice(-60);if(k.length)q.skip=k}
     if(HHMM.test(t.remind)){q.remind=t.remind;q.remindMin=intOr(t.remindMin,0,0,10080)}
     if(q.done){q.doneAt=numOr(t.doneAt,T,0,9e15);q.earned=intOr(t.earned,0,0,100);if(t.en!=null)q.en=intOr(t.en,0,0,20)}
     if(t.startPaid)q.startPaid=intOr(t.startPaid,0,0,10);
@@ -1933,10 +2009,10 @@ function buildPlan(){
     if(t.later)return false;
     if(t.hideUntil&&diso<t.hideUntil)return false;
     if(t.due&&diso<t.due)return false;
-    if(t.rep){if(!repOn(t.rep,d))return false;if(k===0&&t.done)return false;return true}
+    if(t.rep){if(!repAt(t,d))return false;if(k===0&&t.done)return false;return true}
     return !t.done;
   };
-  const sched=(t,d)=>{const diso=isoDay(d);return t.due===diso||(t.rep&&repOn(t.rep,d))};
+  const sched=(t,d)=>{const diso=isoDay(d);return t.due===diso||(t.rep&&repAt(t,d))};
   const names=a=>a.slice(0,3).map(t=>t.text).join(', ')+(a.length>3?' and '+(a.length-3)+' more':'');
   const todayIso=isoDay();
   for(let k=0;k<PLAN_DAYS;k++){
@@ -1963,7 +2039,7 @@ function buildPlan(){
       if(!t.remind||t.later)return; // Later tasks get no reminders
       const mins=t.remindMin||0,at=atTime(d,t.remind)-mins*60000;if(at<=now)return;
       {const diso2=isoDay(d);if((t.hideUntil&&diso2<t.hideUntil)||(t.due&&diso2<t.due))return}
-      if(t.rep){if(!repOn(t.rep,d)||(k===0&&t.done))return}
+      if(t.rep){if(!repAt(t,d)||(k===0&&t.done))return}
       else{if(t.done||once[t.id])return;if(t.due&&t.due>=todayIso&&diso!==t.due)return;once[t.id]=1}
       plan.push({id:planId('t'+t.id+'-'+diso),at,ch:'reminders',title:mins?`Coming up: ${t.text}`:`Time for: ${t.text}`,body:mins===1440?`Tomorrow at ${fmtTime(t.remind)}. ${pet.name} is cheering you on.`:mins?`At ${fmtTime(t.remind)}. ${pet.name} is cheering you on.`:`Just start counts. ${pet.name} is right here with you.`});
     });
@@ -1988,7 +2064,7 @@ function widgetData(){
       if(t.later)return false;
       if(t.hideUntil&&diso<t.hideUntil)return false;
       if(t.due&&diso<t.due)return false;
-      if(t.rep)return repOn(t.rep,d)&&!(k===0&&t.done);
+      if(t.rep)return repAt(t,d)&&!(k===0&&t.done);
       return !t.done;
     }).sort(taskCmp);
     days[diso]={n:list.length,items:list.slice(0,3).map(label),done:k===0?doneToday:0};
@@ -2043,6 +2119,7 @@ window.__back=()=>{
   if(!$('#zoom').hidden){closeZoom();return true}
   if(!$('#dump').hidden){qaClose();return true} // Offload closes and keeps what you typed
   if(editId!=null||!$('#task-sheet').hidden){setTaskForm(null);return true}
+  if(!$('#cal').hidden){calBack();return true} // the move panel goes back to the day, then the calendar closes
   if(tab!=='home'){setTab('home');return true}
   return false;
 };
@@ -2059,7 +2136,7 @@ let listNew=false,editId=null,openTask=null,taskQ='',taskList='',undoFn=null,bkA
 function rollDay(){
   if(S.day!==dayKey()){
     S.day=dayKey();S.dayHearts=0;S.dayEnergy=0;
-    S.tasks.forEach(t=>{if(t.rep){if(t.done){t.done=false;delete t.doneAt;delete t.earned;delete t.en}t.paid=0;t.startPaid=0;(t.steps||[]).forEach(s=>{s.done=false;s.paid=false})}});
+    S.tasks.forEach(t=>{if(t.rep){if(t.done){t.done=false;delete t.doneAt;delete t.earned;delete t.en}t.paid=0;t.startPaid=0;(t.steps||[]).forEach(s=>{s.done=false;s.paid=false});if(t.skip){t.skip=t.skip.filter(x=>x>=isoDay());if(!t.skip.length)delete t.skip}}});
     const cut=new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()-7).getTime();
     S.tasks=S.tasks.filter(t=>!(t.done&&!t.rep&&(t.doneAt||0)<cut));
     S.last=null;return true;
@@ -2083,6 +2160,9 @@ function repOn(rep,d){
   if(rep.every===2&&rep.from){const k=weekNo(d)-weekNo(new Date(rep.from+'T12:00:00'));return k>=0&&k%2===0}
   return true;
 }
+/* A repeat on a day, minus the days moved away with the calendar's "Just this one" (`skip`) */
+const unskip=t=>{if(t.skip){t.skip=t.skip.filter(x=>x!==isoDay());if(!t.skip.length)delete t.skip}};
+const repAt=(t,d)=>repOn(t.rep,d)&&!(t.skip&&t.skip.includes(isoDay(d)));
 /* "Starting" for every-2-weeks repeats: this week or next week, showing the first chosen day's date */
 function repStartOpts(from){
   const sel=$('#task-start');if(!sel)return;
@@ -2094,7 +2174,7 @@ function repStartOpts(from){
   sel.value=pick;
 }
 function updRepUI(v){$('#task-days').hidden=v!=='custom'&&v!=='fortnight';$('#task-start-wrap').hidden=v!=='fortnight';$('#task-dom-wrap').hidden=v!=='monthly'}
-const isDue=t=>{if(t.later)return false;const td=isoDay();if(t.hideUntil&&t.hideUntil>td)return false;if(t.due&&t.due>td)return false;return !t.rep||repOn(t.rep,new Date())};
+const isDue=t=>{if(t.later)return false;const td=isoDay();if(t.hideUntil&&t.hideUntil>td)return false;if(t.due&&t.due>td)return false;return !t.rep||repAt(t,new Date())};
 function dueLabel(t){
   const td=isoDay(),tm=isoDay(addDays(1));
   if(t.hideUntil&&t.hideUntil>td&&(!t.due||t.hideUntil>=t.due))return t.hideUntil===tm?'Back tomorrow':'Back '+fmtDay(t.hideUntil);
@@ -2444,7 +2524,7 @@ function bulk(v){
   const ps=S.tasks.filter(t=>sel.has(t.id)),snap=tasksSnap(),td=isoDay();let n=0;
   if(v==='del'){S.tasks=S.tasks.filter(t=>!sel.has(t.id));n=ps.length;if(S.focus&&sel.has(S.focus.id))dropFocus(S.focus.id)}
   else ps.forEach(t=>{
-    if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;if(t.due&&t.due>td)t.due=td;n++}
+    if(v==='today'){if(isDue(t)||(t.rep&&!repOn(t.rep,new Date())))return;delete t.later;delete t.hideUntil;unskip(t);if(t.due&&t.due>td)t.due=td;n++}
     else if(v==='snooze'){if(!isDue(t))return;t.hideUntil=isoDay(addDays(cfg().snooze));dropFocus(t.id);n++}
     else if(v==='later'){if(t.rep||t.later)return;toLater(t);n++}});
   if(!n){toast('Nothing to change there.');return}
@@ -2505,7 +2585,7 @@ function updSizeHint(){const r=$('input[name="size"]:checked'),s=r&&SIZE_BY[r.va
 function showTaskSheet(on){
   const s=$('#task-sheet');if(!s||s.hidden===!on)return;
   s.hidden=!on;document.body.classList.toggle('sheet-open',on);
-  if(on)setTimeout(()=>$('#task-text').focus(),30);
+  if(on)setTimeout(()=>$('#task-text').focus(),30);else calBackTo();
 }
 function openTaskSheet(text){setTaskForm(null);$('#task-text').value=text||'';showTaskSheet(true);$('#task-sheet-h').textContent='Add a task'}
 function setTaskForm(t){
@@ -2950,7 +3030,7 @@ function addTask(){
   const lines=$('#task-steps').value.split('\n').map(s=>s.trim().slice(0,60)).filter(Boolean).slice(0,8);
   if(editId!=null){
     const t=S.tasks.find(x=>x.id===editId);
-    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list}}
+    if(t){const old=t.steps||[];t.steps=lines.map(l=>{const o=old.find(s=>s.t===l);return o?o:{t:l,done:false}});t.text=text.slice(0,80);t.due=$('#task-due').value||'';if(JSON.stringify(t.rep)!==JSON.stringify(rep))delete t.skip;t.rep=rep;t.when=when;t.remind=$('#task-remind').value||'';t.remindMin=+$('#task-rmin').value||0;if(!t.done)t.size=size;delete t.ex;if(!t.done)extra(t);else{if(note)t.note=note;else delete t.note;if(list)t.list=addList(list);else delete t.list}}
     setTaskForm(null);save();renderTasks();toast('Saved.'+notLater);return;
   }
   const nt={id:S.nextId++,text:text.slice(0,80),size,done:false,rep,when,remind:$('#task-remind').value||'',remindMin:+$('#task-rmin').value||0,due:$('#task-due').value||'',steps:lines.map(l=>({t:l,done:false})),paid:0};
@@ -3300,7 +3380,7 @@ document.addEventListener('click',e=>{
     case'toggle':complete(+id);break;
     case'del':{const ix=S.tasks.findIndex(t=>t.id===+id),gone=S.tasks[ix];if(!gone)break;S.tasks.splice(ix,1);dropFocus(+id);if(editId===+id)setTaskForm(null);undoFn=()=>{S.tasks.splice(Math.min(ix,S.tasks.length),0,gone);save();renderTasks()};save();renderTasks();toast('Deleted.',true);break}
     case'clear':{const gone=S.tasks.filter(t=>t.done&&!t.rep);S.tasks=S.tasks.filter(t=>!t.done||t.rep);undoFn=()=>{S.tasks.push(...gone);save();renderTasks()};save();renderTasks();toast('Cleared '+gone.length+' finished task'+(gone.length===1?'':'s')+'.',true);break}
-    case'today':{const t=S.tasks.find(x=>x.id===+id);if(t){const was={due:t.due,hideUntil:t.hideUntil,later:t.later};delete t.hideUntil;delete t.later;if(t.due&&t.due>isoDay())t.due=isoDay();openTask=null;undoFn=()=>{['due','hideUntil','later'].forEach(k=>{if(was[k])t[k]=was[k];else delete t[k]});save();renderTasks()};save();renderTasks();toast('Moved to today.',true)}break}
+    case'today':{const t=S.tasks.find(x=>x.id===+id);if(t){const was={due:t.due,hideUntil:t.hideUntil,later:t.later,skip:t.skip};delete t.hideUntil;delete t.later;unskip(t);if(t.due&&t.due>isoDay())t.due=isoDay();openTask=null;undoFn=()=>{['due','hideUntil','later','skip'].forEach(k=>{if(was[k])t[k]=was[k];else delete t[k]});save();renderTasks()};save();renderTasks();toast('Moved to today.',true)}break}
     case'snooze':{const t=S.tasks.find(x=>x.id===+id);if(t){const was=t.hideUntil;t.hideUntil=isoDay(addDays(cfg().snooze));openTask=null;dropFocus(t.id);undoFn=()=>{if(was)t.hideUntil=was;else delete t.hideUntil;save();renderTasks()};save();renderTasks();toast('Not today. It comes back '+({1:'tomorrow',2:'in 2 days',7:'next week'})[cfg().snooze]+'.',true)}break}
     case'bk-copy':{const code='PAWGRESS1.'+btoa(unescape(encodeURIComponent(JSON.stringify(S))));const box=$('#bk-box'),ta=$('#bk-text'),msg=$('#bk-msg');
       const fallback=()=>{box.hidden=false;ta.value=code;ta.focus();ta.select();msg.textContent='Copying did not work here. Select the code above and copy it yourself.'};
@@ -3846,7 +3926,7 @@ function qaAdd(raw){
   const p=ps[0],n=ps.length>1?ps.map(x=>x.remind||(x.when&&WHENS[x.when]||'').toLowerCase()).join(' and '):qaNote(p);toast('Added "'+p.text+'"'+(n?' ('+n+').':'.'),true);
   return true;
 }
-let qaFrom=null;
+let qaFrom=null,qaDay=null;
 // Quick add is the box at the top of Tasks; the widget and shortcuts open it there.
 function qaBar(open){
   if(!open){const i=$('#qa-in');if(i&&document.activeElement===i)i.blur();return}
@@ -3871,6 +3951,7 @@ function qaItems(){
       const key=l.trim().toLowerCase();let p=qaParse(l);const could=p.done;
       if(could&&qaUndone.has(key))p=qaParse('to do: '+l.trim());
       if(qaEmpty(p))return;
+      if(qaDay&&!p.done&&!p.rep&&!p.due&&!p.later)p.due=qaDay; // opened from the calendar for a day
       const pk=qaPick.get(key);if(pk){if(pk.size)p.size=pk.size;if('due' in pk&&!p.done&&!p.rep){p.due=pk.due;if(pk.due)p.later=false}}
       qaInList(p);
       const k=(p.done?'done|':'')+qaKey(p),dup=p.done?seen.has(k):have.has(k)||seen.has(k);seen.add(k);out.push({i:x.i,p,dup,could,key,kids:[]})});
@@ -3906,6 +3987,8 @@ function qaOpen(text){
 }
 function qaClose(){
   $('#dump').hidden=true;document.body.style.overflow='';
+  if(qaDay){qaDay=null;$('#dump-sub').textContent='Everything on your mind. One thing per line.';qaPreview()}
+  if(calBackTo())return;
   if(qaFrom&&qaFrom.focus&&document.contains(qaFrom))qaFrom.focus();
 }
 function qaDump(){
@@ -4017,6 +4100,160 @@ document.addEventListener('keydown',e=>{
 });
 // reminder times need the Android app
 if(!NATIVE){const r=document.getElementById('task-remind');if(r)r.parentElement.hidden=true}
+
+/* ---------- calendar (23 Nov 2026, idea from ether-707 on Reddit) ----------
+   The calendar button on Tasks opens a month of upcoming tasks. Marks under each day: a filled dot per one-off task
+   (up to 3, then a "+"), a hollow ring for weekly, fortnightly or monthly repeats. Daily and weekday repeats get no
+   mark and fold into one "Every day" row in the day's list, so the grid stays calm. Past days show what was done,
+   never what was missed. Tapping a task opens a small Move panel; for a repeat, "Just this one" moves one day (the
+   repeat skips that day and a one-off copy goes on the new day) and "All repeats" shifts the whole pattern. */
+let calY=0,calM=0,calSel='',calFold=false,calMv=null,calRet=null,calSx=null,calFrom=null;
+const calWeek=(()=>{try{const l=new Intl.Locale(navigator.language||'en-GB'),w=l.getWeekInfo?l.getWeekInfo():l.weekInfo;if(w&&w.firstDay)return w.firstDay%7}catch(e){}
+  return /-(US|CA|MX|BR|JP|PH|IL|KR|TW|HK|IN|ZA)\b/i.test(navigator.language||'')?0:1})(); // 0 Sunday, 1 Monday
+const calD=k=>new Date(k+'T12:00:00');
+const calName=k=>k===isoDay()?'Today':k===isoDay(addDays(1))?'Tomorrow':fmtDay(k);
+const calDaily=t=>!!(t.rep&&t.rep.days&&t.rep.every!==2&&t.rep.days.length>=5);
+const calEvery=t=>!!(t.rep&&t.rep.days&&t.rep.every!==2&&t.rep.days.length===7);
+const calByTime=(a,b)=>(a.remind||'99')<(b.remind||'99')?-1:(a.remind||'99')>(b.remind||'99')?1:taskCmp(a,b);
+/* What happens on a day: one-off tasks, less frequent repeats, daily repeats, and (today and before) what was done */
+function calDay(k){
+  const td=isoDay(),d=calD(k),o={one:[],per:[],daily:[],done:[]};
+  for(const t of S.tasks){
+    if(t.rep){
+      if(k===td){if(t.done)o.done.push(t);else if(isDue(t))(calDaily(t)?o.daily:o.per).push(t)}
+      else if(k>td&&!(t.due&&t.due>k)&&!(t.hideUntil&&t.hideUntil>k)&&repAt(t,d))(calDaily(t)?o.daily:o.per).push(t);
+      continue;
+    }
+    if(t.done){if(k<=td&&isoDay(new Date(t.doneAt||0))===k)o.done.push(t);continue}
+    if(t.later||k<td)continue;
+    const eff=[t.due||'',t.hideUntil||''].sort().pop();
+    if(k===td?isDue(t):eff===k)o.one.push(t);
+  }
+  o.one.sort(calByTime);o.per.sort(calByTime);o.daily.sort(calByTime);o.done.sort((a,b)=>(a.doneAt||0)-(b.doneAt||0));
+  return o;
+}
+function calOpen(k){
+  if(sel){sel=null;renderTasks()}
+  const td=isoDay();k=k&&k>='2000'?k:td;
+  calSel=k;const d=calD(k);calY=d.getFullYear();calM=d.getMonth();calFold=false;calMv=null;
+  if(!calFrom)calFrom=document.activeElement;
+  $('#cal').hidden=false;document.body.style.overflow='hidden';renderCal();
+  setTimeout(()=>{const h=$('#cal-h');if(h)h.focus()},30);
+}
+function calClose(){
+  $('#cal').hidden=true;document.body.style.overflow='';calMv=null;
+  const f=calFrom;calFrom=null;if(f&&f.focus&&document.contains(f))f.focus();
+}
+/* closes for a moment (Add one, Offload, Edit task); it opens again after, and focus still returns to the button */
+function calLeave(){const f=calFrom;$('#cal').hidden=true;document.body.style.overflow='';calMv=null;calFrom=f}
+function calBack(){if(calMv){calMv=null;renderCal();const b=$('#cal-card [data-cal="task"][data-id="'+(calLastId||'')+'"]')||$('#cal-h');if(b)b.focus()}else calClose()}
+let calLastId=null;
+/* After Add one or Offload from the calendar, it comes back on the same day */
+function calBackTo(){if(calRet==null)return false;const k=calRet;calRet=null;setTimeout(()=>{if($('#cal').hidden)calOpen(k)},0);return true}
+const calChip=t=>{const s=SIZE_BY[t.size];return `<span class="chip rw" aria-hidden="true"><span>${ic('heart',14)}${s.hearts}</span><span class="bolt">${ic('bolt',14)}<i>${s.energy}</i></span></span>`};
+function calRow(t,k,inner){
+  const sub=t.rep?repText(t):t.hideUntil===k&&k>isoDay()?'Moved with Not today':t.list?listName(t.list):'';
+  const tm=t.remind?fmtTime(t.remind):'';
+  return `<li><button type="button" class="cal-t${inner?' in':''}" data-cal="task" data-id="${t.id}"><span class="cal-o" aria-hidden="true"></span><span class="cal-tx"><span class="ttl">${esc(t.text)}</span>${sub?`<span class="meta">${esc(sub)}</span>`:''}</span>${tm?`<span class="cal-tm">${tm}</span>`:''}${calChip(t)}<span class="sr">. Move or edit</span></button></li>`;
+}
+function renderCal(){
+  const c=$('#cal-card');if(!c||$('#cal').hidden)return;
+  const pp=cur(),pal=pp?`<span class="cal-pal" aria-hidden="true">${petSVG(pp.sp,pp,stageOf(pp),'sm')}</span>`:'';
+  if(calMv){c.innerHTML=pal+calMoveHTML();return}
+  const td=isoDay(),k=calSel,first=new Date(calY,calM,1),lead=(first.getDay()-calWeek+7)%7,days=new Date(calY,calM+1,0).getDate();
+  const heads=[0,1,2,3,4,5,6].map(i=>DOW_LONG[(i+calWeek)%7]);
+  let cells='';for(let i=0;i<lead;i++)cells+='<span class="cal-c" aria-hidden="true"></span>';
+  for(let n=1;n<=days;n++){
+    const dk=isoDay(new Date(calY,calM,n)),o=dk>=td?calDay(dk):null,ones=o?o.one.length:0,pers=o?o.per.length:0,room=pers?2:3;
+    const marks=[...Array(Math.min(ones,room))].map(()=>'<i class="dot"></i>').join('')+(pers?'<i class="ring"></i>':'')+(ones>room?'<i class="more">+</i>':'');
+    const lab=DOW_LONG[calD(dk).getDay()]+' '+n+' '+first.toLocaleDateString('en-GB',{month:'long'})+(dk===td?', today':'')+(ones?', '+ones+' due':'')+(pers?', '+pers+(pers>1?' repeats':' repeat'):'');
+    cells+=`<span class="cal-c"><button type="button" class="cal-d${dk===td?' today':''}${dk<td?' past':''}" data-cal="day" data-v="${dk}" aria-pressed="${dk===k}" aria-label="${esc(lab)}"><span class="n">${n}</span><span class="marks" aria-hidden="true">${marks}</span></button></span>`;
+  }
+  const o=calDay(k),past=k<td,open=[...o.one,...o.per],n=open.length+o.daily.length;
+  const count=past?(o.done.length?o.done.length+' done':''):n?n+(n>1?' tasks':' task'):'';
+  const week=calD(td).getTime()-calD(k).getTime()<=7*864e5;
+  const empty=!n&&!o.done.length?`<p class="cal-empty">${past?(week?'A quiet day.':'Finished tasks stay here for a week.'):'Nothing planned. Enjoy the space.'}</p>`:'';
+  const done=o.done.length?`<ul class="cal-list">${o.done.map(t=>`<li class="cal-done"><span class="cal-o on" aria-hidden="true">${ic('check',16)}</span><span class="cal-tx"><span class="ttl">${esc(t.text)}</span></span><span class="sr">, done</span></li>`).join('')}</ul>`:'';
+  const daily=o.daily.length?`<li><button type="button" class="cal-fold" data-cal="fold" aria-expanded="${calFold}">${ic('cal',18)}<span>Every day · ${o.daily.length}</span>${ic('down',16)}</button></li>${calFold?o.daily.map(t=>calRow(t,k,true)).join(''):''}`:'';
+  const offMonth=!(calY===calD(td).getFullYear()&&calM===calD(td).getMonth());
+  c.innerHTML=pal+`<span class="grab" aria-hidden="true"></span>
+    <div class="cal-top"><h2 id="cal-h" tabindex="-1">Calendar</h2><button class="txtbtn" type="button" data-cal="close">Done</button></div>
+    <div class="cal-nav"><button class="cal-arrow" type="button" data-cal="month" data-v="-1" aria-label="Previous month">${ic('left',20)}</button>
+      <span class="cal-mon"><b aria-live="polite">${first.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</b>${offMonth?'<button class="lchip" type="button" data-cal="today">Today</button>':''}</span>
+      <button class="cal-arrow" type="button" data-cal="month" data-v="1" aria-label="Next month">${ic('right',20)}</button></div>
+    <div class="cal-grid-wrap" id="cal-swipe"><div class="cal-grid cal-heads" aria-hidden="true">${heads.map(h=>`<span>${h.charAt(0)}</span>`).join('')}</div>
+      <div class="cal-grid" role="group" aria-label="Days">${cells}</div>
+      <p class="cal-key" aria-hidden="true"><span><i class="dot"></i>Due that day</span><span><i class="ring"></i>Repeats</span></p></div>
+    <div class="cal-dayhd"><h3>${calName(k)}</h3><span class="fine">${count}</span></div>
+    <div class="cal-body">${empty}${open.length||daily?`<ul class="cal-list">${open.map(t=>calRow(t,k)).join('')}${daily}</ul>`:''}${done}</div>
+    ${past?'':`<div class="cal-acts"><button class="btn ghost" type="button" data-cal="add">${ic('plus',18)}Add one</button><button class="btn" type="button" data-cal="offload"><img class="paw-ic" src="${esc(($('#qa-paw .paw-ic')||{}).getAttribute?$('#qa-paw .paw-ic').getAttribute('src'):'')}" width="22" height="22" alt="">Offload</button></div>`}`;
+}
+function calMoveHTML(){
+  const t=S.tasks.find(x=>x.id===calMv.id);if(!t)return '';
+  const td=isoDay(),tm=isoDay(addDays(1)),opts=[...new Set([calMv.from,td,tm])];
+  const picked=!opts.includes(calMv.to);
+  const chips=opts.map(v=>`<button class="lchip" type="button" data-cal="to" data-v="${v}" aria-pressed="${calMv.to===v}">${calName(v)}</button>`).join('')
+    +`<label class="lchip cal-pick${picked?' on':''}"><span>${picked?fmtDay(calMv.to):'Pick a day'}</span><input type="date" data-cal-date min="${td}" value="${calMv.to}" aria-label="Pick a day"></label>`;
+  const which=t.rep&&calMv.to!==calMv.from?(calEvery(t)?`<p class="fine">It repeats every day, so this moves just this one.</p>`
+    :`<fieldset class="cal-fs"><legend class="lbl">Which ones?</legend><div class="lchips"><button class="lchip" type="button" data-cal="all" data-v="0" aria-pressed="${!calMv.all}">Just this one</button><button class="lchip" type="button" data-cal="all" data-v="1" aria-pressed="${!!calMv.all}">All repeats</button></div>
+      <p class="fine">${calMv.all?`From then on it comes back ${esc(repPhrase(calShift(t.rep,calMv.from,calMv.to)))}.`:`It still comes back ${esc(repPhrase(t.rep))}.`}</p></fieldset>`):'';
+  return `<div class="cal-top"><h2 id="cal-h" tabindex="-1">${esc(t.text)}</h2></div>
+    ${t.rep?`<p class="fine m0">${esc(repText(t))}</p>`:''}
+    <fieldset class="cal-fs"><legend class="lbl">Move to</legend><div class="lchips">${chips}</div></fieldset>
+    ${which}
+    <div class="cal-acts mv"><button class="btn" type="button" data-cal="mv-save">Save</button><button class="btn ghost" type="button" data-cal="mv-edit">${ic('edit',18)}Edit task</button><button class="txtbtn" type="button" data-cal="mv-cancel">Cancel</button></div>`;
+}
+/* The whole repeat moved by the same number of days: weekdays shift along, a monthly repeat takes the new date */
+function calShift(rep,from,to){
+  const dn=Math.round((calD(to)-calD(from))/864e5),r=JSON.parse(JSON.stringify(rep)),nd=calD(to);
+  if(r.dom){const last=new Date(nd.getFullYear(),nd.getMonth()+1,0).getDate();r.dom=r.dom===31&&nd.getDate()===last?31:nd.getDate()}
+  else{r.days=[...new Set(r.days.map(x=>((x+dn)%7+7)%7))].sort();if(r.every===2)r.from=to}
+  return r;
+}
+/* Moves a task (or one day of a repeat, or a whole repeat). Returns the message for the toast. */
+function calApply(t,from,to,all){
+  const td=isoDay();if(from===to)return '';
+  if(!t.rep){delete t.hideUntil;delete t.later;if(to===td){if(t.due&&t.due>td)t.due=td}else{t.due=to;dropFocus(t.id)}return 'Moved to '+calName(to).replace(/^T/,'t')+'.'}
+  if(all&&!calEvery(t)){t.rep=calShift(t.rep,from,to);delete t.skip;delete t.hideUntil;t.due=to>td?to:'';if(from===td)dropFocus(t.id);return 'Moved. It comes back '+repPhrase(t.rep)+'.'}
+  const nt={id:S.nextId++,text:t.text,size:t.size,done:false,rep:null,when:t.when||'any',remind:t.remind||'',remindMin:t.remindMin||0,due:to,steps:(t.steps||[]).map(s=>({t:s.t,done:false})),paid:0};
+  if(t.note)nt.note=t.note;if(t.list)nt.list=t.list;
+  t.skip=[...new Set([...(t.skip||[]),from])].sort();if(from===td)dropFocus(t.id);
+  S.tasks.push(nt);return 'Moved this one to '+calName(to).replace(/^T/,'t')+'.';
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('[data-cal]');if(!b)return;
+  const a=b.dataset.cal,v=b.dataset.v;
+  if(a==='open'){calOpen();return}
+  if(a==='close'){calClose();return}
+  if(a==='day'){calSel=v;calFold=false;renderCal();const f=$(`#cal-card [data-cal="day"][data-v="${v}"]`);if(f)f.focus();return}
+  if(a==='month'){const d=new Date(calY,calM+ +v,1);calY=d.getFullYear();calM=d.getMonth();renderCal();const f=$(`#cal-card [data-cal="month"][data-v="${v}"]`);if(f)f.focus();return}
+  if(a==='today'){calOpen(isoDay());return}
+  if(a==='fold'){calFold=!calFold;renderCal();const f=$('#cal-card [data-cal="fold"]');if(f)f.focus();return}
+  if(a==='task'){const t=S.tasks.find(x=>x.id===+b.dataset.id);if(!t)return;calLastId=t.id;calMv={id:t.id,from:calSel<isoDay()?isoDay():calSel,to:calSel<isoDay()?isoDay():calSel,all:false};renderCal();setTimeout(()=>{const h=$('#cal-h');if(h)h.focus()},20);return}
+  if(a==='to'){calMv.to=v;renderCal();const f=$(`#cal-card [data-cal="to"][data-v="${v}"]`);if(f)f.focus();return}
+  if(a==='all'){calMv.all=v==='1';renderCal();const f=$(`#cal-card [data-cal="all"][data-v="${v}"]`);if(f)f.focus();return}
+  if(a==='mv-cancel'){calBack();return}
+  if(a==='mv-edit'){const t=S.tasks.find(x=>x.id===calMv.id);if(!t)return;calRet=calSel;calLeave();openTask=null;setTaskForm(t);return}
+  if(a==='mv-save'){const t=S.tasks.find(x=>x.id===calMv.id);if(!t)return;const snap=tasksSnap(),msg=calApply(t,calMv.from,calMv.to,calMv.all);calMv=null;
+    if(msg){undoFn=()=>{tasksBack(snap);renderCal()};save();renderTasks();toast(msg,true)}renderCal();const h=$('#cal-h');if(h)h.focus();return}
+  if(a==='add'){const k=calSel;calRet=k;calLeave();openTaskSheet('');if(k>isoDay())$('#task-due').value=k;return}
+  if(a==='offload'){const k=calSel;calRet=k;calLeave();if(k>isoDay()){qaDay=k;$('#dump-sub').textContent='Everything for '+fmtDay(k)+'. One thing per line.'}qaOpen();return}
+});
+document.addEventListener('change',e=>{const d=e.target.closest&&e.target.closest('[data-cal-date]');if(!d||!d.value||!calMv)return;calMv.to=d.value<isoDay()?isoDay():d.value;renderCal();const f=$('#cal-card [data-cal-date]');if(f)f.focus()});
+/* swipe the month grid sideways to change month */
+document.addEventListener('pointerdown',e=>{const g=e.target.closest&&e.target.closest('#cal-swipe');calSx=g?{x:e.clientX,y:e.clientY}:null});
+document.addEventListener('pointerup',e=>{if(!calSx)return;const dx=e.clientX-calSx.x,dy=e.clientY-calSx.y;calSx=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){const d=new Date(calY,calM+(dx<0?1:-1),1);calY=d.getFullYear();calM=d.getMonth();renderCal();e.preventDefault()}});
+document.addEventListener('keydown',e=>{
+  const d=$('#cal');if(!d||d.hidden)return;
+  if(e.key==='Escape'){e.preventDefault();calBack();return}
+  if(e.key==='Tab'){
+    const f=$$('button:not([disabled]),input',d).filter(x=>x.offsetParent!==null||x.type==='date');if(!f.length)return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&(document.activeElement===first||document.activeElement===$('#cal-h'))){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  }
+});
 </script>
 </body>
 </html>
